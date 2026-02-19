@@ -68,7 +68,12 @@
   2. Navigation collapses to a mobile-friendly menu (hamburger or equivalent) and all interactive elements meet the 44x44px minimum touch target
   3. All new v1.1 UI surfaces display correct translations in both English and French, with no missing keys
   4. Password reset email arrives with correct subject and body in the recipient's configured language
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — Mobile navigation + DashboardPage responsive layout
+- [ ] 15-02-PLAN.md — WorkflowDetailPage + remaining pages responsive layout
+- [ ] 15-03-PLAN.md — i18n completion for all v1.1 surfaces and email templates
 
 ## Progress
 
@@ -77,4 +82,4 @@
 | 1-12 | v1.0 | — | Complete | 2026-02-20 |
 | 13. Foundation | v1.1 | 0/TBD | Not started | - |
 | 14. Social Features | v1.1 | 0/TBD | Not started | - |
-| 15. Polish Completion | v1.1 | 0/TBD | Not started | - |
+| 15. Polish Completion | v1.1 | 0/3 | Planned | - |
