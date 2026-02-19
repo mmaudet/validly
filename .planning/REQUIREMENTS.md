@@ -58,8 +58,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Workflow Templates
 
-- [ ] **TMPL-01**: User can create workflow templates defining phases, steps, validators, and quorum rules
-- [ ] **TMPL-02**: Templates are created via a structured form (not drag-and-drop)
+- [x] **TMPL-01**: User can create workflow templates defining phases, steps, validators, and quorum rules
+- [x] **TMPL-02**: Templates are created via a structured form (not drag-and-drop)
 - [ ] **TMPL-03**: Templates can be shared at organization level
 - [ ] **TMPL-04**: Launching a workflow from a template deep-copies the template structure
 
@@ -153,8 +153,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUDIT-01 | Phase 2 | Complete |
 | AUDIT-02 | Phase 11 | Complete |
 | AUDIT-03 | Phase 6 | Complete |
-| TMPL-01 | Phase 12 | Pending |
-| TMPL-02 | Phase 12 | Pending |
+| TMPL-01 | Phase 12 | Complete |
+| TMPL-02 | Phase 12 | Complete |
 | TMPL-03 | Phase 7 | Complete |
 | TMPL-04 | Phase 7 | Complete |
 | INFRA-01 | Phase 1 | Complete |
