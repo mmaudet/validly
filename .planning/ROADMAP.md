@@ -155,7 +155,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 **Plans:** 5 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Backend: Schema migration (3-role RBAC) + BullMQ reminder pipeline + initiator email notifications
+- [x] 10-01-PLAN.md — Backend: Schema migration (3-role RBAC) + BullMQ reminder pipeline + initiator email notifications
 - [x] 10-02-PLAN.md — Backend: Workflow cancel/notify endpoints + action token info + admin user CRUD API
 - [ ] 10-03-PLAN.md — Frontend: Enriched action confirmation page + dashboard table/filters/badges
 - [ ] 10-04-PLAN.md — Frontend: Workflow detail stepper + step details + PDF preview + cancel/notify actions

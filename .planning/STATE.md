@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 10 of 10 (Améliorer gestion demandes et UX)
-Plan: 2 of 5 (10-02 complete — backend API: cancel, re-notify, token info, user CRUD)
+Plan: 2 of 5 (10-01 + 10-02 complete — backend foundation + API endpoints)
 Status: In Progress
-Last activity: 2026-02-19 — 10-02 backend API endpoints complete
+Last activity: 2026-02-19 — 10-01 backend foundation (RBAC migration, BullMQ reminders, initiator emails) complete
 
 Progress: [██░░░░░░░░] 20%
 
@@ -35,6 +35,7 @@ Progress: [██░░░░░░░░] 20%
 | 9-01 | Workflow Creation UI — Wizard Scaffold + Doc Upload | 1ff9c33 |
 | 9-02 | Workflow Creation UI — Dynamic Circuit Builder | da21662 |
 | 9-03 | Workflow Creation UI — Review, Launch, Template Loading | 61137e3 |
+| 10-01 | Backend foundation: RBAC migration, BullMQ reminders, initiator emails | c556ac5 |
 | 10-02 | Backend API: cancel/re-notify/token-info/user-CRUD | c87daf7 |
 
 ## Accumulated Context
@@ -55,6 +56,10 @@ Progress: [██░░░░░░░░] 20%
 - TemplatePicker uses enabled: isOpen for lazy fetch — no API call until dropdown opened
 - executionMode (form field) renamed to execution only in API payload builder — form type unchanged
 - Launch mutation uploads files in parallel (Promise.all) then POSTs workflow with collected IDs
+- UserRole migrated from USER/ADMIN to ADMIN/INITIATEUR/VALIDATEUR using PostgreSQL enum recreation pattern
+- BullMQ reminder jobs use jobId `reminder-{stepId}` for idempotent scheduling
+- IORedis imported as named `{ Redis }` export for ESM compatibility
+- Initiator completion detection: workflowAdvanced (approval) or stepCompleted + no activatedStep (refusal)
 - GET /users accessible to all authenticated users (not admin-only) — needed for validator picker
 - Prisma UserRole enum (ADMIN/INITIATEUR/VALIDATEUR) used directly for type safety in user CRUD
 - tokenService.validateToken() includes initiator for token info endpoint — avoids extra DB query
@@ -75,5 +80,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 10-02-PLAN.md (backend API — cancel/re-notify/token-info/user-CRUD)
+Stopped at: Completed 10-01-PLAN.md (backend foundation — RBAC, BullMQ reminders, initiator emails)
 Resume file: None
