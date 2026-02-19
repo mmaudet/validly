@@ -26,13 +26,13 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Workflow Engine
 
 - [ ] **WF-01**: User can launch a workflow by attaching documents and selecting a circuit (phases with steps)
-- [ ] **WF-02**: Workflow engine supports sequential phases containing sequential or parallel steps
+- [x] **WF-02**: Workflow engine supports sequential phases containing sequential or parallel steps
 - [ ] **WF-03**: Each step has configurable quorum rules: unanimity, majority, or any-of
 - [ ] **WF-04**: Validators can approve or refuse with a mandatory comment, immutably timestamped
 - [ ] **WF-05**: Refusal sends the workflow back to the previous step with notification and refusal comment
 - [ ] **WF-06**: Each step can have an optional deadline
 - [ ] **WF-07**: Workflow state machine enforces valid transitions only (explicit transition guards)
-- [ ] **WF-08**: Workflow instances are deep-copied from templates at launch (template changes don't affect running workflows)
+- [x] **WF-08**: Workflow instances are deep-copied from templates at launch (template changes don't affect running workflows)
 
 ### Email Action Channel
 
@@ -41,7 +41,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **EMAIL-03**: Token is CSPRNG-generated, hash-stored, scoped to step+action+validator, single-use, time-limited
 - [ ] **EMAIL-04**: Expired or already-used token shows a clear error page with guidance
 - [ ] **EMAIL-05**: Automated reminder emails are sent before step deadline expires
-- [ ] **EMAIL-06**: Email templates are localized (EN + FR)
+- [x] **EMAIL-06**: Email templates are localized (EN + FR)
 
 ### Dashboard
 
@@ -53,7 +53,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Audit & Compliance
 
 - [ ] **AUDIT-01**: All workflow actions are logged in an immutable, append-only audit trail (actor identity + timestamp)
-- [ ] **AUDIT-02**: Audit trail table enforces INSERT-only at database level (no UPDATE or DELETE)
+- [x] **AUDIT-02**: Audit trail table enforces INSERT-only at database level (no UPDATE or DELETE)
 - [ ] **AUDIT-03**: User can export audit trail to CSV
 
 ### Workflow Templates
@@ -69,7 +69,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **INFRA-02**: REST API is documented via auto-generated OpenAPI/Swagger spec
 - [ ] **INFRA-03**: Swagger UI is served by the backend
 - [ ] **INFRA-04**: UI is fully localized in English and French
-- [ ] **INFRA-05**: Email templates are fully localized in English and French
+- [x] **INFRA-05**: Email templates are fully localized in English and French
 - [ ] **INFRA-06**: i18n is scaffolded from project start (no hardcoded user-facing strings)
 
 ## v2 Requirements
@@ -133,25 +133,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOC-04 | Phase 3 | Complete |
 | DOC-05 | Phase 3 | Complete |
 | WF-01 | Phase 4 | Complete |
-| WF-02 | Phase 11 | Pending |
+| WF-02 | Phase 11 | Complete |
 | WF-03 | Phase 4 | Complete |
 | WF-04 | Phase 4 | Complete |
 | WF-05 | Phase 4 | Complete |
 | WF-06 | Phase 4 | Complete |
 | WF-07 | Phase 4 | Complete |
-| WF-08 | Phase 11 | Pending |
+| WF-08 | Phase 11 | Complete |
 | EMAIL-01 | Phase 5 | Complete |
 | EMAIL-02 | Phase 5 | Complete |
 | EMAIL-03 | Phase 5 | Complete |
 | EMAIL-04 | Phase 5 | Complete |
 | EMAIL-05 | Phase 5 | Complete |
-| EMAIL-06 | Phase 11 | Pending |
+| EMAIL-06 | Phase 11 | Complete |
 | DASH-01 | Phase 6 | Complete |
 | DASH-02 | Phase 6 | Complete |
 | DASH-03 | Phase 6 | Complete |
 | DASH-04 | Phase 6 | Complete |
 | AUDIT-01 | Phase 2 | Complete |
-| AUDIT-02 | Phase 11 | Pending |
+| AUDIT-02 | Phase 11 | Complete |
 | AUDIT-03 | Phase 6 | Complete |
 | TMPL-01 | Phase 12 | Pending |
 | TMPL-02 | Phase 12 | Pending |
@@ -161,7 +161,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
 | INFRA-04 | Phase 8 | Complete |
-| INFRA-05 | Phase 11 | Pending |
+| INFRA-05 | Phase 11 | Complete |
 | INFRA-06 | Phase 1 | Complete |
 
 **Coverage:**
