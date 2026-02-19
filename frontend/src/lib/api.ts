@@ -53,7 +53,7 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    if (!(options?.body instanceof FormData)) {
+    if (options?.body != null && !(options.body instanceof FormData)) {
       headers['Content-Type'] = 'application/json';
     }
 
