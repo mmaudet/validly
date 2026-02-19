@@ -193,7 +193,7 @@ Plans:
   2. A user can edit an existing template
   3. A user can delete a template
   4. Templates are accessible from the dashboard
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 12-01-PLAN.md — TemplateFormPage (create + edit) with routes and i18n keys

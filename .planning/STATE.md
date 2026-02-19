@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** Any validator can approve or refuse a document directly from their email, without ever logging into the platform — making validation as frictionless as possible while maintaining a complete audit trail.
-**Current focus:** Phase 10 — Améliorer gestion demandes et UX
+**Current focus:** Phase 12 — Template Management UI
 
 ## Current Position
 
-Phase: 10 of 10 (Améliorer gestion demandes et UX)
-Plan: 5 of 5 (10-01 through 10-05 complete — Task 2 checkpoint pending human verification)
-Status: Checkpoint Pending
-Last activity: 2026-02-19 — 10-05 AdminUsersPage frontend complete, awaiting end-to-end human verification
+Phase: 12 of 12 (Template Management UI)
+Plan: 1 of 2 complete (12-01 done, 12-02 pending)
+Status: In Progress
+Last activity: 2026-02-19 — 12-01 TemplateFormPage created with routes and i18n keys
 
-Progress: [██████████] 95% (checkpoint pending)
+Progress: [████████████] 50% (phase 12, plan 1 of 2)
 
 ## Performance Metrics
 
@@ -40,6 +40,7 @@ Progress: [██████████] 95% (checkpoint pending)
 | 10-03 | Frontend: ActionConfirmPage enriched with workflow summary | b52e54d |
 | 10-04 | Frontend: WorkflowStepper, StepDetail, DocumentPreview + react-pdf, cancel/notify | f64789a |
 | 10-05 | Frontend: AdminUsersPage, ConfirmDialog, nav link (checkpoint pending) | ea9f5f4 |
+| 12-01 | Template Management UI — TemplateFormPage, routes, i18n (EN+FR) | 539ab44 |
 
 ## Accumulated Context
 
@@ -74,6 +75,7 @@ Progress: [██████████] 95% (checkpoint pending)
 - ActionConfirmPage uses useQuery with enabled:!!token to fetch workflow summary before form — token error displayed inline
 - DashboardPage filter state in Filters interface with DEFAULT_FILTERS const reset on tab switch
 - Status i18n uses status.* namespace (not workflow.*) for dashboard filter label consistency
+- Template type field renamed from executionMode to execution in TemplatePicker (phase 11-02) — templateToForm reads step.execution, buildTemplatePayload still renames executionMode->execution for API payload
 
 ### Roadmap Evolution
 
@@ -91,5 +93,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: 10-05-PLAN.md Task 2 checkpoint — awaiting human end-to-end verification of all phase 10 features
+Stopped at: Completed 12-01-PLAN.md — TemplateFormPage, routes, i18n ready; 12-02 (TemplateListPage) is next
 Resume file: None
