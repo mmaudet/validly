@@ -111,7 +111,7 @@ function templateStructureToForm(template: Template): WorkflowForm['structure'] 
       name: phase.name,
       steps: phase.steps.map((step) => ({
         name: step.name,
-        executionMode: step.executionMode,
+        executionMode: step.execution,
         quorumRule: step.quorumRule,
         quorumCount: step.quorumCount ?? null,
         validatorEmails: step.validatorEmails.map((email) => ({ email })),
@@ -252,7 +252,7 @@ export function WorkflowCreatePage() {
                   }`}
                 />
                 {errors.title && (
-                  <p className="mt-1 text-xs text-red-600">{t('common.error')}</p>
+                  <p className="mt-1 text-xs text-red-600">{t('wizard.title_required')}</p>
                 )}
               </div>
               {/* Template picker — shown on circuit step */}
@@ -373,9 +373,23 @@ function DocumentUploadStep({
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  const ALLOWED_TYPES = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.oasis.opendocument.text',
+    'application/vnd.oasis.opendocument.spreadsheet',
+    'application/vnd.oasis.opendocument.presentation',
+    'image/png',
+    'image/jpeg',
+    'image/gif',
+    'image/webp',
+  ];
+
   const addFiles = (incoming: FileList | null) => {
     if (!incoming) return;
-    const newFiles = Array.from(incoming);
+    const newFiles = Array.from(incoming).filter((f) => ALLOWED_TYPES.includes(f.type));
     setFiles((prev) => {
       const existing = new Set(prev.map((f) => `${f.name}:${f.size}`));
       const unique = newFiles.filter((f) => !existing.has(`${f.name}:${f.size}`));
@@ -448,10 +462,12 @@ function DocumentUploadStep({
           />
         </svg>
         <p className="text-sm text-gray-500">{t('wizard.upload_drop')}</p>
+        <p className="mt-1 text-xs text-gray-400">{t('wizard.upload_formats')}</p>
         <input
           ref={inputRef}
           type="file"
           multiple
+          accept=".pdf,.docx,.xlsx,.pptx,.odt,.ods,.odp,.png,.jpg,.jpeg,.gif,.webp"
           className="hidden"
           onChange={handleInputChange}
         />

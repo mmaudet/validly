@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../../lib/api';
 
@@ -13,7 +14,7 @@ export interface Template {
       name: string;
       steps: Array<{
         name: string;
-        executionMode: 'SEQUENTIAL' | 'PARALLEL';
+        execution: 'SEQUENTIAL' | 'PARALLEL';
         quorumRule: 'UNANIMITY' | 'MAJORITY' | 'ANY_OF';
         quorumCount?: number | null;
         validatorEmails: string[];
@@ -41,6 +42,7 @@ interface TemplatePickerProps {
 // overwritten).
 
 export function TemplatePicker({ onSelect }: TemplatePickerProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   const { data, isPending, isError } = useQuery<TemplateListResponse>({
@@ -76,7 +78,7 @@ export function TemplatePicker({ onSelect }: TemplatePickerProps) {
             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
           />
         </svg>
-        Load template
+        {t('wizard.load_template')}
         <svg
           className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
@@ -100,19 +102,19 @@ export function TemplatePicker({ onSelect }: TemplatePickerProps) {
           <div className="absolute left-0 top-full z-20 mt-1 w-72 rounded-lg border border-gray-200 bg-white shadow-lg">
             {isPending && (
               <div className="px-4 py-6 text-center text-sm text-gray-400">
-                Loading templates…
+                {t('wizard.loading_templates')}
               </div>
             )}
 
             {isError && (
               <div className="px-4 py-6 text-center text-sm text-red-500">
-                Failed to load templates.
+                {t('wizard.templates_error')}
               </div>
             )}
 
             {!isPending && !isError && templates.length === 0 && (
               <div className="px-4 py-6 text-center text-sm text-gray-400">
-                No saved templates yet.
+                {t('wizard.no_templates')}
               </div>
             )}
 
