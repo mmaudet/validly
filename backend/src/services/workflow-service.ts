@@ -2,6 +2,9 @@ import { prisma } from '../infrastructure/database.js';
 import { stateMachine, InvalidTransitionError, AlreadyDecidedError } from '../domain/state-machine.js';
 import type { WorkflowStructure, ActionType } from '../domain/workflow-types.js';
 import { t } from '../i18n/index.js';
+import { tokenService } from './token-service.js';
+import { emailService } from './email-service.js';
+import { env } from '../config/env.js';
 
 export class WorkflowError extends Error {
   constructor(public statusCode: number, message: string) {
@@ -24,6 +27,36 @@ export interface ActionInput {
   actorId?: string;
   action: ActionType;
   comment: string;
+}
+
+async function notifyValidators(
+  stepId: string,
+  validatorEmails: string[],
+  context: {
+    workflowTitle: string;
+    documentTitle: string;
+    stepName: string;
+    initiatorName: string;
+  }
+) {
+  try {
+    const tokens = await tokenService.createTokensForStep(stepId, validatorEmails);
+    for (const email of validatorEmails) {
+      const { approveToken, refuseToken } = tokens[email];
+      await emailService.sendPendingAction({
+        to: email,
+        locale: 'fr',
+        workflowTitle: context.workflowTitle,
+        documentTitle: context.documentTitle,
+        stepName: context.stepName,
+        initiatorName: context.initiatorName,
+        approveUrl: `${env.API_URL}/api/actions/${approveToken}`,
+        refuseUrl: `${env.API_URL}/api/actions/${refuseToken}`,
+      });
+    }
+  } catch (err) {
+    console.error('Failed to send validator notifications:', err);
+  }
 }
 
 export const workflowService = {
@@ -107,7 +140,21 @@ export const workflowService = {
       return wf;
     });
 
-    return this.getById(workflow.id);
+    const result = await this.getById(workflow.id);
+
+    // Send email notifications to first step validators (after transaction commit)
+    const firstPhase = result.phases[0];
+    const firstStep = firstPhase?.steps[0];
+    if (firstStep && firstStep.status === 'IN_PROGRESS') {
+      await notifyValidators(firstStep.id, firstStep.validatorEmails, {
+        workflowTitle: result.title,
+        documentTitle: result.documents[0]?.document?.title ?? result.title,
+        stepName: firstStep.name,
+        initiatorName: result.initiator.name,
+      });
+    }
+
+    return result;
   },
 
   /**
@@ -194,6 +241,7 @@ export const workflowService = {
       let stepCompleted = false;
       let phaseAdvanced = false;
       let workflowAdvanced = false;
+      let activatedStep: { id: string; name: string; validatorEmails: string[] } | null = null;
 
       if (newStepStatus !== 'IN_PROGRESS') {
         // Step has reached a decision
@@ -206,13 +254,14 @@ export const workflowService = {
 
         if (newStepStatus === 'REFUSED') {
           // Refusal routing: go back to previous step/phase
-          await this.handleRefusal(tx, workflow.id, phase, step);
+          activatedStep = await this.handleRefusal(tx, workflow.id, phase, step);
           phaseAdvanced = true;
         } else if (newStepStatus === 'APPROVED') {
           // Try to advance to next step or phase
           const advanced = await this.tryAdvance(tx, workflow.id, phase);
           phaseAdvanced = advanced.phaseAdvanced;
           workflowAdvanced = advanced.workflowAdvanced;
+          activatedStep = advanced.activatedStep;
         }
       }
 
@@ -228,8 +277,27 @@ export const workflowService = {
         },
       });
 
-      return { stepCompleted, phaseAdvanced, workflowAdvanced, newStepStatus };
+      return { stepCompleted, phaseAdvanced, workflowAdvanced, newStepStatus, activatedStep };
     });
+
+    // Send email notifications to newly activated step validators (after transaction commit)
+    if (result.activatedStep) {
+      const wf = await prisma.workflowInstance.findUnique({
+        where: { id: workflow.id },
+        include: {
+          initiator: { select: { name: true } },
+          documents: { include: { document: { select: { title: true } } } },
+        },
+      });
+      if (wf) {
+        await notifyValidators(result.activatedStep.id, result.activatedStep.validatorEmails, {
+          workflowTitle: wf.title,
+          documentTitle: wf.documents[0]?.document.title ?? wf.title,
+          stepName: result.activatedStep.name,
+          initiatorName: wf.initiator.name,
+        });
+      }
+    }
 
     return result;
   },
@@ -252,8 +320,10 @@ export const workflowService = {
         where: { id: workflowId },
         data: { status: 'REFUSED' },
       });
-      return;
+      return null;
     }
+
+    let activatedStep: { id: string; name: string; validatorEmails: string[] } | null = null;
 
     // Reactivate previous phase
     const prevPhase = await tx.phaseInstance.findFirst({
@@ -282,6 +352,8 @@ export const workflowService = {
         await tx.workflowAction.deleteMany({
           where: { stepId: lastStep.id },
         });
+
+        activatedStep = { id: lastStep.id, name: lastStep.name, validatorEmails: lastStep.validatorEmails };
       }
 
       await tx.workflowInstance.update({
@@ -289,6 +361,8 @@ export const workflowService = {
         data: { currentPhase: prevPhaseIndex },
       });
     }
+
+    return activatedStep;
   },
 
   /**
@@ -297,6 +371,7 @@ export const workflowService = {
   async tryAdvance(tx: any, workflowId: string, currentPhase: any) {
     let phaseAdvanced = false;
     let workflowAdvanced = false;
+    let activatedStep: { id: string; name: string; validatorEmails: string[] } | null = null;
 
     // Check all steps in current phase
     const steps = await tx.stepInstance.findMany({
@@ -337,6 +412,7 @@ export const workflowService = {
             where: { id: firstStep.id },
             data: { status: 'IN_PROGRESS' },
           });
+          activatedStep = { id: firstStep.id, name: firstStep.name, validatorEmails: firstStep.validatorEmails };
         }
 
         await tx.workflowInstance.update({
@@ -359,10 +435,11 @@ export const workflowService = {
           where: { id: nextStep.id },
           data: { status: 'IN_PROGRESS' },
         });
+        activatedStep = { id: nextStep.id, name: nextStep.name, validatorEmails: nextStep.validatorEmails };
       }
     }
 
-    return { phaseAdvanced, workflowAdvanced };
+    return { phaseAdvanced, workflowAdvanced, activatedStep };
   },
 
   async getById(id: string) {

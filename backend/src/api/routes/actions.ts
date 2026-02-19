@@ -21,7 +21,7 @@ export async function actionRoutes(app: FastifyInstance) {
     },
   }, async (req, reply) => {
     const { token } = req.params as any;
-    const result = await tokenService.resolveToken(token);
+    const result = await tokenService.validateToken(token);
 
     if (!result.valid) {
       // Redirect to frontend error page
@@ -30,12 +30,12 @@ export async function actionRoutes(app: FastifyInstance) {
         : result.reason === 'expired'
           ? `${env.APP_URL}/action/expired`
           : `${env.APP_URL}/action/invalid`;
-      return reply.redirect(302, errorPage);
+      return reply.redirect(errorPage);
     }
 
     // Redirect to frontend action page with context
-    const actionPage = `${env.APP_URL}/action/confirm?step=${result.stepId}&email=${encodeURIComponent(result.validatorEmail)}&action=${result.action}&token=${token}`;
-    return reply.redirect(302, actionPage);
+    const actionPage = `${env.APP_URL}/action/confirm?step=${result.stepId}&email=${encodeURIComponent(result.validatorEmail!)}&action=${result.action}&token=${token}`;
+    return reply.redirect(actionPage);
   });
 
   /**

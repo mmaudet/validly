@@ -30,6 +30,55 @@ export const tokenService = {
   },
 
   /**
+   * Validate a token without consuming it. Used by GET redirect.
+   */
+  async validateToken(rawToken: string) {
+    const tokenHash = hashToken(rawToken);
+
+    const token = await prisma.actionToken.findUnique({
+      where: { tokenHash },
+      include: {
+        step: {
+          include: {
+            phase: {
+              include: {
+                workflow: {
+                  include: {
+                    documents: { include: { document: { select: { id: true, title: true } } } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!token) {
+      return { valid: false, reason: 'not_found' as const };
+    }
+
+    if (token.usedAt) {
+      return { valid: false, reason: 'already_used' as const, token };
+    }
+
+    if (token.expiresAt < new Date()) {
+      return { valid: false, reason: 'expired' as const, token };
+    }
+
+    return {
+      valid: true,
+      reason: 'ok' as const,
+      token,
+      stepId: token.stepId,
+      validatorEmail: token.validatorEmail,
+      action: token.action as 'APPROVE' | 'REFUSE',
+      workflow: token.step.phase.workflow,
+      step: token.step,
+    };
+  },
+
+  /**
    * Resolve a token: validate it's not expired/used, mark as used, return context.
    * Single-use enforcement: token is marked used atomically.
    */
