@@ -71,6 +71,9 @@ Progress: [██████████] 95% (checkpoint pending)
 - ConfirmDialog created as standalone reusable component in components/ui/ (used by AdminUsersPage and WorkflowDetailPage)
 - AdminUsersPage has inline role guard: user.role !== 'ADMIN' → navigate('/') redirect
 - Role badges: ADMIN=purple, INITIATEUR=blue, VALIDATEUR=green
+- ActionConfirmPage uses useQuery with enabled:!!token to fetch workflow summary before form — token error displayed inline
+- DashboardPage filter state in Filters interface with DEFAULT_FILTERS const reset on tab switch
+- Status i18n uses status.* namespace (not workflow.*) for dashboard filter label consistency
 
 ### Roadmap Evolution
 
