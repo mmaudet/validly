@@ -541,11 +541,24 @@ export const workflowService = {
     return workflow;
   },
 
-  async listByInitiator(initiatorId: string, page = 1, limit = 20) {
+  async listByInitiator(
+    initiatorId: string,
+    page = 1,
+    limit = 20,
+    options?: { status?: string; includeArchived?: boolean },
+  ) {
     const skip = (page - 1) * limit;
+    const where: any = { initiatorId };
+
+    if (options?.status) {
+      where.status = options.status;
+    } else if (!options?.includeArchived) {
+      where.status = { not: 'ARCHIVED' };
+    }
+
     const [workflows, total] = await Promise.all([
       prisma.workflowInstance.findMany({
-        where: { initiatorId },
+        where,
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
@@ -557,7 +570,7 @@ export const workflowService = {
           },
         },
       }),
-      prisma.workflowInstance.count({ where: { initiatorId } }),
+      prisma.workflowInstance.count({ where }),
     ]);
     return { workflows, total, page, limit, totalPages: Math.ceil(total / limit) };
   },
@@ -688,21 +701,122 @@ export const workflowService = {
       throw new WorkflowError(409, 'All validators have acted');
     }
 
-    await notifyValidators(activeStep.id, pendingEmails, {
-      workflowTitle: workflow.title,
-      documentTitle: workflow.documents[0]?.document?.title ?? workflow.title,
-      stepName: activeStep.name,
-      initiatorName: workflow.initiator.name,
+    // Use distinct reminder template (not the initial notification)
+    try {
+      const tokens = await tokenService.createTokensForStep(activeStep.id, pendingEmails);
+      const docTitle = workflow.documents[0]?.document?.title ?? workflow.title;
+      for (const email of pendingEmails) {
+        const { approveToken, refuseToken } = tokens[email];
+        await emailService.sendManualReminder({
+          to: email,
+          locale: 'fr',
+          workflowTitle: workflow.title,
+          documentTitle: docTitle,
+          stepName: activeStep.name,
+          initiatorName: workflow.initiator.name,
+          approveUrl: `${env.API_URL}/api/actions/${approveToken}`,
+          refuseUrl: `${env.API_URL}/api/actions/${refuseToken}`,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to send manual reminders:', err);
+    }
+  },
+
+  /**
+   * Archive a terminal workflow (initiator only).
+   */
+  async archive(workflowId: string, initiatorId: string) {
+    const workflow = await prisma.workflowInstance.findUnique({
+      where: { id: workflowId },
+      include: { initiator: { select: { id: true, email: true } } },
+    });
+
+    if (!workflow) throw new WorkflowError(404, t('workflow.not_found'));
+    if (workflow.initiatorId !== initiatorId) {
+      throw new WorkflowError(403, 'Only the initiator can archive this workflow');
+    }
+
+    const terminalStatuses = ['APPROVED', 'REFUSED', 'CANCELLED'];
+    if (!terminalStatuses.includes(workflow.status)) {
+      throw new WorkflowError(409, 'Only terminal workflows can be archived');
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.workflowInstance.update({
+        where: { id: workflowId },
+        data: { status: 'ARCHIVED' },
+      });
+
+      await tx.auditEvent.create({
+        data: {
+          action: 'WORKFLOW_ARCHIVED',
+          entityType: 'workflow',
+          entityId: workflowId,
+          actorId: initiatorId,
+          actorEmail: workflow.initiator.email,
+          metadata: { workflowId },
+        },
+      });
+    });
+  },
+
+  /**
+   * Archive multiple terminal workflows at once (initiator only).
+   */
+  async archiveBulk(workflowIds: string[], initiatorId: string) {
+    const user = await prisma.user.findUnique({ where: { id: initiatorId } });
+    if (!user) throw new WorkflowError(404, 'User not found');
+
+    const workflows = await prisma.workflowInstance.findMany({
+      where: { id: { in: workflowIds } },
+    });
+
+    const terminalStatuses = ['APPROVED', 'REFUSED', 'CANCELLED'];
+    for (const wf of workflows) {
+      if (wf.initiatorId !== initiatorId) {
+        throw new WorkflowError(403, `Workflow ${wf.id} does not belong to you`);
+      }
+      if (!terminalStatuses.includes(wf.status)) {
+        throw new WorkflowError(409, `Workflow ${wf.id} is not in a terminal state`);
+      }
+    }
+
+    if (workflows.length !== workflowIds.length) {
+      throw new WorkflowError(404, 'One or more workflows not found');
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.workflowInstance.updateMany({
+        where: { id: { in: workflowIds } },
+        data: { status: 'ARCHIVED' },
+      });
+
+      for (const wf of workflows) {
+        await tx.auditEvent.create({
+          data: {
+            action: 'WORKFLOW_ARCHIVED',
+            entityType: 'workflow',
+            entityId: wf.id,
+            actorId: initiatorId,
+            actorEmail: user.email,
+            metadata: { workflowId: wf.id },
+          },
+        });
+      }
     });
   },
 
   async listPendingForValidator(email: string, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
+    const whereClause = {
+      status: 'IN_PROGRESS' as const,
+      validatorEmails: { has: email },
+      phase: { is: { workflow: { is: { status: 'IN_PROGRESS' as const } } } },
+    };
+
     const steps = await prisma.stepInstance.findMany({
-      where: {
-        status: 'IN_PROGRESS',
-        validatorEmails: { has: email },
-      },
+      where: whereClause,
       orderBy: { createdAt: 'asc' },
       skip,
       take: limit,
@@ -724,14 +838,11 @@ export const workflowService = {
     });
 
     const total = await prisma.stepInstance.count({
-      where: {
-        status: 'IN_PROGRESS',
-        validatorEmails: { has: email },
-      },
+      where: whereClause,
     });
 
     // Filter out steps where this validator has already acted
-    const pending = steps.filter(s => s.actions.length === 0);
+    const pending = steps.filter((s: any) => s.actions.length === 0);
 
     return { steps: pending, total: pending.length, page, limit, totalPages: Math.ceil(pending.length / limit) };
   },

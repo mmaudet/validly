@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router';
-import { apiFetch } from '../lib/api';
+import { useForm } from 'react-hook-form';
+import { apiFetch, ApiError } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 
 interface WorkflowSummary {
@@ -34,7 +35,7 @@ interface PendingStep {
   };
 }
 
-type Tab = 'submissions' | 'pending';
+type Tab = 'submissions' | 'pending' | 'users';
 type SortField = 'title' | 'date';
 type SortDir = 'asc' | 'desc';
 
@@ -59,9 +60,12 @@ const STATUS_BADGE_COLORS: Record<string, string> = {
   APPROVED: 'bg-green-100 text-green-800',
   REFUSED: 'bg-red-100 text-red-800',
   CANCELLED: 'bg-orange-100 text-orange-800',
+  ARCHIVED: 'bg-gray-200 text-gray-500',
   DRAFT: 'bg-gray-100 text-gray-600',
   PENDING: 'bg-gray-100 text-gray-600',
 };
+
+const TERMINAL_STATUSES = ['APPROVED', 'REFUSED', 'CANCELLED'];
 
 function StatusBadge({ status }: { status: string }) {
   const { t } = useTranslation();
@@ -107,9 +111,20 @@ export function DashboardPage() {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<{ field: SortField; dir: SortDir }>({ field: 'date', dir: 'desc' });
 
+  const isAdmin = user?.role === 'ADMIN';
+
   const submissionsQuery = useQuery({
-    queryKey: ['workflows', 'mine'],
-    queryFn: () => apiFetch<{ workflows: WorkflowSummary[]; total: number }>('/workflows'),
+    queryKey: ['workflows', 'mine', filters.status],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (filters.status === 'ARCHIVED') {
+        params.set('status', 'ARCHIVED');
+      } else if (filters.status) {
+        params.set('status', filters.status);
+      }
+      const qs = params.toString();
+      return apiFetch<{ workflows: WorkflowSummary[]; total: number }>(`/workflows${qs ? `?${qs}` : ''}`);
+    },
   });
 
   const pendingQuery = useQuery({
@@ -207,14 +222,6 @@ export function DashboardPage() {
             >
               {i18n.language === 'fr' ? 'EN' : 'FR'}
             </button>
-            {user?.role === 'ADMIN' && (
-              <Link
-                to="/admin/users"
-                className="text-sm text-gray-600 hover:text-gray-900"
-              >
-                {t('nav.users')}
-              </Link>
-            )}
             <span className="text-sm text-gray-600">{user?.email}</span>
             <button
               onClick={handleLogout}
@@ -266,6 +273,21 @@ export function DashboardPage() {
                 </span>
               )}
             </button>
+            {isAdmin && (
+              <button
+                onClick={() => handleTabChange('users')}
+                className={`relative flex items-center gap-2 px-6 py-3 text-sm font-medium transition border-b-2 -mb-px ${
+                  tab === 'users'
+                    ? 'border-purple-600 text-purple-700 bg-purple-50'
+                    : 'border-transparent text-purple-600 bg-purple-50/50 hover:bg-purple-50 hover:border-purple-300'
+                }`}
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                </svg>
+                {t('nav.users')}
+              </button>
+            )}
           </div>
         </div>
 
@@ -279,6 +301,7 @@ export function DashboardPage() {
             onFilterChange={(key, value) => setFilters((prev) => ({ ...prev, [key]: value }))}
             onClearFilters={() => setFilters(DEFAULT_FILTERS)}
             onSort={handleSort}
+            showArchived={filters.status === 'ARCHIVED'}
           />
         )}
 
@@ -292,10 +315,15 @@ export function DashboardPage() {
             onClearFilters={() => setFilters(DEFAULT_FILTERS)}
           />
         )}
+
+        {/* Users tab (admin only) */}
+        {tab === 'users' && isAdmin && <UsersTab />}
       </main>
     </div>
   );
 }
+
+/* ─── Filter Bar ─── */
 
 function FilterBar({
   showStatus,
@@ -333,6 +361,7 @@ function FilterBar({
           <option value="APPROVED">{t('status.approved')}</option>
           <option value="REFUSED">{t('status.refused')}</option>
           <option value="CANCELLED">{t('status.cancelled')}</option>
+          <option value="ARCHIVED">{t('status.archived')}</option>
           <option value="DRAFT">{t('status.draft')}</option>
         </select>
       )}
@@ -376,6 +405,8 @@ function FilterBar({
   );
 }
 
+/* ─── Submissions Tab ─── */
+
 function SubmissionsTab({
   workflows,
   isLoading,
@@ -384,6 +415,7 @@ function SubmissionsTab({
   onFilterChange,
   onClearFilters,
   onSort,
+  showArchived,
 }: {
   workflows: WorkflowSummary[];
   isLoading: boolean;
@@ -392,8 +424,58 @@ function SubmissionsTab({
   onFilterChange: (key: keyof Filters, value: string) => void;
   onClearFilters: () => void;
   onSort: (field: SortField) => void;
+  showArchived: boolean;
 }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const archiveMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<void>(`/workflows/${id}/archive`, { method: 'PATCH', body: '{}' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+    },
+  });
+
+  const archiveBulkMutation = useMutation({
+    mutationFn: (workflowIds: string[]) =>
+      apiFetch<void>('/workflows/archive-bulk', {
+        method: 'PATCH',
+        body: JSON.stringify({ workflowIds }),
+      }),
+    onSuccess: () => {
+      setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+    },
+  });
+
+  const archivableWorkflows = workflows.filter((wf) => TERMINAL_STATUSES.includes(wf.status));
+  const allArchivableSelected =
+    archivableWorkflows.length > 0 && archivableWorkflows.every((wf) => selectedIds.has(wf.id));
+
+  const toggleSelectAll = useCallback(() => {
+    if (allArchivableSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(archivableWorkflows.map((wf) => wf.id)));
+    }
+  }, [allArchivableSelected, archivableWorkflows]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const handleArchiveBulk = () => {
+    if (selectedIds.size > 0) {
+      archiveBulkMutation.mutate([...selectedIds]);
+    }
+  };
 
   return (
     <div>
@@ -403,6 +485,25 @@ function SubmissionsTab({
         onFilterChange={onFilterChange}
         onClearFilters={onClearFilters}
       />
+
+      {/* Bulk archive action bar */}
+      {selectedIds.size > 0 && (
+        <div className="mb-3 flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5">
+          <span className="text-sm font-medium text-blue-800">
+            {t('dashboard.selected_count', { count: selectedIds.size })}
+          </span>
+          <button
+            onClick={handleArchiveBulk}
+            disabled={archiveBulkMutation.isPending}
+            className="inline-flex items-center gap-1.5 rounded-md bg-gray-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700 disabled:opacity-60 transition"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+            </svg>
+            {t('dashboard.archive_selected')}
+          </button>
+        </div>
+      )}
 
       {isLoading ? (
         <p className="text-center text-gray-500 py-12">{t('common.loading')}</p>
@@ -415,6 +516,19 @@ function SubmissionsTab({
           <table className="w-full text-sm">
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
+                {!showArchived && (
+                  <th className="w-10 px-3 py-3">
+                    {archivableWorkflows.length > 0 && (
+                      <input
+                        type="checkbox"
+                        checked={allArchivableSelected}
+                        onChange={toggleSelectAll}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        title={t('dashboard.select_all')}
+                      />
+                    )}
+                  </th>
+                )}
                 <SortHeader label={t('dashboard.column_title')} field="title" sort={sort} onSort={onSort} />
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
                   {t('dashboard.column_status')}
@@ -423,6 +537,9 @@ function SubmissionsTab({
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
                   {t('dashboard.column_step')}
                 </th>
+                {!showArchived && (
+                  <th className="w-10 px-3 py-3" />
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -431,12 +548,25 @@ function SubmissionsTab({
                   .slice()
                   .sort((a, b) => a.order - b.order)
                   .find((p) => p.status === 'IN_PROGRESS');
+                const isTerminal = TERMINAL_STATUSES.includes(wf.status);
                 return (
                   <tr
                     key={wf.id}
                     onClick={() => window.location.href = `/workflows/${wf.id}`}
                     className="cursor-pointer hover:bg-gray-50 transition"
                   >
+                    {!showArchived && (
+                      <td className="w-10 px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                        {isTerminal && (
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(wf.id)}
+                            onChange={() => toggleSelect(wf.id)}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                        )}
+                      </td>
+                    )}
                     <td className="px-4 py-3 font-medium text-gray-900">{wf.title}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={wf.status} />
@@ -447,6 +577,22 @@ function SubmissionsTab({
                     <td className="px-4 py-3 text-gray-500">
                       {currentPhase?.name ?? '—'}
                     </td>
+                    {!showArchived && (
+                      <td className="w-10 px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                        {isTerminal && (
+                          <button
+                            onClick={() => archiveMutation.mutate(wf.id)}
+                            disabled={archiveMutation.isPending}
+                            className="text-gray-400 hover:text-gray-600 transition"
+                            title={t('dashboard.archive')}
+                          >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                            </svg>
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -457,6 +603,8 @@ function SubmissionsTab({
     </div>
   );
 }
+
+/* ─── Pending Tab ─── */
 
 function PendingTab({
   steps,
@@ -528,6 +676,390 @@ function PendingTab({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Users Tab (Admin only) ─── */
+
+type UserRole = 'ADMIN' | 'INITIATEUR' | 'VALIDATEUR';
+
+interface UserRecord {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  locale: string;
+  createdAt: string;
+}
+
+interface CreateUserForm {
+  email: string;
+  name: string;
+  password: string;
+  role: UserRole;
+  locale: string;
+}
+
+interface EditUserForm {
+  name: string;
+  role: UserRole;
+  locale: string;
+}
+
+const ROLE_BADGE_COLORS: Record<UserRole, string> = {
+  ADMIN: 'bg-purple-100 text-purple-800',
+  INITIATEUR: 'bg-blue-100 text-blue-800',
+  VALIDATEUR: 'bg-green-100 text-green-800',
+};
+
+function UsersTab() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+
+  const [showCreate, setShowCreate] = useState(false);
+  const [editUser, setEditUser] = useState<UserRecord | null>(null);
+  const [deleteUser, setDeleteUser] = useState<UserRecord | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const { data: usersData, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => apiFetch<UserRecord[]>('/users'),
+  });
+
+  const createForm = useForm<CreateUserForm>({
+    defaultValues: { email: '', name: '', password: '', role: 'INITIATEUR', locale: 'fr' },
+  });
+
+  const editForm = useForm<EditUserForm>({
+    defaultValues: { name: '', role: 'INITIATEUR', locale: 'fr' },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreateUserForm) =>
+      apiFetch<UserRecord>('/users', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setShowCreate(false);
+      setCreateError(null);
+      createForm.reset();
+    },
+    onError: (err: Error) => {
+      if (err instanceof ApiError && err.status === 409) {
+        setCreateError(t('admin.email_exists'));
+      } else {
+        setCreateError(err.message);
+      }
+    },
+  });
+
+  const editMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: EditUserForm }) =>
+      apiFetch<UserRecord>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setEditUser(null);
+      setEditError(null);
+    },
+    onError: (err: Error) => {
+      setEditError(err.message);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiFetch<void>(`/users/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setDeleteUser(null);
+      setDeleteError(null);
+    },
+    onError: (err: Error) => {
+      if (err instanceof ApiError && err.status === 409) {
+        setDeleteError(t('admin.last_admin_error'));
+      } else {
+        setDeleteError(err.message);
+      }
+      setDeleteUser(null);
+    },
+  });
+
+  const handleOpenEdit = (u: UserRecord) => {
+    setEditUser(u);
+    editForm.reset({ name: u.name, role: u.role, locale: u.locale });
+    setEditError(null);
+  };
+
+  const handleOpenCreate = () => {
+    setShowCreate(true);
+    setCreateError(null);
+    createForm.reset();
+  };
+
+  return (
+    <div>
+      {/* Header with create button */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-gray-500">{t('admin.users_title')}</p>
+        <button
+          onClick={handleOpenCreate}
+          className="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition"
+        >
+          {t('admin.create_user')}
+        </button>
+      </div>
+
+      {/* Error banner for delete errors */}
+      {deleteError && (
+        <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+          {deleteError}
+        </div>
+      )}
+
+      {/* Users table */}
+      {isLoading ? (
+        <div className="rounded-lg bg-white shadow overflow-hidden">
+          <div className="space-y-0">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 last:border-0 animate-pulse">
+                <div className="h-4 w-48 rounded bg-gray-200" />
+                <div className="h-4 w-40 rounded bg-gray-200" />
+                <div className="h-5 w-20 rounded-full bg-gray-200" />
+                <div className="ml-auto h-4 w-24 rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : !usersData || usersData.length === 0 ? (
+        <div className="rounded-lg bg-white p-12 text-center shadow">
+          <p className="text-gray-500">{t('admin.no_users')}</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-lg bg-white shadow">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  {t('admin.field_name')}
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  {t('admin.field_email')}
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  {t('admin.field_role')}
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  {t('dashboard.column_date')}
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {usersData.map((u) => (
+                <tr key={u.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 font-medium text-gray-900">{u.name}</td>
+                  <td className="px-4 py-3 text-gray-600">{u.email}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${ROLE_BADGE_COLORS[u.role]}`}>
+                      {t(`admin.role_${u.role.toLowerCase()}`)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500">
+                    {new Date(u.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => handleOpenEdit(u)}
+                        className="rounded px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
+                      >
+                        {t('common.edit')}
+                      </button>
+                      <button
+                        onClick={() => { setDeleteUser(u); setDeleteError(null); }}
+                        className="rounded px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                      >
+                        {t('common.delete')}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Create user modal */}
+      {showCreate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">{t('admin.create_user')}</h3>
+            <form
+              onSubmit={createForm.handleSubmit((data) => {
+                setCreateError(null);
+                createMutation.mutate(data);
+              })}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.field_email')}</label>
+                <input
+                  type="email"
+                  {...createForm.register('email', { required: true })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.field_name')}</label>
+                <input
+                  type="text"
+                  {...createForm.register('name', { required: true, minLength: 2 })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.field_password')}</label>
+                <input
+                  type="password"
+                  {...createForm.register('password', { required: true, minLength: 6 })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.field_role')}</label>
+                <select
+                  {...createForm.register('role', { required: true })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="ADMIN">{t('admin.role_admin')}</option>
+                  <option value="INITIATEUR">{t('admin.role_initiateur')}</option>
+                  <option value="VALIDATEUR">{t('admin.role_validateur')}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.field_locale')}</label>
+                <select
+                  {...createForm.register('locale')}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="fr">Français</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+              {createError && <p className="text-sm text-red-600">{createError}</p>}
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreate(false)}
+                  className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={createMutation.isPending}
+                  className="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-60"
+                >
+                  {createMutation.isPending ? t('common.loading') : t('admin.create_user')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit user modal */}
+      {editUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">{t('admin.edit_user')}</h3>
+            <form
+              onSubmit={editForm.handleSubmit((data) => {
+                if (!editUser) return;
+                setEditError(null);
+                editMutation.mutate({ id: editUser.id, data });
+              })}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.field_name')}</label>
+                <input
+                  type="text"
+                  {...editForm.register('name', { required: true, minLength: 2 })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.field_role')}</label>
+                <select
+                  {...editForm.register('role', { required: true })}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="ADMIN">{t('admin.role_admin')}</option>
+                  <option value="INITIATEUR">{t('admin.role_initiateur')}</option>
+                  <option value="VALIDATEUR">{t('admin.role_validateur')}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.field_locale')}</label>
+                <select
+                  {...editForm.register('locale')}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="fr">Français</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+              {editError && <p className="text-sm text-red-600">{editError}</p>}
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditUser(null)}
+                  className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={editMutation.isPending}
+                  className="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-60"
+                >
+                  {editMutation.isPending ? t('common.loading') : t('common.save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirm dialog */}
+      {deleteUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900">{t('admin.delete_confirm_title')}</h3>
+            <p className="mt-2 text-sm text-gray-600">{t('admin.delete_confirm_message')}</p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => { setDeleteUser(null); setDeleteError(null); }}
+                className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => { if (deleteUser) deleteMutation.mutate(deleteUser.id); }}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+              >
+                {t('common.delete')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

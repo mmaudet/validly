@@ -80,6 +80,8 @@ export async function workflowRoutes(app: FastifyInstance) {
         properties: {
           page: { type: 'number', default: 1 },
           limit: { type: 'number', default: 20 },
+          status: { type: 'string' },
+          includeArchived: { type: 'boolean', default: false },
         },
       },
     },
@@ -87,7 +89,10 @@ export async function workflowRoutes(app: FastifyInstance) {
   }, async (req) => {
     const user = req.user as JwtPayload;
     const query = req.query as any;
-    return workflowService.listByInitiator(user.sub, query.page, query.limit);
+    return workflowService.listByInitiator(user.sub, query.page, query.limit, {
+      status: query.status,
+      includeArchived: query.includeArchived,
+    });
   });
 
   app.get('/workflows/pending', {
@@ -152,6 +157,60 @@ export async function workflowRoutes(app: FastifyInstance) {
       const user = req.user as JwtPayload;
       await workflowService.cancel(id, user.sub);
       return reply.status(200).send({ message: 'Workflow cancelled' });
+    } catch (err) {
+      if (err instanceof WorkflowError) {
+        return reply.status(err.statusCode).send({ message: err.message });
+      }
+      throw err;
+    }
+  });
+
+  app.patch('/workflows/archive-bulk', {
+    schema: {
+      tags: ['Workflows'],
+      summary: 'Archive multiple terminal workflows (initiator only)',
+      security: [{ bearerAuth: [] }],
+      body: {
+        type: 'object',
+        required: ['workflowIds'],
+        properties: {
+          workflowIds: { type: 'array', items: { type: 'string' }, minItems: 1 },
+        },
+      },
+    },
+    preHandler: [authenticate],
+  }, async (req, reply) => {
+    try {
+      const user = req.user as JwtPayload;
+      const body = req.body as any;
+      await workflowService.archiveBulk(body.workflowIds, user.sub);
+      return reply.status(200).send({ message: 'Workflows archived' });
+    } catch (err) {
+      if (err instanceof WorkflowError) {
+        return reply.status(err.statusCode).send({ message: err.message });
+      }
+      throw err;
+    }
+  });
+
+  app.patch('/workflows/:id/archive', {
+    schema: {
+      tags: ['Workflows'],
+      summary: 'Archive a terminal workflow (initiator only)',
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: 'object',
+        properties: { id: { type: 'string' } },
+        required: ['id'],
+      },
+    },
+    preHandler: [authenticate],
+  }, async (req, reply) => {
+    try {
+      const { id } = req.params as any;
+      const user = req.user as JwtPayload;
+      await workflowService.archive(id, user.sub);
+      return reply.status(200).send({ message: 'Workflow archived' });
     } catch (err) {
       if (err instanceof WorkflowError) {
         return reply.status(err.statusCode).send({ message: err.message });
