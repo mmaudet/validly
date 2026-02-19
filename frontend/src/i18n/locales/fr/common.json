@@ -1,0 +1,56 @@
+{
+  "app": {
+    "name": "Validly",
+    "tagline": "La validation documentaire, simplifiée"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "submissions": "Mes soumissions",
+    "pending": "Actions en attente",
+    "templates": "Modèles",
+    "logout": "Déconnexion"
+  },
+  "auth": {
+    "login": "Se connecter",
+    "signup": "Créer un compte",
+    "email": "Email",
+    "password": "Mot de passe",
+    "confirm_password": "Confirmer le mot de passe",
+    "forgot_password": "Mot de passe oublié ?",
+    "no_account": "Pas encore de compte ?",
+    "has_account": "Déjà un compte ?"
+  },
+  "documents": {
+    "upload": "Téléverser un document",
+    "title": "Titre",
+    "description": "Description",
+    "tags": "Étiquettes",
+    "preview": "Aperçu",
+    "download": "Télécharger"
+  },
+  "workflow": {
+    "create": "Nouveau circuit",
+    "status": "Statut",
+    "approve": "Approuver",
+    "refuse": "Refuser",
+    "comment": "Commentaire",
+    "comment_placeholder": "Ajoutez votre commentaire...",
+    "submit": "Soumettre",
+    "pending": "En attente",
+    "approved": "Approuvé",
+    "refused": "Refusé",
+    "in_progress": "En cours"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "back": "Retour",
+    "next": "Suivant",
+    "search": "Rechercher",
+    "no_results": "Aucun résultat",
+    "error": "Une erreur s'est produite"
+  }
+}

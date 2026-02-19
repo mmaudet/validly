@@ -1,0 +1,43 @@
+{
+  "app": {
+    "name": "Validly"
+  },
+  "auth": {
+    "signup_success": "Compte créé avec succès",
+    "login_success": "Connexion réussie",
+    "logout_success": "Déconnexion réussie",
+    "invalid_credentials": "Email ou mot de passe invalide",
+    "token_expired": "Session expirée, veuillez vous reconnecter",
+    "email_required": "L'email est requis",
+    "password_required": "Le mot de passe est requis",
+    "password_too_short": "Le mot de passe doit contenir au moins 8 caractères"
+  },
+  "documents": {
+    "upload_success": "Document téléversé avec succès",
+    "not_found": "Document introuvable",
+    "invalid_type": "Type de fichier non pris en charge"
+  },
+  "workflow": {
+    "created": "Circuit de validation créé avec succès",
+    "not_found": "Circuit de validation introuvable",
+    "already_decided": "Cette étape a déjà été décidée",
+    "invalid_transition": "Transition de circuit invalide",
+    "approved": "Étape approuvée",
+    "refused": "Étape refusée",
+    "comment_required": "Un commentaire est requis"
+  },
+  "email": {
+    "pending_action_subject": "Action requise : {{documentTitle}}",
+    "reminder_subject": "Rappel : {{documentTitle}} attend votre décision",
+    "token_expired": "Ce lien a expiré",
+    "token_used": "Ce lien a déjà été utilisé",
+    "action_recorded": "Votre décision a été enregistrée"
+  },
+  "errors": {
+    "not_found": "Ressource introuvable",
+    "unauthorized": "Authentification requise",
+    "forbidden": "Accès refusé",
+    "validation": "Erreur de validation",
+    "internal": "Une erreur inattendue s'est produite"
+  }
+}

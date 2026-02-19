@@ -1,0 +1,43 @@
+{
+  "app": {
+    "name": "Validly"
+  },
+  "auth": {
+    "signup_success": "Account created successfully",
+    "login_success": "Logged in successfully",
+    "logout_success": "Logged out successfully",
+    "invalid_credentials": "Invalid email or password",
+    "token_expired": "Session expired, please log in again",
+    "email_required": "Email is required",
+    "password_required": "Password is required",
+    "password_too_short": "Password must be at least 8 characters"
+  },
+  "documents": {
+    "upload_success": "Document uploaded successfully",
+    "not_found": "Document not found",
+    "invalid_type": "Unsupported file type"
+  },
+  "workflow": {
+    "created": "Workflow created successfully",
+    "not_found": "Workflow not found",
+    "already_decided": "This step has already been decided",
+    "invalid_transition": "Invalid workflow transition",
+    "approved": "Step approved",
+    "refused": "Step refused",
+    "comment_required": "A comment is required"
+  },
+  "email": {
+    "pending_action_subject": "Action required: {{documentTitle}}",
+    "reminder_subject": "Reminder: {{documentTitle}} awaits your decision",
+    "token_expired": "This link has expired",
+    "token_used": "This link has already been used",
+    "action_recorded": "Your decision has been recorded"
+  },
+  "errors": {
+    "not_found": "Resource not found",
+    "unauthorized": "Authentication required",
+    "forbidden": "Access denied",
+    "validation": "Validation error",
+    "internal": "An unexpected error occurred"
+  }
+}

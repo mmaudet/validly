@@ -1,0 +1,20 @@
+{
+  "name": "validly",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "docker compose up -d postgres redis && concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "lint": "npm run lint -w backend && npm run lint -w frontend",
+    "test": "npm run test -w backend && npm run test -w frontend",
+    "build": "npm run build -w backend && npm run build -w frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "app": {
+    "name": "Validly",
+    "tagline": "Document validation, simplified"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "submissions": "My Submissions",
+    "pending": "Pending Actions",
+    "templates": "Templates",
+    "logout": "Log out"
+  },
+  "auth": {
+    "login": "Log in",
+    "signup": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "confirm_password": "Confirm password",
+    "forgot_password": "Forgot password?",
+    "no_account": "Don't have an account?",
+    "has_account": "Already have an account?"
+  },
+  "documents": {
+    "upload": "Upload document",
+    "title": "Title",
+    "description": "Description",
+    "tags": "Tags",
+    "preview": "Preview",
+    "download": "Download"
+  },
+  "workflow": {
+    "create": "New workflow",
+    "status": "Status",
+    "approve": "Approve",
+    "refuse": "Refuse",
+    "comment": "Comment",
+    "comment_placeholder": "Add your comment...",
+    "submit": "Submit",
+    "pending": "Pending",
+    "approved": "Approved",
+    "refused": "Refused",
+    "in_progress": "In progress"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "search": "Search",
+    "no_results": "No results found",
+    "error": "An error occurred"
+  }
+}

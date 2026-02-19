@@ -1,0 +1,54 @@
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
+import { env } from './config/env.js';
+import { initI18n } from './i18n/index.js';
+import { healthRoutes } from './api/routes/health.js';
+
+export async function buildApp() {
+  await initI18n();
+
+  const app = Fastify({
+    logger: {
+      level: env.NODE_ENV === 'production' ? 'info' : 'debug',
+      transport: env.NODE_ENV !== 'production'
+        ? { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss Z' } }
+        : undefined,
+    },
+  });
+
+  await app.register(cors, { origin: true });
+
+  await app.register(swagger, {
+    openapi: {
+      info: {
+        title: 'Validly API',
+        description: 'Document validation workflow platform API',
+        version: '0.1.0',
+      },
+      servers: [{ url: env.API_URL }],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+          },
+        },
+      },
+    },
+  });
+
+  await app.register(swaggerUi, {
+    routePrefix: '/api/docs',
+    uiConfig: {
+      docExpansion: 'list',
+      deepLinking: true,
+    },
+  });
+
+  await app.register(healthRoutes, { prefix: '/api' });
+
+  return app;
+}
