@@ -5,6 +5,8 @@ import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { apiFetch, ApiError } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
+import { Template } from '../components/workflow/TemplatePicker';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 interface WorkflowSummary {
   id: string;
@@ -35,7 +37,7 @@ interface PendingStep {
   };
 }
 
-type Tab = 'submissions' | 'pending' | 'users';
+type Tab = 'submissions' | 'pending' | 'users' | 'templates';
 type SortField = 'title' | 'date';
 type SortDir = 'asc' | 'desc';
 
@@ -273,6 +275,16 @@ export function DashboardPage() {
                 </span>
               )}
             </button>
+            <button
+              onClick={() => handleTabChange('templates')}
+              className={`relative flex items-center gap-2 px-6 py-3 text-sm font-medium transition border-b-2 -mb-px ${
+                tab === 'templates'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+              }`}
+            >
+              {t('nav.templates')}
+            </button>
             {isAdmin && (
               <button
                 onClick={() => handleTabChange('users')}
@@ -318,6 +330,9 @@ export function DashboardPage() {
 
         {/* Users tab (admin only) */}
         {tab === 'users' && isAdmin && <UsersTab />}
+
+        {/* Templates tab */}
+        {tab === 'templates' && <TemplatesTab />}
       </main>
     </div>
   );
@@ -678,6 +693,144 @@ function PendingTab({
           </table>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ─── Templates Tab ─── */
+
+interface TemplateListResponse {
+  templates: Template[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+function TemplatesTab() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const [deleteTemplate, setDeleteTemplate] = useState<Template | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const { data, isLoading } = useQuery<TemplateListResponse>({
+    queryKey: ['templates'],
+    queryFn: () => apiFetch<TemplateListResponse>('/templates?limit=50'),
+  });
+  const templates = data?.templates ?? [];
+
+  const deleteMutation = useMutation({
+    mutationFn: (templateId: string) =>
+      apiFetch<void>(`/templates/${templateId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      setDeleteTemplate(null);
+      setDeleteError(null);
+    },
+    onError: (err: Error) => {
+      if (err instanceof ApiError && err.status === 403) {
+        setDeleteError(t('template.error_403'));
+      } else {
+        setDeleteError(err.message);
+      }
+      setDeleteTemplate(null);
+    },
+  });
+
+  return (
+    <div>
+      {/* Header row */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-gray-500">{t('nav.templates')}</p>
+        <button
+          onClick={() => navigate('/templates/new')}
+          className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
+        >
+          {t('template.create_button')}
+        </button>
+      </div>
+
+      {/* Delete error banner */}
+      {deleteError && (
+        <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+          {deleteError}
+        </div>
+      )}
+
+      {/* Loading skeleton */}
+      {isLoading ? (
+        <div className="rounded-lg bg-white shadow overflow-hidden">
+          <div className="space-y-0">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 last:border-0 animate-pulse">
+                <div className="h-4 w-48 rounded bg-gray-200" />
+                <div className="h-4 w-64 rounded bg-gray-200" />
+                <div className="ml-auto h-4 w-24 rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : templates.length === 0 ? (
+        /* Empty state */
+        <div className="rounded-lg bg-white p-12 text-center shadow">
+          <p className="text-gray-500">{t('template.no_templates')}</p>
+        </div>
+      ) : (
+        /* Templates table */
+        <div className="overflow-x-auto rounded-lg bg-white shadow">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  {t('template.column_name')}
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  {t('template.column_description')}
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  {t('template.column_actions')}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {templates.map((tpl) => (
+                <tr key={tpl.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 font-medium text-gray-900">{tpl.name}</td>
+                  <td className="px-4 py-3 text-gray-600 line-clamp-1">{tpl.description ?? '—'}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => navigate('/templates/' + tpl.id + '/edit')}
+                        className="rounded px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
+                      >
+                        {t('template.edit')}
+                      </button>
+                      <button
+                        onClick={() => { setDeleteTemplate(tpl); setDeleteError(null); }}
+                        className="rounded px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                      >
+                        {t('template.delete')}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog
+        open={Boolean(deleteTemplate)}
+        title={t('template.delete_confirm_title')}
+        message={t('template.delete_confirm_message')}
+        variant="danger"
+        onConfirm={() => { if (deleteTemplate) deleteMutation.mutate(deleteTemplate.id); }}
+        onCancel={() => { setDeleteTemplate(null); setDeleteError(null); }}
+      />
     </div>
   );
 }
