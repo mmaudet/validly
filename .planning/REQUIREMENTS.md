@@ -122,53 +122,55 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
-| AUTH-03 | Phase 2 | Pending |
-| AUTH-04 | Phase 2 | Pending |
-| AUTH-05 | Phase 2 | Pending |
-| DOC-01 | Phase 3 | Pending |
-| DOC-02 | Phase 3 | Pending |
-| DOC-03 | Phase 3 | Pending |
-| DOC-04 | Phase 3 | Pending |
-| DOC-05 | Phase 3 | Pending |
-| WF-01 | Phase 4 | Pending |
-| WF-02 | Phase 4 | Pending |
-| WF-03 | Phase 4 | Pending |
-| WF-04 | Phase 4 | Pending |
-| WF-05 | Phase 4 | Pending |
-| WF-06 | Phase 4 | Pending |
-| WF-07 | Phase 4 | Pending |
-| WF-08 | Phase 4 | Pending |
-| EMAIL-01 | Phase 5 | Pending |
-| EMAIL-02 | Phase 5 | Pending |
-| EMAIL-03 | Phase 5 | Pending |
-| EMAIL-04 | Phase 5 | Pending |
-| EMAIL-05 | Phase 5 | Pending |
-| EMAIL-06 | Phase 5 | Pending |
-| DASH-01 | Phase 6 | Pending |
-| DASH-02 | Phase 6 | Pending |
-| DASH-03 | Phase 6 | Pending |
-| DASH-04 | Phase 6 | Pending |
-| AUDIT-01 | Phase 2 | Pending |
-| AUDIT-02 | Phase 2 | Pending |
-| AUDIT-03 | Phase 6 | Pending |
-| TMPL-01 | Phase 7 | Pending |
-| TMPL-02 | Phase 7 | Pending |
-| TMPL-03 | Phase 7 | Pending |
-| TMPL-04 | Phase 7 | Pending |
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
-| INFRA-04 | Phase 8 | Pending |
-| INFRA-05 | Phase 8 | Pending |
-| INFRA-06 | Phase 1 | Pending |
+| AUTH-01 | Phase 2 | Complete |
+| AUTH-02 | Phase 2 | Complete |
+| AUTH-03 | Phase 2 | Complete |
+| AUTH-04 | Phase 2 | Complete |
+| AUTH-05 | Phase 2 | Complete |
+| DOC-01 | Phase 3 | Complete |
+| DOC-02 | Phase 3 | Complete |
+| DOC-03 | Phase 3 | Complete |
+| DOC-04 | Phase 3 | Complete |
+| DOC-05 | Phase 3 | Complete |
+| WF-01 | Phase 4 | Complete |
+| WF-02 | Phase 11 | Pending |
+| WF-03 | Phase 4 | Complete |
+| WF-04 | Phase 4 | Complete |
+| WF-05 | Phase 4 | Complete |
+| WF-06 | Phase 4 | Complete |
+| WF-07 | Phase 4 | Complete |
+| WF-08 | Phase 11 | Pending |
+| EMAIL-01 | Phase 5 | Complete |
+| EMAIL-02 | Phase 5 | Complete |
+| EMAIL-03 | Phase 5 | Complete |
+| EMAIL-04 | Phase 5 | Complete |
+| EMAIL-05 | Phase 5 | Complete |
+| EMAIL-06 | Phase 11 | Pending |
+| DASH-01 | Phase 6 | Complete |
+| DASH-02 | Phase 6 | Complete |
+| DASH-03 | Phase 6 | Complete |
+| DASH-04 | Phase 6 | Complete |
+| AUDIT-01 | Phase 2 | Complete |
+| AUDIT-02 | Phase 11 | Pending |
+| AUDIT-03 | Phase 6 | Complete |
+| TMPL-01 | Phase 12 | Pending |
+| TMPL-02 | Phase 12 | Pending |
+| TMPL-03 | Phase 7 | Complete |
+| TMPL-04 | Phase 7 | Complete |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
+| INFRA-04 | Phase 8 | Complete |
+| INFRA-05 | Phase 11 | Pending |
+| INFRA-06 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 41 total
-- Mapped to phases: 41
+- Satisfied: 34
+- Pending (gap closure): 7 (WF-02, WF-08, EMAIL-06, AUDIT-02, INFRA-05 → Phase 11; TMPL-01, TMPL-02 → Phase 12)
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-19*
+*Last updated: 2026-02-19 after v1.0 audit gap closure planning*
 *Last updated: 2026-02-19 after roadmap creation*

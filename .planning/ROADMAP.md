@@ -128,13 +128,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. A review step shows the full configuration before launch, and clicking "Launch" creates the workflow and redirects to the detail page
 **Plans**:
   - [x] 09-01: Wizard scaffold, document upload step, route, New Workflow button, i18n keys
-  - [ ] 09-02: Circuit builder step
-  - [ ] 09-03: Review & launch step
+  - [x] 09-02: Circuit builder step
+  - [x] 09-03: Review & launch step
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12
 
 | Phase | Status | Completed |
 |-------|--------|-----------|
@@ -147,16 +147,46 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Workflow Templates | Complete | 2026-02-19 |
 | 8. i18n Completion + Docker Polish | Complete | 2026-02-19 |
 | 9. Workflow Creation UI | Complete (3/3) | 2026-02-19 |
+| 10. UX Improvements | Complete (5/5) | 2026-02-19 |
+| 11. Engine & Wiring Fixes | Not started | - |
+| 12. Template Management UI | Not started | - |
 
 ### Phase 10: Améliorer gestion demandes et UX
 
 **Goal:** Improve the workflow management experience and UX: enriched action confirmation with workflow summary, horizontal stepper on workflow detail page, dashboard with table/filters/badges, initiator email notifications, BullMQ deadline reminders, workflow cancellation/re-notification, and admin user CRUD with 3-role RBAC
 **Depends on:** Phase 9
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 10-01-PLAN.md — Backend: Schema migration (3-role RBAC) + BullMQ reminder pipeline + initiator email notifications
 - [x] 10-02-PLAN.md — Backend: Workflow cancel/notify endpoints + action token info + admin user CRUD API
-- [ ] 10-03-PLAN.md — Frontend: Enriched action confirmation page + dashboard table/filters/badges
-- [ ] 10-04-PLAN.md — Frontend: Workflow detail stepper + step details + PDF preview + cancel/notify actions
-- [ ] 10-05-PLAN.md — Frontend: Admin users page + end-to-end verification checkpoint
+- [x] 10-03-PLAN.md — Frontend: Enriched action confirmation page + dashboard table/filters/badges
+- [x] 10-04-PLAN.md — Frontend: Workflow detail stepper + step details + PDF preview + cancel/notify actions
+- [x] 10-05-PLAN.md — Frontend: Admin users page + end-to-end verification checkpoint
+
+### Phase 11: Engine & Wiring Fixes
+
+**Goal:** Close audit gaps: fix parallel step activation, template field mismatch, validator email locale, audit trail DB-level immutability, and domain type consistency
+**Depends on:** Phase 10
+**Requirements:** WF-02, WF-08, EMAIL-06, INFRA-05, AUDIT-02
+**Gap Closure:** Closes 5 requirement gaps + 2 integration gaps + 3 broken E2E flows from v1.0 audit
+**Success Criteria** (what must be TRUE):
+  1. A workflow with PARALLEL steps activates all steps in the phase simultaneously at launch
+  2. Loading a template into the circuit builder correctly populates execution mode for all steps
+  3. Validator emails are sent in the validator's locale (not hardcoded French)
+  4. An attempted UPDATE or DELETE on `audit_events` fails at the PostgreSQL level
+  5. `ARCHIVED` status is present in domain `WorkflowStatus` type
+**Plans**: TBD
+
+### Phase 12: Template Management UI
+
+**Goal:** Add frontend template creation and management so users can create, edit, and delete workflow templates from the UI — not just load them in the wizard
+**Depends on:** Phase 11
+**Requirements:** TMPL-01, TMPL-02
+**Gap Closure:** Closes 2 requirement gaps from v1.0 audit
+**Success Criteria** (what must be TRUE):
+  1. A user can create a workflow template from a form defining phases, steps, validators, quorum rules, and deadlines
+  2. A user can edit an existing template
+  3. A user can delete a template
+  4. Templates are accessible from the dashboard
+**Plans**: TBD
