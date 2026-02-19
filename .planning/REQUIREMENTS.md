@@ -25,9 +25,9 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 
 ### Document Preview
 
-- [ ] **DOCX-01**: DOCX files render in-browser via client-side conversion (no download required)
-- [ ] **DOCX-02**: DOCX preview HTML is sanitized through DOMPurify before rendering (XSS prevention)
-- [ ] **DOCX-03**: DOCX conversion library is loaded via dynamic import (not in main bundle)
+- [x] **DOCX-01**: DOCX files render in-browser via client-side conversion (no download required)
+- [x] **DOCX-02**: DOCX preview HTML is sanitized through DOMPurify before rendering (XSS prevention)
+- [x] **DOCX-03**: DOCX conversion library is loaded via dynamic import (not in main bundle)
 
 ### Notifications
 
@@ -119,9 +119,9 @@ Deferred to future releases. Tracked but not in current roadmap.
 | PROF-02 | Phase 13 | Pending |
 | PROF-03 | Phase 13 | Pending |
 | PROF-04 | Phase 13 | Pending |
-| DOCX-01 | Phase 13 | Pending |
-| DOCX-02 | Phase 13 | Pending |
-| DOCX-03 | Phase 13 | Pending |
+| DOCX-01 | Phase 13 | Complete |
+| DOCX-02 | Phase 13 | Complete |
+| DOCX-03 | Phase 13 | Complete |
 | ERR-01 | Phase 13 | Pending |
 | ERR-02 | Phase 13 | Pending |
 | ERR-03 | Phase 13 | Pending |

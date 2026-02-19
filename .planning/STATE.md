@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 13 of 15 (Foundation)
-Plan: 1 of 5
+Plan: 2 of 5
 Status: In progress
-Last activity: 2026-02-20 — Plan 13-01 complete: Prisma migration + apiFetch fix + npm packages
+Last activity: 2026-02-20 — Plan 13-02 complete: DOCX preview in DocumentPreview component
 
-Progress: [█░░░░░░░░░] 5% (v1.1)
+Progress: [██░░░░░░░░] 10% (v1.1)
 
 ## Performance Metrics
 
@@ -46,7 +46,9 @@ Progress: [█░░░░░░░░░] 5% (v1.1)
 | 12-01 | TemplateFormPage + routes + i18n | 539ab44 |
 | 12-02 | TemplatesTab + DashboardPage CRUD | c04d4f1 |
 | 13-01 | Prisma migration + apiFetch fix + npm packages | b4af5d9 |
+| 13-02 | DOCX preview via docx-preview + DOMPurify | e35688d |
 | Phase 13 P01 | 3 | 2 tasks | 4 files |
+| Phase 13 P02 | 2 | 1 task | 1 file |
 
 ## Accumulated Context
 
@@ -57,6 +59,9 @@ Progress: [█░░░░░░░░░] 5% (v1.1)
 - [13-01] Notification.type is String (not Prisma enum) to avoid enum migration pitfalls in future phases
 - [13-01] apiFetch uses body != null (loose equality) to catch both null and undefined in a single check
 - [13-01] Resolved Prisma migration checksum drift via prisma db execute UPDATE on _prisma_migrations (avoids data loss from migrate reset)
+- [13-02] isDocx constant computed at component level (not inside useEffect) so renderPreview() can use it without prop drilling
+- [13-02] ADD_TAGS: ['style'] passed to DOMPurify to preserve docx-preview inline style blocks that provide DOCX formatting
+- [13-02] docxHtml reset to null at useEffect start to prevent stale HTML flash when switching documents
 
 ### v1.1 Key Constraints (from research)
 
@@ -86,5 +91,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 13-01-PLAN.md — Infrastructure (Prisma migration, apiFetch fix, npm packages)
+Stopped at: Completed 13-02-PLAN.md — DOCX preview in DocumentPreview component
 Resume file: None
