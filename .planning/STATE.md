@@ -38,7 +38,7 @@ Progress: [██████████] 95% (checkpoint pending)
 | 10-01 | Backend foundation: RBAC migration, BullMQ reminders, initiator emails | c556ac5 |
 | 10-02 | Backend API: cancel/re-notify/token-info/user-CRUD | c87daf7 |
 | 10-03 | Frontend: ActionConfirmPage enriched with workflow summary | b52e54d |
-| 10-04 | Frontend: WorkflowStepper, StepDetail, WorkflowDetailPage rewrite | ea9f5f4 |
+| 10-04 | Frontend: WorkflowStepper, StepDetail, DocumentPreview + react-pdf, cancel/notify | f64789a |
 | 10-05 | Frontend: AdminUsersPage, ConfirmDialog, nav link (checkpoint pending) | ea9f5f4 |
 
 ## Accumulated Context
@@ -66,6 +66,8 @@ Progress: [██████████] 95% (checkpoint pending)
 - GET /users accessible to all authenticated users (not admin-only) — needed for validator picker
 - Prisma UserRole enum (ADMIN/INITIATEUR/VALIDATEUR) used directly for type safety in user CRUD
 - tokenService.validateToken() includes initiator for token info endpoint — avoids extra DB query
+- DocumentPreview fetches via fetch() with Authorization header + ArrayBuffer — avoids JWT tokens in URLs
+- effectivePhaseId auto-derives from phases: IN_PROGRESS first, then last phase — no extra query
 - ConfirmDialog created as standalone reusable component in components/ui/ (used by AdminUsersPage and WorkflowDetailPage)
 - AdminUsersPage has inline role guard: user.role !== 'ADMIN' → navigate('/') redirect
 - Role badges: ADMIN=purple, INITIATEUR=blue, VALIDATEUR=green
