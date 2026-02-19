@@ -29,6 +29,7 @@
   "email": {
     "pending_action_subject": "Action required: {{documentTitle}}",
     "reminder_subject": "Reminder: {{documentTitle}} awaits your decision",
+    "reminder_manual_subject": "⏰ Reminder: {{workflowTitle}} — Your decision is needed",
     "initiator_action_subject": "{{workflowTitle}} — New action",
     "initiator_complete_subject": "{{workflowTitle}} — Completed",
     "token_expired": "This link has expired",

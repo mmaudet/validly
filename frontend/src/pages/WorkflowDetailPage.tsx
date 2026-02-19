@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useNavigate } from 'react-router';
 import { apiFetch } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 import { WorkflowStepper } from '../components/workflow/WorkflowStepper';
@@ -80,6 +80,7 @@ const statusColors: Record<string, string> = {
 export function WorkflowDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -117,11 +118,11 @@ export function WorkflowDetailPage() {
   const selectedPhase = phases.find((p) => p.id === effectivePhaseId) ?? null;
 
   const cancelMutation = useMutation({
-    mutationFn: () => apiFetch(`/workflows/${id}/cancel`, { method: 'PATCH' }),
+    mutationFn: () => apiFetch(`/workflows/${id}/cancel`, { method: 'PATCH', body: '{}' }),
     onSuccess: () => {
       setShowCancelDialog(false);
       setCancelError(null);
-      queryClient.invalidateQueries({ queryKey: ['workflow', id] });
+      navigate('/');
     },
     onError: (err: Error) => {
       setCancelError(err.message);
@@ -129,7 +130,7 @@ export function WorkflowDetailPage() {
   });
 
   const notifyMutation = useMutation({
-    mutationFn: () => apiFetch(`/workflows/${id}/notify`, { method: 'POST' }),
+    mutationFn: () => apiFetch(`/workflows/${id}/notify`, { method: 'POST', body: '{}' }),
     onSuccess: () => {
       setNotifySuccess(true);
       setNotifyError(null);

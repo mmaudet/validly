@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -18,7 +18,7 @@ interface DocumentPreviewProps {
 export function DocumentPreview({ documentId, mimeType, fileName }: DocumentPreviewProps) {
   const { t } = useTranslation();
   const [numPages, setNumPages] = useState<number | null>(null);
-  const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null);
+  const [pdfData, setPdfData] = useState<Uint8Array | null>(null);
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +42,8 @@ export function DocumentPreview({ documentId, mimeType, fileName }: DocumentPrev
         })
         .then((buffer) => {
           if (mimeType === 'application/pdf') {
-            setPdfData(buffer);
+            // Copy into Uint8Array to avoid detached ArrayBuffer issues with react-pdf
+            setPdfData(new Uint8Array(buffer));
           } else {
             const blob = new Blob([buffer], { type: mimeType });
             setImgUrl(URL.createObjectURL(blob));
@@ -62,6 +63,9 @@ export function DocumentPreview({ documentId, mimeType, fileName }: DocumentPrev
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentId, mimeType]);
+
+  // Memoize the file prop so react-pdf doesn't re-transfer the buffer on every render
+  const pdfFile = useMemo(() => (pdfData ? { data: pdfData } : null), [pdfData]);
 
   const handleDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -97,11 +101,11 @@ export function DocumentPreview({ documentId, mimeType, fileName }: DocumentPrev
       );
     }
 
-    if (mimeType === 'application/pdf' && pdfData) {
+    if (mimeType === 'application/pdf' && pdfFile) {
       return (
         <div className="max-h-[600px] overflow-auto">
           <Document
-            file={{ data: pdfData }}
+            file={pdfFile}
             onLoadSuccess={({ numPages: n }) => setNumPages(n)}
             onLoadError={() => setError('Failed to render PDF')}
           >

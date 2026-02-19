@@ -1,4 +1,5 @@
 import { useFormContext, useFieldArray } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import type { WorkflowForm } from '../../pages/WorkflowCreatePage';
 
 // ─── StepRow ──────────────────────────────────────────────────────────────────
@@ -17,6 +18,7 @@ interface StepRowProps {
 }
 
 export function StepRow({ phaseIndex, stepIndex, onRemove, removeDisabled }: StepRowProps) {
+  const { t } = useTranslation();
   const { control, register, watch } = useFormContext<WorkflowForm>();
 
   const basePath =
@@ -36,7 +38,7 @@ export function StepRow({ phaseIndex, stepIndex, onRemove, removeDisabled }: Ste
       {/* Step header row */}
       <div className="mb-3 flex items-center gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-          Step {stepIndex + 1}
+          {t('wizard.step_label', { num: stepIndex + 1 })}
         </span>
         <div className="flex-1" />
         <button
@@ -45,7 +47,7 @@ export function StepRow({ phaseIndex, stepIndex, onRemove, removeDisabled }: Ste
           disabled={removeDisabled}
           className="text-xs text-red-500 hover:text-red-700 disabled:opacity-30"
         >
-          Remove
+          {t('wizard.remove_step')}
         </button>
       </div>
 
@@ -53,12 +55,12 @@ export function StepRow({ phaseIndex, stepIndex, onRemove, removeDisabled }: Ste
         {/* Step name */}
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600">
-            Step Name <span className="text-red-500">*</span>
+            {t('wizard.step_name')} <span className="text-red-500">*</span>
           </label>
           <input
             {...register(`${basePath}.name`, { required: true })}
             type="text"
-            placeholder="e.g. Legal Review"
+            placeholder={t('wizard.step_name_placeholder')}
             className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -66,25 +68,25 @@ export function StepRow({ phaseIndex, stepIndex, onRemove, removeDisabled }: Ste
         {/* Execution mode + Quorum rule (side by side) */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">Execution Mode</label>
+            <label className="mb-1 block text-xs font-medium text-gray-600">{t('wizard.execution_mode')}</label>
             <select
               {...register(`${basePath}.executionMode`)}
               className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="SEQUENTIAL">Sequential</option>
-              <option value="PARALLEL">Parallel</option>
+              <option value="SEQUENTIAL">{t('wizard.execution_sequential')}</option>
+              <option value="PARALLEL">{t('wizard.execution_parallel')}</option>
             </select>
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">Quorum Rule</label>
+            <label className="mb-1 block text-xs font-medium text-gray-600">{t('wizard.quorum_rule')}</label>
             <select
               {...register(`${basePath}.quorumRule`)}
               className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="UNANIMITY">Unanimity (all must approve)</option>
-              <option value="MAJORITY">Majority</option>
-              <option value="ANY_OF">Any of N</option>
+              <option value="UNANIMITY">{t('wizard.quorum_unanimity')}</option>
+              <option value="MAJORITY">{t('wizard.quorum_majority')}</option>
+              <option value="ANY_OF">{t('wizard.quorum_any_of')}</option>
             </select>
           </div>
         </div>
@@ -93,7 +95,7 @@ export function StepRow({ phaseIndex, stepIndex, onRemove, removeDisabled }: Ste
         {quorumRule === 'ANY_OF' && (
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">
-              Required approvals (N)
+              {t('wizard.quorum_count_label')}
             </label>
             <input
               {...register(`${basePath}.quorumCount`, {
@@ -102,7 +104,7 @@ export function StepRow({ phaseIndex, stepIndex, onRemove, removeDisabled }: Ste
               })}
               type="number"
               min={1}
-              placeholder="e.g. 2"
+              placeholder={t('wizard.quorum_count_placeholder')}
               className="w-32 rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -110,7 +112,7 @@ export function StepRow({ phaseIndex, stepIndex, onRemove, removeDisabled }: Ste
 
         {/* Validator emails */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-600">Validator Emails</label>
+          <label className="mb-1 block text-xs font-medium text-gray-600">{t('wizard.validator_emails')}</label>
           <div className="space-y-2">
             {emailFields.map((emailField, emailIndex) => (
               <div key={emailField.id} className="flex items-center gap-2">
@@ -129,7 +131,7 @@ export function StepRow({ phaseIndex, stepIndex, onRemove, removeDisabled }: Ste
                   disabled={emailFields.length === 1}
                   className="text-xs text-red-500 hover:text-red-700 disabled:opacity-30"
                 >
-                  Remove
+                  {t('wizard.remove_email')}
                 </button>
               </div>
             ))}
@@ -140,14 +142,14 @@ export function StepRow({ phaseIndex, stepIndex, onRemove, removeDisabled }: Ste
             className="mt-2 flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800"
           >
             <span className="text-sm leading-none">+</span>
-            Add Email
+            {t('wizard.add_email')}
           </button>
         </div>
 
         {/* Deadline (optional) */}
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-600">
-            Deadline (hours, optional)
+            {t('wizard.deadline_label')}
           </label>
           <input
             {...register(`${basePath}.deadlineHours`, {
@@ -156,7 +158,7 @@ export function StepRow({ phaseIndex, stepIndex, onRemove, removeDisabled }: Ste
             })}
             type="number"
             min={1}
-            placeholder="e.g. 72"
+            placeholder={t('wizard.deadline_placeholder')}
             className="w-32 rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>

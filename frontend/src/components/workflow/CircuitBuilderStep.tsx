@@ -1,4 +1,5 @@
 import { useFormContext, useFieldArray } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { PhaseRow } from './PhaseRow';
 import type { WorkflowForm } from '../../pages/WorkflowCreatePage';
 
@@ -7,6 +8,7 @@ import type { WorkflowForm } from '../../pages/WorkflowCreatePage';
 // Each phase is rendered as a PhaseRow (separate component — Rules of Hooks).
 
 export function CircuitBuilderStep() {
+  const { t } = useTranslation();
   const { control } = useFormContext<WorkflowForm>();
 
   const { fields, append, remove } = useFieldArray({
@@ -32,10 +34,9 @@ export function CircuitBuilderStep() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-base font-semibold text-gray-800">Validation Circuit</h3>
+      <h3 className="text-base font-semibold text-gray-800">{t('wizard.circuit_title')}</h3>
       <p className="text-sm text-gray-500">
-        Define the phases and steps of your validation circuit. Each phase runs in order;
-        steps within a phase run according to each step's execution mode.
+        {t('wizard.circuit_description')}
       </p>
 
       {fields.map((field, index) => (
@@ -53,7 +54,7 @@ export function CircuitBuilderStep() {
         className="mt-2 flex items-center gap-1 rounded-md border border-dashed border-blue-400 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50"
       >
         <span className="text-lg leading-none">+</span>
-        Add Phase
+        {t('wizard.add_phase')}
       </button>
     </div>
   );

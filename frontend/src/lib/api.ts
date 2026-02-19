@@ -7,24 +7,77 @@ export class ApiError extends Error {
   }
 }
 
+let isRefreshing = false;
+let refreshPromise: Promise<boolean> | null = null;
+
+async function tryRefreshToken(): Promise<boolean> {
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (!refreshToken) return false;
+
+  try {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!res.ok) return false;
+
+    const data = await res.json();
+    localStorage.setItem('token', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function refreshOnce(): Promise<boolean> {
+  if (isRefreshing) return refreshPromise!;
+  isRefreshing = true;
+  refreshPromise = tryRefreshToken().finally(() => {
+    isRefreshing = false;
+    refreshPromise = null;
+  });
+  return refreshPromise;
+}
+
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem('token');
-  const headers: Record<string, string> = {
-    ...(options?.headers as Record<string, string>),
+  const doFetch = async () => {
+    const token = localStorage.getItem('token');
+    const headers: Record<string, string> = {
+      ...(options?.headers as Record<string, string>),
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    if (!(options?.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    return fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+    });
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  let res = await doFetch();
 
-  if (!(options?.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
+  // On 401, try refreshing the token once and retry
+  if (res.status === 401) {
+    const refreshed = await refreshOnce();
+    if (refreshed) {
+      res = await doFetch();
+    } else {
+      // Refresh failed — clear auth and redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/login';
+      throw new ApiError(401, 'Session expired');
+    }
   }
-
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: res.statusText }));

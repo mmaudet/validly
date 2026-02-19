@@ -39,6 +39,17 @@ export interface ReminderEmailInput {
   refuseUrl: string;
 }
 
+export interface ManualReminderEmailInput {
+  to: string;
+  locale: string;
+  documentTitle: string;
+  workflowTitle: string;
+  stepName: string;
+  initiatorName: string;
+  approveUrl: string;
+  refuseUrl: string;
+}
+
 export interface InitiatorActionEmailInput {
   to: string;
   locale: string;
@@ -120,6 +131,56 @@ export const emailService = {
             ${input.locale === 'fr' ? 'Refuser' : 'Refuse'}
           </a>
         </div>
+      </div>
+    `;
+
+    await getTransporter().sendMail({
+      from: env.SMTP_FROM,
+      to: input.to,
+      subject,
+      html,
+    });
+  },
+
+  async sendManualReminder(input: ManualReminderEmailInput) {
+    const t = (key: string, options?: Record<string, unknown>) => tWithLang(input.locale, key, options);
+
+    const subject = t('email.reminder_manual_subject', { workflowTitle: input.workflowTitle });
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px 16px; margin-bottom: 24px; border-radius: 4px;">
+          <strong style="color: #92400e; font-size: 14px;">
+            ${input.locale === 'fr' ? '⏰ RAPPEL' : '⏰ REMINDER'}
+          </strong>
+        </div>
+        <h2 style="color: #1a1a1a; margin-top: 0;">${escapeHtml(input.workflowTitle)}</h2>
+        <p style="color: #444; line-height: 1.6;">
+          ${input.locale === 'fr'
+            ? `<strong>${escapeHtml(input.initiatorName)}</strong> vous relance pour donner votre décision sur le document <strong>${escapeHtml(input.documentTitle)}</strong> à l'étape <strong>${escapeHtml(input.stepName)}</strong>.`
+            : `<strong>${escapeHtml(input.initiatorName)}</strong> is following up on your pending decision for <strong>${escapeHtml(input.documentTitle)}</strong> at step <strong>${escapeHtml(input.stepName)}</strong>.`
+          }
+        </p>
+        <p style="color: #666; font-size: 14px;">
+          ${input.locale === 'fr'
+            ? 'Merci de donner votre réponse dès que possible.'
+            : 'Please respond at your earliest convenience.'
+          }
+        </p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${input.approveUrl}" style="display: inline-block; padding: 12px 32px; margin: 0 8px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            ${input.locale === 'fr' ? 'Approuver' : 'Approve'}
+          </a>
+          <a href="${input.refuseUrl}" style="display: inline-block; padding: 12px 32px; margin: 0 8px; background-color: #dc2626; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            ${input.locale === 'fr' ? 'Refuser' : 'Refuse'}
+          </a>
+        </div>
+        <p style="color: #888; font-size: 12px;">
+          ${input.locale === 'fr'
+            ? 'Ces liens sont à usage unique et expirent après 48 heures.'
+            : 'These links are single-use and expire after 48 hours.'
+          }
+        </p>
       </div>
     `;
 

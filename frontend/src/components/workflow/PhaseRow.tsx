@@ -1,4 +1,5 @@
 import { useFormContext, useFieldArray } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { StepRow } from './StepRow';
 import type { WorkflowForm } from '../../pages/WorkflowCreatePage';
 
@@ -13,6 +14,7 @@ interface PhaseRowProps {
 }
 
 export function PhaseRow({ index, onRemove, removeDisabled }: PhaseRowProps) {
+  const { t } = useTranslation();
   const { control, register } = useFormContext<WorkflowForm>();
 
   const { fields, append, remove } = useFieldArray({
@@ -41,7 +43,7 @@ export function PhaseRow({ index, onRemove, removeDisabled }: PhaseRowProps) {
         <input
           {...register(`structure.phases.${index}.name`)}
           type="text"
-          placeholder={`Phase ${index + 1} name (optional)`}
+          placeholder={t('wizard.phase_placeholder', { num: index + 1 })}
           className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
@@ -50,7 +52,7 @@ export function PhaseRow({ index, onRemove, removeDisabled }: PhaseRowProps) {
           disabled={removeDisabled}
           className="text-xs text-red-500 hover:text-red-700 disabled:opacity-30"
         >
-          Remove Phase
+          {t('wizard.remove_phase')}
         </button>
       </div>
 
@@ -75,7 +77,7 @@ export function PhaseRow({ index, onRemove, removeDisabled }: PhaseRowProps) {
           className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800"
         >
           <span className="text-base leading-none">+</span>
-          Add Step
+          {t('wizard.add_step')}
         </button>
       </div>
     </div>
