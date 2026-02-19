@@ -23,10 +23,13 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  documents         Document[]
-  workflowInstances WorkflowInstance[]
-  workflowActions   WorkflowAction[]
-  refreshTokens     RefreshToken[]
+  documents            Document[]
+  workflowInstances    WorkflowInstance[]
+  workflowActions      WorkflowAction[]
+  refreshTokens        RefreshToken[]
+  passwordResetTokens  PasswordResetToken[]
+  notifications        Notification[]
+  comments             WorkflowComment[]
 
   @@map("users")
 }
@@ -103,6 +106,7 @@ model WorkflowInstance {
   documents WorkflowDocument[]
   phases    PhaseInstance[]
   actions   WorkflowAction[]
+  comments  WorkflowComment[]
 
   @@index([initiatorId])
   @@index([status])
@@ -248,4 +252,48 @@ model ScheduledEvent {
   @@index([type, scheduledFor])
   @@index([entityType, entityId])
   @@map("scheduled_events")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique @map("token_hash")
+  userId    String    @map("user_id")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model Notification {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  type       String
+  workflowId String?   @map("workflow_id")
+  stepId     String?   @map("step_id")
+  metadata   Json?
+  readAt     DateTime? @map("read_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model WorkflowComment {
+  id         String   @id @default(cuid())
+  workflowId String   @map("workflow_id")
+  authorId   String   @map("author_id")
+  body       String
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  workflow WorkflowInstance @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  author   User             @relation(fields: [authorId], references: [id])
+
+  @@index([workflowId])
+  @@map("workflow_comments")
 }
