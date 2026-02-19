@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 13 of 15 (Foundation)
-Plan: — of TBD
-Status: Ready to plan
-Last activity: 2026-02-20 — Roadmap created for v1.1 milestone (3 phases, 39 requirements)
+Plan: 1 of 5
+Status: In progress
+Last activity: 2026-02-20 — Plan 13-01 complete: Prisma migration + apiFetch fix + npm packages
 
-Progress: [░░░░░░░░░░] 0% (v1.1)
+Progress: [█░░░░░░░░░] 5% (v1.1)
 
 ## Performance Metrics
 
@@ -45,6 +45,8 @@ Progress: [░░░░░░░░░░] 0% (v1.1)
 | 11-02 | Template field fix + audit migration | 89bfce6 |
 | 12-01 | TemplateFormPage + routes + i18n | 539ab44 |
 | 12-02 | TemplatesTab + DashboardPage CRUD | c04d4f1 |
+| 13-01 | Prisma migration + apiFetch fix + npm packages | b4af5d9 |
+| Phase 13 P01 | 3 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -52,6 +54,9 @@ Progress: [░░░░░░░░░░] 0% (v1.1)
 
 - Stack: Node.js 22 + TypeScript 5.7 + Fastify 5 + Prisma 6 + PostgreSQL 15 + BullMQ 5 + Redis 7 + React 19 + Vite 6 + Tailwind v4 + TanStack Query 5
 - See PROJECT.md Key Decisions table for full list
+- [13-01] Notification.type is String (not Prisma enum) to avoid enum migration pitfalls in future phases
+- [13-01] apiFetch uses body != null (loose equality) to catch both null and undefined in a single check
+- [13-01] Resolved Prisma migration checksum drift via prisma db execute UPDATE on _prisma_migrations (avoids data loss from migrate reset)
 
 ### v1.1 Key Constraints (from research)
 
@@ -81,5 +86,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: v1.1 roadmap created — ready to plan Phase 13
+Stopped at: Completed 13-01-PLAN.md — Infrastructure (Prisma migration, apiFetch fix, npm packages)
 Resume file: None

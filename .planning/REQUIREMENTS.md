@@ -14,7 +14,7 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 - [ ] **AUTH-03**: User can set a new password via the reset link, with all existing sessions invalidated
 - [ ] **AUTH-04**: Password reset endpoint prevents user enumeration (same response regardless of email existence)
 - [ ] **AUTH-05**: Password reset token consumption is atomic (TOCTOU-safe)
-- [ ] **AUTH-06**: `apiFetch` only sets `Content-Type: application/json` when body is non-null (fix recurring Fastify empty-body bug)
+- [x] **AUTH-06**: `apiFetch` only sets `Content-Type: application/json` when body is non-null (fix recurring Fastify empty-body bug)
 
 ### User Profile & Settings
 
@@ -114,7 +114,7 @@ Deferred to future releases. Tracked but not in current roadmap.
 | AUTH-03 | Phase 13 | Pending |
 | AUTH-04 | Phase 13 | Pending |
 | AUTH-05 | Phase 13 | Pending |
-| AUTH-06 | Phase 13 | Pending |
+| AUTH-06 | Phase 13 | Complete |
 | PROF-01 | Phase 13 | Pending |
 | PROF-02 | Phase 13 | Pending |
 | PROF-03 | Phase 13 | Pending |
