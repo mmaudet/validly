@@ -148,8 +148,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 8. i18n Completion + Docker Polish | Complete | 2026-02-19 |
 | 9. Workflow Creation UI | Complete (3/3) | 2026-02-19 |
 | 10. UX Improvements | Complete (5/5) | 2026-02-19 |
-| 11. Engine & Wiring Fixes | In Progress (1/2) | - |
-| 12. Template Management UI | Not started | - |
+| 11. Engine & Wiring Fixes | 2/2 | Complete   | 2026-02-19 | 12. Template Management UI | Not started | - |
 
 ### Phase 10: Ameliorer gestion demandes et UX
 
@@ -176,7 +175,7 @@ Plans:
   3. Validator emails are sent in the validator's locale (not hardcoded French)
   4. An attempted UPDATE or DELETE on `audit_events` fails at the PostgreSQL level
   5. `ARCHIVED` status is present in domain `WorkflowStatus` type
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 11-01-PLAN.md — Backend: Parallel step activation fix + validator email locale resolution + ARCHIVED domain type
