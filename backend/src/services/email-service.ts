@@ -39,6 +39,25 @@ export interface ReminderEmailInput {
   refuseUrl: string;
 }
 
+export interface InitiatorActionEmailInput {
+  to: string;
+  locale: string;
+  workflowTitle: string;
+  stepName: string;
+  actorEmail: string;
+  actionType: 'APPROVE' | 'REFUSE';
+  comment: string | null;
+  workflowUrl: string;
+}
+
+export interface InitiatorCompleteEmailInput {
+  to: string;
+  locale: string;
+  workflowTitle: string;
+  finalStatus: 'APPROVED' | 'REFUSED';
+  workflowUrl: string;
+}
+
 export const emailService = {
   async sendPendingAction(input: PendingActionEmailInput) {
     const t = (key: string, options?: Record<string, unknown>) => tWithLang(input.locale, key, options);
@@ -99,6 +118,83 @@ export const emailService = {
           </a>
           <a href="${input.refuseUrl}" style="display: inline-block; padding: 12px 32px; margin: 0 8px; background-color: #dc2626; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
             ${input.locale === 'fr' ? 'Refuser' : 'Refuse'}
+          </a>
+        </div>
+      </div>
+    `;
+
+    await getTransporter().sendMail({
+      from: env.SMTP_FROM,
+      to: input.to,
+      subject,
+      html,
+    });
+  },
+
+  async sendInitiatorAction(input: InitiatorActionEmailInput) {
+    const t = (key: string, options?: Record<string, unknown>) => tWithLang(input.locale, key, options);
+
+    const subject = t('email.initiator_action_subject', { workflowTitle: input.workflowTitle });
+
+    const actionLabel = input.actionType === 'APPROVE'
+      ? (input.locale === 'fr' ? 'approuvé' : 'approved')
+      : (input.locale === 'fr' ? 'refusé' : 'refused');
+
+    const actionColor = input.actionType === 'APPROVE' ? '#16a34a' : '#dc2626';
+
+    const commentHtml = input.comment
+      ? `<blockquote style="border-left: 4px solid #e5e7eb; margin: 16px 0; padding: 8px 16px; color: #555; font-style: italic;">${escapeHtml(input.comment)}</blockquote>`
+      : '';
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #1a1a1a;">${escapeHtml(input.workflowTitle)}</h2>
+        <p style="color: #444;">
+          ${input.locale === 'fr'
+            ? `<strong>${escapeHtml(input.actorEmail)}</strong> a <strong style="color: ${actionColor};">${actionLabel}</strong> l'étape <strong>${escapeHtml(input.stepName)}</strong>.`
+            : `<strong>${escapeHtml(input.actorEmail)}</strong> has <strong style="color: ${actionColor};">${actionLabel}</strong> step <strong>${escapeHtml(input.stepName)}</strong>.`
+          }
+        </p>
+        ${commentHtml}
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${input.workflowUrl}" style="display: inline-block; padding: 12px 32px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            ${input.locale === 'fr' ? 'Voir le circuit' : 'View workflow'}
+          </a>
+        </div>
+      </div>
+    `;
+
+    await getTransporter().sendMail({
+      from: env.SMTP_FROM,
+      to: input.to,
+      subject,
+      html,
+    });
+  },
+
+  async sendInitiatorComplete(input: InitiatorCompleteEmailInput) {
+    const t = (key: string, options?: Record<string, unknown>) => tWithLang(input.locale, key, options);
+
+    const subject = t('email.initiator_complete_subject', { workflowTitle: input.workflowTitle });
+
+    const isApproved = input.finalStatus === 'APPROVED';
+    const statusColor = isApproved ? '#16a34a' : '#dc2626';
+    const statusLabel = isApproved
+      ? (input.locale === 'fr' ? 'approuvé' : 'approved')
+      : (input.locale === 'fr' ? 'refusé' : 'refused');
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #1a1a1a;">${escapeHtml(input.workflowTitle)}</h2>
+        <p style="color: #444;">
+          ${input.locale === 'fr'
+            ? `Votre circuit de validation a été <strong style="color: ${statusColor};">${statusLabel}</strong> dans son ensemble.`
+            : `Your validation workflow has been <strong style="color: ${statusColor};">${statusLabel}</strong> in full.`
+          }
+        </p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${input.workflowUrl}" style="display: inline-block; padding: 12px 32px; background-color: ${statusColor}; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            ${input.locale === 'fr' ? 'Voir le circuit' : 'View workflow'}
           </a>
         </div>
       </div>

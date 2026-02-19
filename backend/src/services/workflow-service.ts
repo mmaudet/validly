@@ -331,6 +331,50 @@ export const workflowService = {
       }
     }
 
+    // Send initiator email notifications (after transaction commit, wrapped in try/catch)
+    try {
+      const wfWithInitiator = await prisma.workflowInstance.findUnique({
+        where: { id: workflow.id },
+        include: {
+          initiator: { select: { email: true, locale: true } },
+        },
+      });
+
+      if (wfWithInitiator) {
+        const workflowUrl = `${env.APP_URL}/workflows/${workflow.id}`;
+
+        // Notify initiator of the validator's action
+        await emailService.sendInitiatorAction({
+          to: wfWithInitiator.initiator.email,
+          locale: wfWithInitiator.initiator.locale,
+          workflowTitle: workflow.title,
+          stepName: step.name,
+          actorEmail: input.actorEmail,
+          actionType: input.action as 'APPROVE' | 'REFUSE',
+          comment: input.comment,
+          workflowUrl,
+        });
+
+        // Notify initiator if workflow reached a terminal state
+        const isWorkflowComplete =
+          result.workflowAdvanced === true ||
+          (result.newStepStatus === 'REFUSED' && result.activatedStep === null && result.stepCompleted);
+
+        if (isWorkflowComplete) {
+          const finalStatus = result.workflowAdvanced ? 'APPROVED' : 'REFUSED';
+          await emailService.sendInitiatorComplete({
+            to: wfWithInitiator.initiator.email,
+            locale: wfWithInitiator.initiator.locale,
+            workflowTitle: workflow.title,
+            finalStatus,
+            workflowUrl,
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to send initiator notifications:', err);
+    }
+
     return result;
   },
 
