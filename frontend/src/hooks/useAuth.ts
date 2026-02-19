@@ -77,5 +77,5 @@ export function useAuth() {
     setState({ user: null, isAuthenticated: false, isLoading: false });
   }, []);
 
-  return { ...state, login, signup, logout };
+  return { ...state, login, signup, logout, fetchProfile };
 }

@@ -42,6 +42,19 @@ async function refreshOnce(): Promise<boolean> {
   return refreshPromise;
 }
 
+const API_ERROR_MAP: Record<string, string> = {
+  'Invalid credentials': 'auth.invalid_credentials',
+  'Email already registered': 'auth.email_taken',
+  'Token expired': 'auth.token_expired',
+  'Current password is incorrect': 'profile.password_wrong',
+  'Invalid or expired reset link.': 'auth.reset_expired',
+  'Unauthorized': 'errors.unauthorized',
+};
+
+export function mapApiError(message: string): string {
+  return API_ERROR_MAP[message] || message;
+}
+
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const doFetch = async () => {
     const token = localStorage.getItem('token');

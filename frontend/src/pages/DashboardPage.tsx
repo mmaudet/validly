@@ -227,7 +227,9 @@ export function DashboardPage() {
             >
               {i18n.language === 'fr' ? 'EN' : 'FR'}
             </button>
-            <span className="text-sm text-gray-600">{user?.email}</span>
+            <Link to="/profile" className="text-sm text-gray-700 hover:text-gray-900" title={t('nav.profile')}>
+              {user?.name}
+            </Link>
             <button
               onClick={handleLogout}
               className="text-sm text-red-600 hover:text-red-800"

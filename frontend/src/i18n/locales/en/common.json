@@ -9,7 +9,8 @@
     "pending": "Pending Actions",
     "templates": "Templates",
     "logout": "Log out",
-    "users": "Users"
+    "users": "Users",
+    "profile": "Profile"
   },
   "auth": {
     "login": "Log in",
@@ -19,7 +20,22 @@
     "confirm_password": "Confirm password",
     "forgot_password": "Forgot password?",
     "no_account": "Don't have an account?",
-    "has_account": "Already have an account?"
+    "has_account": "Already have an account?",
+    "name": "Name",
+    "password_mismatch": "Passwords do not match",
+    "forgot_title": "Reset your password",
+    "forgot_instruction": "Enter your email address and we'll send you a reset link.",
+    "forgot_submit": "Send reset link",
+    "forgot_success": "If an account exists with that email, a reset link has been sent.",
+    "forgot_back": "Back to login",
+    "reset_title": "Set new password",
+    "reset_new_password": "New password",
+    "reset_confirm_password": "Confirm new password",
+    "reset_submit": "Reset password",
+    "reset_success": "Your password has been reset. You can now log in.",
+    "reset_expired": "This reset link is invalid or has expired.",
+    "reset_go_login": "Go to login",
+    "reset_go_forgot": "Request a new link"
   },
   "documents": {
     "upload": "Upload document",
@@ -242,5 +258,22 @@
     "search": "Search",
     "no_results": "No results found",
     "error": "An error occurred"
+  },
+  "profile": {
+    "title": "Profile",
+    "info_section": "Profile Information",
+    "email_label": "Email",
+    "name_label": "Display Name",
+    "save_name": "Save",
+    "name_saved": "Name updated successfully",
+    "password_section": "Change Password",
+    "current_password": "Current Password",
+    "new_password": "New Password",
+    "confirm_password": "Confirm New Password",
+    "change_password": "Change Password",
+    "password_changed": "Password changed. You will be logged out shortly.",
+    "password_wrong": "Current password is incorrect",
+    "language_section": "Language",
+    "language_saved": "Language updated"
   }
 }

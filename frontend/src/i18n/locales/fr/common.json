@@ -9,7 +9,8 @@
     "pending": "Actions en attente",
     "templates": "Mod\u00e8les",
     "logout": "D\u00e9connexion",
-    "users": "Utilisateurs"
+    "users": "Utilisateurs",
+    "profile": "Profil"
   },
   "auth": {
     "login": "Se connecter",
@@ -19,7 +20,22 @@
     "confirm_password": "Confirmer le mot de passe",
     "forgot_password": "Mot de passe oubli\u00e9 ?",
     "no_account": "Pas encore de compte ?",
-    "has_account": "D\u00e9j\u00e0 un compte ?"
+    "has_account": "D\u00e9j\u00e0 un compte ?",
+    "name": "Nom",
+    "password_mismatch": "Les mots de passe ne correspondent pas",
+    "forgot_title": "R\u00e9initialiser votre mot de passe",
+    "forgot_instruction": "Entrez votre adresse email et nous vous enverrons un lien de r\u00e9initialisation.",
+    "forgot_submit": "Envoyer le lien",
+    "forgot_success": "Si un compte existe avec cet email, un lien de r\u00e9initialisation a \u00e9t\u00e9 envoy\u00e9.",
+    "forgot_back": "Retour \u00e0 la connexion",
+    "reset_title": "Nouveau mot de passe",
+    "reset_new_password": "Nouveau mot de passe",
+    "reset_confirm_password": "Confirmer le mot de passe",
+    "reset_submit": "R\u00e9initialiser",
+    "reset_success": "Votre mot de passe a \u00e9t\u00e9 r\u00e9initialis\u00e9. Vous pouvez maintenant vous connecter.",
+    "reset_expired": "Ce lien est invalide ou a expir\u00e9.",
+    "reset_go_login": "Aller \u00e0 la connexion",
+    "reset_go_forgot": "Demander un nouveau lien"
   },
   "documents": {
     "upload": "T\u00e9l\u00e9verser un document",
@@ -242,5 +258,22 @@
     "search": "Rechercher",
     "no_results": "Aucun r\u00e9sultat",
     "error": "Une erreur s'est produite"
+  },
+  "profile": {
+    "title": "Profil",
+    "info_section": "Informations du profil",
+    "email_label": "Email",
+    "name_label": "Nom d'affichage",
+    "save_name": "Enregistrer",
+    "name_saved": "Nom mis \u00e0 jour",
+    "password_section": "Changer le mot de passe",
+    "current_password": "Mot de passe actuel",
+    "new_password": "Nouveau mot de passe",
+    "confirm_password": "Confirmer le nouveau mot de passe",
+    "change_password": "Changer le mot de passe",
+    "password_changed": "Mot de passe chang\u00e9. Vous serez d\u00e9connect\u00e9.",
+    "password_wrong": "Mot de passe actuel incorrect",
+    "language_section": "Langue",
+    "language_saved": "Langue mise \u00e0 jour"
   }
 }
