@@ -57,7 +57,11 @@
   3. Bell icon in the navigation bar shows an unread count badge that updates every 30 seconds without a page reload
   4. Clicking the bell opens a panel listing recent notifications with links to the relevant workflows; user can mark individual notifications or all as read
   5. User can enable or disable per-type notification categories from the profile page, and the system respects those preferences when creating notifications
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 14-01-PLAN.md — Backend: Prisma models, comment & notification services, REST routes, workflow engine hooks
+- [ ] 14-02-PLAN.md — Frontend: CommentThread, NotificationCenter panel, bell icon, notification preferences, i18n
 
 ### Phase 15: Polish Completion
 **Goal**: All authenticated pages are fully usable on mobile devices (375px+) and all new v1.1 UI surfaces and email templates are translated in both English and French
@@ -81,5 +85,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1-12 | v1.0 | — | Complete | 2026-02-20 |
 | 13. Foundation | v1.1 | 0/TBD | Not started | - |
-| 14. Social Features | v1.1 | 0/TBD | Not started | - |
+| 14. Social Features | v1.1 | 0/2 | Planned | - |
 | 15. Polish Completion | v1.1 | 0/3 | Planned | - |
