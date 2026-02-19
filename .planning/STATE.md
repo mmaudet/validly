@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 9 of 9 (Workflow Creation UI)
-Plan: 2 of 3 (09-01 complete, continuing 09-02)
+Plan: 3 of 3 (09-02 complete, continuing 09-03)
 Status: In progress
-Last activity: 2026-02-19 — 09-01 wizard scaffold and document upload complete
+Last activity: 2026-02-19 — 09-02 circuit builder (CircuitBuilderStep, PhaseRow, StepRow) complete
 
-Progress: [█████████░] 92%
+Progress: [█████████░] 95%
 
 ## Performance Metrics
 
@@ -33,6 +33,7 @@ Progress: [█████████░] 92%
 | 5+7 | Email + Templates (parallel) | d2c9f97 |
 | 6+8 | Dashboard + Audit + i18n + Docker (parallel) | TBD |
 | 9-01 | Workflow Creation UI — Wizard Scaffold + Doc Upload | 1ff9c33 |
+| 9-02 | Workflow Creation UI — Dynamic Circuit Builder | da21662 |
 
 ## Accumulated Context
 
@@ -47,6 +48,8 @@ Progress: [█████████░] 92%
 - Refusal routing goes to previous phase, not initiator
 - Wizard step index as useState<number> with FormProvider wrapping entire wizard
 - Duplicate file detection by name+size composite key in document upload step
+- validatorEmails stored as { email: string }[] (not string[]) — react-hook-form useFieldArray requires objects
+- Quorum rule enum uses UNANIMITY/MAJORITY/ANY_OF to match backend engine values
 
 ### Roadmap Evolution
 
@@ -63,5 +66,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 09-01-PLAN.md (wizard scaffold + document upload step)
+Stopped at: Completed 09-02-PLAN.md (dynamic circuit builder — CircuitBuilderStep, PhaseRow, StepRow)
 Resume file: None
