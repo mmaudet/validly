@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Dashboard + Audit** - Initiator and validator dashboard views, workflow visualization, audit trail with CSV export
 - [x] **Phase 7: Workflow Templates** - Template CRUD, org-level sharing, form-based creation, template-to-instance deep copy
 - [x] **Phase 8: i18n Completion + Docker Polish** - Complete FR translations, CI locale validation, Docker Compose production hardening
-- [ ] **Phase 9: Workflow Creation UI** - Multi-step wizard for creating workflows from the dashboard: document upload, validation circuit builder, template loading, and launch
+- [x] **Phase 9: Workflow Creation UI** - Multi-step wizard for creating workflows from the dashboard: document upload, validation circuit builder, template loading, and launch
 
 ## Phase Details
 
@@ -146,4 +146,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. Dashboard + Audit | Complete | 2026-02-19 |
 | 7. Workflow Templates | Complete | 2026-02-19 |
 | 8. i18n Completion + Docker Polish | Complete | 2026-02-19 |
-| 9. Workflow Creation UI | In progress (1/3) | - |
+| 9. Workflow Creation UI | Complete (3/3) | 2026-02-19 |

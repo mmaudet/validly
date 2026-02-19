@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 9 of 9 (Workflow Creation UI)
-Plan: 3 of 3 (09-02 complete, continuing 09-03)
-Status: In progress
-Last activity: 2026-02-19 — 09-02 circuit builder (CircuitBuilderStep, PhaseRow, StepRow) complete
+Plan: 3 of 3 (09-03 complete — Phase 9 complete)
+Status: Complete
+Last activity: 2026-02-19 — 09-03 review/launch (TemplatePicker, ReviewStep, launch mutation) complete
 
-Progress: [█████████░] 95%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -34,6 +34,7 @@ Progress: [█████████░] 95%
 | 6+8 | Dashboard + Audit + i18n + Docker (parallel) | TBD |
 | 9-01 | Workflow Creation UI — Wizard Scaffold + Doc Upload | 1ff9c33 |
 | 9-02 | Workflow Creation UI — Dynamic Circuit Builder | da21662 |
+| 9-03 | Workflow Creation UI — Review, Launch, Template Loading | 61137e3 |
 
 ## Accumulated Context
 
@@ -50,6 +51,9 @@ Progress: [█████████░] 95%
 - Duplicate file detection by name+size composite key in document upload step
 - validatorEmails stored as { email: string }[] (not string[]) — react-hook-form useFieldArray requires objects
 - Quorum rule enum uses UNANIMITY/MAJORITY/ANY_OF to match backend engine values
+- TemplatePicker uses enabled: isOpen for lazy fetch — no API call until dropdown opened
+- executionMode (form field) renamed to execution only in API payload builder — form type unchanged
+- Launch mutation uploads files in parallel (Promise.all) then POSTs workflow with collected IDs
 
 ### Roadmap Evolution
 
@@ -66,5 +70,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 09-02-PLAN.md (dynamic circuit builder — CircuitBuilderStep, PhaseRow, StepRow)
+Stopped at: Completed 09-03-PLAN.md (review/launch — TemplatePicker, ReviewStep, launch mutation) — Phase 9 complete
 Resume file: None
