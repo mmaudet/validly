@@ -1,470 +1,590 @@
 # Architecture Research
 
-**Domain:** Document validation workflow platform (open-source, self-hosted)
-**Researched:** 2026-02-19
-**Confidence:** MEDIUM — Core patterns drawn from multiple converging sources; Validly-specific design choices (no BPMN, email-as-action, secure token links) informed by first-principles derivation from verified ecosystem patterns.
+**Domain:** Document validation workflow platform (Validly) — v1.1 UX Polish integration
+**Researched:** 2026-02-20
+**Confidence:** HIGH — All findings based on direct inspection of the existing codebase (8,971 LOC).
 
 ---
 
-## Standard Architecture
+## Context: Existing Architecture Baseline
 
-### System Overview
+This document focuses on **how v1.1 features integrate with the existing codebase**, not on the original architecture design. All integration points, touch files, and data flow changes are derived from reading the actual code.
+
+### What Already Exists
+
+**Backend (Fastify 5, Prisma 6, PostgreSQL 15, BullMQ/Redis)**
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Clients                                  │
-│   HTTP API Consumers (curl, SDKs, future UI, webhook senders)   │
-└────────────────────────────────┬────────────────────────────────┘
-                                 │  REST / JSON (OpenAPI)
-┌────────────────────────────────▼────────────────────────────────┐
-│                          API Layer                               │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │  Auth/Token │  │  Controllers │  │   Token Resolver     │   │
-│  │  Middleware │  │  (Routes)    │  │  (email link entry)  │   │
-│  └──────┬──────┘  └──────┬───────┘  └──────────┬───────────┘   │
-└─────────┼────────────────┼──────────────────────┼───────────────┘
-          │                │                      │
-┌─────────▼────────────────▼──────────────────────▼───────────────┐
-│                       Service Layer                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │  Workflow    │  │  Document    │  │   Notification       │   │
-│  │  Service     │  │  Service     │  │   Service (email)    │   │
-│  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘   │
-│         │                 │                      │               │
-│  ┌──────▼───────────────────────────────────────▼───────────┐   │
-│  │              State Machine Engine                         │   │
-│  │  (phase/step transitions, validator logic, token issue)  │   │
-│  └──────────────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────────┘
-          │                │                      │
-┌─────────▼────────────────▼──────────────────────▼───────────────┐
-│                     Infrastructure Layer                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │  PostgreSQL  │  │  File Store  │  │   SMTP Mailer        │   │
-│  │  (primary DB)│  │  Adapter     │  │   (+ retry queue)    │   │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
-│       ┌──────────────────────────────────────────────┐           │
-│       │  File Store: local FS → MinIO (S3-compat.)   │           │
-│       └──────────────────────────────────────────────┘           │
-└─────────────────────────────────────────────────────────────────┘
+backend/src/
+├── api/routes/          auth.ts, workflows.ts, documents.ts, templates.ts,
+│                        users.ts, actions.ts, audit.ts, health.ts
+├── services/            auth-service.ts, workflow-service.ts, document-service.ts,
+│                        email-service.ts, token-service.ts, audit-service.ts,
+│                        reminder-service.ts, template-service.ts, user-service.ts
+├── domain/              state-machine.ts, workflow-types.ts
+├── infrastructure/      database.ts, queue/index.ts, storage/
+├── jobs/                reminder-worker.ts (BullMQ)
+├── i18n/                index.ts (i18next-fs-backend, EN + FR)
+├── config/              env.ts
+└── app.ts               (Fastify, registered at /api prefix)
 ```
 
-### Component Responsibilities
+**Frontend (React 19, Vite 6, Tailwind v4)**
 
-| Component | Responsibility | Communicates With |
-|-----------|----------------|-------------------|
-| API Layer (Controllers) | Parse HTTP requests, validate input shape, map to service calls, serialize responses | Service Layer |
-| Auth/Token Middleware | Validate JWT session tokens; also resolve one-time action tokens from email links | Service Layer, DB |
-| Token Resolver | Dedicated handler for `GET /actions/:token` — resolves secure one-time tokens to workflow actions | State Machine Engine |
-| Workflow Service | Orchestrates WorkflowInstance lifecycle: create from template, advance phases, track status | State Machine, DB, Notification Service |
-| Document Service | Attach/detach/retrieve files, delegate to File Store adapter | File Store Adapter, DB |
-| Notification Service | Compose and dispatch emails (invitations, reminders, decisions); issue tokens for email links | SMTP Mailer, DB (token store) |
-| State Machine Engine | Core domain: evaluate phase/step completion rules, enforce valid transitions, reject illegal ones | PostgreSQL (read/write state) |
-| PostgreSQL | Source of truth for all relational data (users, templates, instances, phases, steps, actions) | All service-layer components |
-| File Store Adapter | Abstraction over local FS or MinIO; exposes put/get/delete by key | Local FS or MinIO |
-| SMTP Mailer | Send transactional emails with retry on failure; no message broker required at MVP scale | External SMTP relay |
+```
+frontend/src/
+├── pages/               DashboardPage, WorkflowCreatePage, WorkflowDetailPage,
+│                        TemplateFormPage, AdminUsersPage, LoginPage, SignupPage,
+│                        ActionConfirmPage, ActionErrorPage
+├── components/
+│   ├── ui/              ConfirmDialog.tsx (the only generic UI component)
+│   └── workflow/        CircuitBuilderStep, DocumentPreview, PhaseRow, ReviewStep,
+│                        StepDetail, StepRow, TemplatePicker, WorkflowStepper
+├── hooks/               useAuth.ts
+├── lib/                 api.ts (apiFetch, token refresh, ApiError), utils.ts
+├── i18n/                index.ts (i18next, EN + FR JSON bundles)
+└── App.tsx              (React Router v7, QueryClientProvider, AuthGuard)
+```
+
+**Prisma Schema (PostgreSQL 15)**
+
+Models: User, RefreshToken, Document, WorkflowTemplate, WorkflowInstance,
+WorkflowDocument, PhaseInstance, StepInstance, ActionToken, WorkflowAction,
+AuditEvent, ScheduledEvent
+
+**No existing models for:** notifications, comments, password reset tokens.
 
 ---
 
-## Recommended Project Structure
+## System Overview (Current State)
 
 ```
-validly/
-├── src/
-│   ├── api/                   # HTTP layer only — routes, middleware, request parsing
-│   │   ├── middleware/        # auth, i18n locale, error handling
-│   │   ├── routes/            # one file per resource (workflows, documents, users, tokens)
-│   │   └── validators/        # input schema validation (Zod/Joi) — no business logic
-│   │
-│   ├── services/              # Use-case orchestration — thin, delegates to domain
-│   │   ├── workflow.service.ts
-│   │   ├── document.service.ts
-│   │   └── notification.service.ts
-│   │
-│   ├── domain/                # Core domain: state machine, transition rules, business invariants
-│   │   ├── state-machine/     # Phase/step FSM implementation
-│   │   ├── models/            # Domain entity types (not ORM models)
-│   │   └── rules/             # Completion rules (all validators must act, majority, etc.)
-│   │
-│   ├── repositories/          # All DB access — no SQL outside this folder
-│   │   ├── workflow-instance.repo.ts
-│   │   ├── workflow-template.repo.ts
-│   │   ├── document.repo.ts
-│   │   ├── user.repo.ts
-│   │   └── action-token.repo.ts
-│   │
-│   ├── infrastructure/        # Adapters to external systems
-│   │   ├── mailer/            # SMTP adapter + retry logic
-│   │   ├── storage/           # File store abstraction (local + MinIO implementations)
-│   │   └── db/                # DB client, migration runner, connection pool
-│   │
-│   ├── i18n/                  # Translation files and locale resolver
-│   │   ├── en/
-│   │   └── fr/
-│   │
-│   └── config/                # Environment loading, validated at startup
-│
-├── migrations/                # SQL migration files (numbered, up-only)
-├── openapi/                   # OpenAPI spec (source of truth or generated)
-├── docker-compose.yml
-├── docker-compose.dev.yml
-└── tests/
-    ├── unit/                  # Domain/state machine tests — no DB required
-    ├── integration/           # Service tests against real DB (test containers)
-    └── e2e/                   # Full HTTP-level tests
+┌────────────────────────────────────────────────────────────────────┐
+│                        Browser (React 19)                          │
+│  Pages: Dashboard, WorkflowCreate, WorkflowDetail, Admin, ...      │
+│  State: TanStack Query v5 (server state), local useState           │
+│  Auth: JWT in localStorage, auto-refresh via api.ts               │
+└───────────────────────────┬────────────────────────────────────────┘
+                            │ HTTP (proxied /api → localhost:3000)
+┌───────────────────────────▼────────────────────────────────────────┐
+│                   Fastify 5 API (/api prefix)                       │
+│  Routes: auth, workflows, documents, templates, users,              │
+│          actions, audit, health                                     │
+│  Plugins: @fastify/jwt, @fastify/multipart, @fastify/cors,         │
+│           @fastify/swagger                                          │
+└──────┬───────────────────────────────────────────────────────┬─────┘
+       │ Prisma 6                                              │ BullMQ
+┌──────▼──────────────────────┐           ┌───────────────────▼─────┐
+│   PostgreSQL 15              │           │   Redis 7               │
+│   (source of truth)          │           │   reminder queue        │
+└─────────────────────────────┘           └─────────────────────────┘
 ```
-
-### Structure Rationale
-
-- **`domain/` is the most important folder.** The state machine and transition rules live here with zero infrastructure dependencies. This makes them fast to test and safe to reason about.
-- **`repositories/` isolates all SQL.** If the DB schema changes, only repository files change — services never write raw SQL.
-- **`infrastructure/`** adapters own the `storage/` interface, letting you swap local FS → MinIO with one line in a factory.
-- **`api/` does no work.** It parses, delegates, and serializes. No business logic leaks into controllers.
 
 ---
 
-## Architectural Patterns
+## v1.1 Features: Integration Analysis
 
-### Pattern 1: Template / Instance Split
+### Feature 1: Password Reset
 
-**What:** WorkflowTemplate defines the blueprint (phases, steps, validators, rules). WorkflowInstance is a live execution created by copying/snapshotting the template at launch time.
+**What it needs:**
+- A short-lived, single-use token (distinct from JWT refresh tokens and action tokens)
+- An email template in the existing email-service pattern
+- Two new routes on auth: request reset, consume reset
 
-**When to use:** Always — this is non-negotiable for document workflows. Templates change over time; live instances must be frozen to the structure they started with.
+**New backend components:**
+- `PasswordResetToken` — new Prisma model. Fields: `id`, `tokenHash` (unique, SHA-256 of raw token), `userId`, `expiresAt`, `usedAt`. Same security pattern as `ActionToken`.
+- `POST /auth/forgot-password` — takes `email`, generates token, sends email. Returns 200 regardless of whether email exists (prevents enumeration).
+- `POST /auth/reset-password` — takes `token` + `newPassword`. Validates token (not expired, not used), hashes new password via existing `hashPassword()` in auth-service, marks token used, updates `User.password`.
+- New email template function in `email-service.ts`: `sendPasswordReset(input: PasswordResetEmailInput)`. Follows existing pattern (inline HTML, i18n via `tWithLang`, EN+FR).
 
-**Trade-offs:** Slightly more DB complexity (two parallel hierarchies: template and instance). But avoids the catastrophic bug where editing a template retroactively breaks running instances.
+**Existing code touched:**
+- `backend/src/services/auth-service.ts` — add `requestPasswordReset()` and `resetPassword()` methods.
+- `backend/src/services/email-service.ts` — add `sendPasswordReset()`.
+- `backend/src/api/routes/auth.ts` — add two new routes.
+- `backend/prisma/schema.prisma` — add `PasswordResetToken` model.
 
-**Example:**
+**New frontend components:**
+- `ForgotPasswordPage` — email input form, calls `POST /api/auth/forgot-password`. New route `/forgot-password`.
+- `ResetPasswordPage` — reads `?token=...` from query string, password input form, calls `POST /api/auth/reset-password`. New route `/reset-password`.
+- Add "Forgot password?" link to `LoginPage.tsx` (minimal change).
+
+**Data flow:**
+```
+LoginPage (link) → /forgot-password
+    │
+    ▼
+ForgotPasswordPage → POST /api/auth/forgot-password
+    │
+    ▼
+auth-service.requestPasswordReset()
+  ├── find user by email (if not found: silent return — no enumeration)
+  ├── generate 32-byte CSPRNG token
+  ├── store hash in PasswordResetToken (15min expiry)
+  └── email-service.sendPasswordReset() → SMTP
+
+User clicks email link → /reset-password?token=<raw>
+    │
+    ▼
+ResetPasswordPage → POST /api/auth/reset-password
+    │
+    ▼
+auth-service.resetPassword()
+  ├── hash(token) → lookup PasswordResetToken
+  ├── validate not expired, not used
+  ├── hashPassword(newPassword) → User.password
+  └── mark token used
+```
+
+**i18n:** Add keys to both EN and FR locale files (frontend `common.json`) and backend locale files for the email subject/body.
+
+---
+
+### Feature 2: In-App Notification Center
+
+**What it needs:**
+- A persistent `Notification` model in PostgreSQL
+- Creation of notifications at the same workflow events that currently trigger emails
+- An API to fetch and mark notifications read
+- A polling or real-time frontend component
+
+**New backend components:**
+- `Notification` — new Prisma model. Fields: `id`, `userId`, `type` (enum: `STEP_PENDING`, `STEP_APPROVED`, `STEP_REFUSED`, `WORKFLOW_COMPLETE`, `WORKFLOW_CANCELLED`), `workflowId`, `stepId` (nullable), `readAt` (nullable), `createdAt`.
+- `notification-service.ts` — new service. Methods: `createNotification()`, `listForUser(userId)`, `markRead(notificationId, userId)`, `markAllRead(userId)`.
+- `GET /notifications` — list notifications for authenticated user, ordered by `createdAt desc`, paginated.
+- `PATCH /notifications/:id/read` — mark one notification read.
+- `PATCH /notifications/read-all` — mark all read for user.
+
+**Existing code touched (notification creation hooks):**
+- `workflow-service.ts` — after each state transition that currently calls `notifyValidators()` or sends initiator emails, also call `notification-service.createNotification()`. Specifically:
+  - On workflow launch: create `STEP_PENDING` notification for validators who are registered users.
+  - On `recordAction()`: create `STEP_APPROVED` or `STEP_REFUSED` notification for the initiator; create `STEP_PENDING` for next-step validators.
+  - On workflow completion: create `WORKFLOW_COMPLETE` notification for initiator.
+  - On workflow cancel: create `WORKFLOW_CANCELLED` notification for all involved users.
+
+**Real-time vs polling decision:**
+Use **polling** (30-second interval via TanStack Query `refetchInterval`). Rationale: no WebSocket infrastructure exists, polling is sufficient for document workflows (not a real-time chat), consistent with the existing `staleTime: 30_000` pattern in QueryClient. SSE or WebSocket can be added post-v1.1 if demand exists.
+
+**New frontend components:**
+- `NotificationCenter` — slide-out panel or dropdown, triggered by the bell icon already in `DashboardPage` header. The bell icon currently navigates to the "pending" tab; upgrade it to open the notification center instead.
+- `useNotifications` hook — wraps `useQuery` with `refetchInterval: 30_000`.
+- Unread count badge on the bell icon (already renders a red badge for `pendingCount`; reuse this pattern).
+
+**Existing code touched:**
+- `DashboardPage.tsx` — bell icon onClick becomes `setNotificationsOpen(true)` instead of `handleTabChange('pending')`. Unread count from new query replaces `pendingCount`.
+- `App.tsx` — no route change needed if `NotificationCenter` is a panel/overlay, not a page.
+
+**Data flow:**
+```
+workflow-service.recordAction()
+    ├── [existing] send emails
+    └── [new] notification-service.createNotification(userId, type, context)
+                └── INSERT INTO notifications
+
+Frontend (30s poll)
+    → GET /api/notifications?limit=20
+    → TanStack Query cache update
+    → NotificationCenter re-renders with new items
+    → User clicks notification → navigate to workflow
+    → PATCH /api/notifications/:id/read
+```
+
+---
+
+### Feature 3: Workflow Comments Thread
+
+**What it needs:**
+- A `WorkflowComment` model linked to `WorkflowInstance`
+- A read/write comments API on the workflow resource
+- A thread UI component on `WorkflowDetailPage`
+
+**New backend components:**
+- `WorkflowComment` — new Prisma model. Fields: `id`, `workflowId` (FK to WorkflowInstance), `authorId` (FK to User), `body` (text, required, non-empty), `createdAt`. No editing or deletion (immutable, consistent with audit trail philosophy).
+- `GET /workflows/:id/comments` — returns ordered list of comments with author name/email.
+- `POST /workflows/:id/comments` — authenticated, any user involved in the workflow (initiator or validator who has acted) posts a comment. Body: `{ body: string }`.
+
+**Authorization boundary:** Comments are visible to anyone who can view the workflow. Posting requires authentication. No per-role restriction beyond authentication — the workflow detail page is already auth-guarded.
+
+**Existing code touched:**
+- `backend/src/api/routes/workflows.ts` — add two new route handlers (GET and POST comments).
+- `backend/src/services/workflow-service.ts` — add `addComment()` and `listComments()` methods, or create a separate `comment-service.ts` (preferred for separation).
+- `backend/prisma/schema.prisma` — add `WorkflowComment` model.
+
+**New frontend components:**
+- `CommentThread` component — renders comment list + new comment form. Lives in `frontend/src/components/workflow/CommentThread.tsx`.
+- Add `CommentThread` to `WorkflowDetailPage.tsx` below the audit trail section.
+
+**Data flow:**
+```
+WorkflowDetailPage mounts
+    → GET /api/workflows/:id/comments (useQuery, staleTime: 0 for comments)
+    → CommentThread renders list
+
+User submits comment
+    → POST /api/workflows/:id/comments { body }
+    → useMutation onSuccess: queryClient.invalidateQueries(['workflow', id, 'comments'])
+    → List re-fetches
+```
+
+---
+
+### Feature 4: DOCX In-Browser Preview (mammoth.js)
+
+**What it needs:**
+- Client-side DOCX-to-HTML conversion via mammoth.js
+- Integration with the existing `DocumentPreview` component
+
+**Current state:** `DocumentPreview.tsx` handles `application/pdf` (react-pdf) and `image/*` (URL.createObjectURL). For all other MIME types, it shows a download link. DOCX files (`application/vnd.openxmlformats-officedocument.wordprocessingml.document`) currently show only the download link.
+
+**New frontend components:**
+- Install `mammoth` npm package in frontend.
+- Extend `DocumentPreview.tsx` to handle `application/vnd.openxmlformats-officedocument.wordprocessingml.document`:
+  - Fetch the file as `ArrayBuffer` (same auth-aware fetch already done for PDF).
+  - Call `mammoth.convertToHtml({ arrayBuffer })` — returns `{ value: string, messages: Message[] }`.
+  - Render the HTML inside a sandboxed `div` with scoped Tailwind prose styles.
+- No backend changes required — file is already served by `GET /api/documents/:id/file`.
+
+**Integration point (single file):**
+```
+frontend/src/components/workflow/DocumentPreview.tsx
+  - Add DOCX branch alongside existing PDF and image branches
+  - Import mammoth dynamically: import('mammoth').then(...) for code-splitting
+  - Render: <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: htmlContent }} />
+```
+
+**Security note:** mammoth output is sanitized HTML but dangerouslySetInnerHTML still needs a DOMPurify pass if the documents come from untrusted sources. For Validly's use case (documents uploaded by authenticated users), this is LOW risk but worth noting.
+
+**No schema changes. No backend changes.**
+
+---
+
+### Feature 5: Responsive Layout
+
+**What it needs:**
+- Tailwind v4 responsive breakpoints applied to existing page layouts
+- Mobile-friendly navigation (collapsible header)
+
+**Current state:** All pages use `max-w-5xl mx-auto` containers with `px-4` padding. The header in `DashboardPage` has a horizontal `flex` row with multiple items that will overflow on mobile. Table-heavy layouts (workflow list, user list) do not have mobile-responsive alternatives.
+
+**Existing code touched:**
+- `DashboardPage.tsx` — header flex row: wrap or collapse nav items behind a mobile menu button at `sm:` breakpoint. Tables: use `overflow-x-auto` (already present on some) and consider card layouts at `sm:` for the pending tab.
+- `WorkflowDetailPage.tsx` — header flex row same issue. Info bar and action buttons need flex-wrap at mobile.
+- `WorkflowCreatePage.tsx` — stepper wizard is likely already scrollable; verify.
+- `LoginPage.tsx` / `SignupPage.tsx` — already centered with `max-w-md`, likely already adequate.
+- All pages sharing the same header pattern — consider extracting a `PageHeader` component to apply responsive changes once.
+
+**Pattern to follow:**
+
+```tsx
+// Current (desktop-only)
+<div className="flex items-center gap-4">
+
+// Responsive version
+<div className="flex flex-wrap items-center gap-2 sm:gap-4">
+  <div className="flex items-center gap-2">
+    {/* primary nav */}
+  </div>
+  <div className="ml-auto flex items-center gap-2">
+    {/* secondary nav: bell, locale toggle, email, logout */}
+  </div>
+</div>
+```
+
+**No backend changes. No schema changes. No new routes.**
+
+---
+
+### Feature 6: Error Handling (React Error Boundaries + Error Pages)
+
+**What it needs:**
+- React Error Boundaries to catch component render errors
+- Dedicated error pages (404, 500, network error)
+- Improvement to the existing inline error pattern
+
+**Current state:**
+- Network errors surface as `ApiError` thrown from `apiFetch()`, caught by local `try/catch` or TanStack Query's `isError` state. No global boundary.
+- `ActionErrorPage` exists for email token errors (`/action/expired`, `/action/used`, `/action/invalid`).
+- No 404 page. No 500 / crash page.
+- No React Error Boundary wrapping any route.
+
+**New frontend components:**
+- `ErrorBoundary.tsx` — class component (React error boundaries must be class components, or use `react-error-boundary` package). Wrap the main `<Routes>` block in `App.tsx` with it.
+- `NotFoundPage.tsx` — render on `path="*"` catch-all route in `App.tsx`.
+- `ErrorPage.tsx` — generic error page with retry button. Used as fallback in `ErrorBoundary`.
+- Optionally install `react-error-boundary` (npm package) to avoid writing a class component.
+
+**Existing code touched:**
+- `App.tsx` — add `<Route path="*" element={<NotFoundPage />} />`. Wrap `<Routes>` with `<ErrorBoundary>`.
+- `api.ts` — no change needed; `ApiError` is already typed. TanStack Query surfaces errors cleanly.
+
+**No backend changes. No schema changes.**
+
+---
+
+### Feature 7: User Profile Page
+
+**What it needs:**
+- A profile page where the logged-in user can update their own name, locale, and password
+- A backend route to allow self-service updates (distinct from admin user management)
+
+**Current state:**
+- `GET /api/auth/me` returns the profile (id, email, name, role, locale, createdAt).
+- `PATCH /api/users/:id` exists but is **admin-only** (`requireAdmin` middleware). Cannot reuse for self-service.
+- No self-service profile update route exists.
+
+**New backend components:**
+- `PATCH /api/auth/profile` — authenticated (any role), allows updating own `name` and `locale`. Body: `{ name?: string; locale?: string }`. Uses `req.user.sub` from JWT, not a path param (prevents users updating other users' profiles).
+- `POST /api/auth/change-password` — authenticated, takes `{ currentPassword: string, newPassword: string }`. Verifies current password with existing `verifyPassword()`, then updates.
+- Both routes added to `backend/src/api/routes/auth.ts` (co-located with profile GET).
+
+**Existing code touched:**
+- `backend/src/api/routes/auth.ts` — two new route handlers.
+- `backend/src/services/auth-service.ts` — add `updateProfile()` and `changePassword()` methods.
+
+**New frontend components:**
+- `ProfilePage.tsx` — new page at `/profile`. Shows: name field (editable), locale selector (editable), email (read-only), role (read-only), created at (read-only). Separate sub-form for password change.
+- Add profile link in `DashboardPage` header (e.g., clicking the user's email navigates to `/profile`).
+
+**Existing code touched:**
+- `App.tsx` — add `<Route path="/profile" element={<AuthGuard><ProfilePage /></AuthGuard>} />`.
+- `DashboardPage.tsx` — make email span a `<Link to="/profile">`.
+- `useAuth.ts` — after `updateProfile()` mutation succeeds, refetch profile with `fetchProfile()` to update JWT-derived state. Note: locale change does NOT require a new JWT because `useAuth` already stores the locale from the API response, not from the token claims.
+
+**Data flow:**
+```
+ProfilePage → GET /api/auth/me (existing query)
+    │
+User edits name/locale → PATCH /api/auth/profile { name, locale }
+    → auth-service.updateProfile(userId, { name, locale })
+    → prisma.user.update(...)
+    → onSuccess: refetch /auth/me → useAuth state updates
+
+User changes password → POST /api/auth/change-password { currentPassword, newPassword }
+    → auth-service.changePassword(userId, current, new)
+    → verifyPassword(current) → hashPassword(new) → prisma.user.update(password)
+    → onSuccess: show success message (no redirect needed)
+```
+
+---
+
+## Component Boundaries Map
+
+| Feature | New Files | Modified Files |
+|---------|-----------|----------------|
+| Password Reset | `PasswordResetToken` (schema), `ForgotPasswordPage.tsx`, `ResetPasswordPage.tsx`, `sendPasswordReset()` (email-service) | `auth.ts` (routes), `auth-service.ts`, `schema.prisma`, `App.tsx` (routes), `LoginPage.tsx` (link), EN+FR locale files |
+| Notification Center | `Notification` (schema), `notification-service.ts`, `notifications.ts` (route), `NotificationCenter.tsx`, `useNotifications.ts` | `workflow-service.ts` (creation hooks), `schema.prisma`, `DashboardPage.tsx` (bell icon), `app.ts` (route registration) |
+| Comments | `WorkflowComment` (schema), `comment-service.ts`, `CommentThread.tsx` | `workflows.ts` (routes), `schema.prisma`, `WorkflowDetailPage.tsx` |
+| DOCX Preview | — | `DocumentPreview.tsx`, `frontend/package.json` (add mammoth) |
+| Responsive Layout | Optionally `PageHeader.tsx` | `DashboardPage.tsx`, `WorkflowDetailPage.tsx`, `WorkflowCreatePage.tsx` |
+| Error Handling | `ErrorBoundary.tsx`, `NotFoundPage.tsx`, `ErrorPage.tsx` | `App.tsx` |
+| User Profile | `ProfilePage.tsx` | `auth.ts` (routes), `auth-service.ts`, `App.tsx` (route), `DashboardPage.tsx` (nav link), `useAuth.ts` |
+
+---
+
+## Build Order (Dependency-Aware)
+
+This order minimizes blocked work between features. Independent features can be built in parallel.
+
+```
+STEP 1 — Schema migrations (unblocks all backend work)
+  ├── Add PasswordResetToken model
+  ├── Add Notification model
+  └── Add WorkflowComment model
+
+STEP 2 — Backend-only features (parallel, no frontend dependency)
+  ├── 2A: Password reset routes + service + email template
+  └── 2B: User profile update routes + service
+
+STEP 3 — Frontend-only features (no new backend required)
+  ├── 3A: DOCX preview (mammoth.js in DocumentPreview.tsx)
+  ├── 3B: Responsive layout breakpoints
+  └── 3C: Error boundaries + 404 page
+
+STEP 4 — Comment thread (backend then frontend)
+  ├── 4A: WorkflowComment service + routes
+  └── 4B: CommentThread component in WorkflowDetailPage
+
+STEP 5 — Notification center (backend then frontend, most complex)
+  ├── 5A: notification-service + routes
+  ├── 5B: Hook notification creation into workflow-service events
+  └── 5C: NotificationCenter component + useNotifications hook + DashboardPage bell upgrade
+
+STEP 6 — Connect frontend to backend (requires steps 2 + 5)
+  ├── ForgotPasswordPage + ResetPasswordPage
+  └── ProfilePage
+```
+
+**Recommended phase breakdown:**
+- Phase 1: Steps 1 + 2 + 3 (schema + backend APIs + frontend-only polish)
+- Phase 2: Steps 4 + 5 (comments + notifications — the heavier social features)
+- Phase 3: Step 6 frontend completion + i18n completion for all new surfaces
+
+---
+
+## Architectural Patterns for v1.1
+
+### Pattern: Self-Service vs Admin Route Separation
+
+The existing `/api/users/:id PATCH` route is admin-only. The new `/api/auth/profile PATCH` is self-service. Do NOT relax the admin guard on the users route — keep them separate. The self-service route uses `req.user.sub` from the JWT (no path param), making it impossible for one user to update another's profile by accident.
+
+### Pattern: Notification Creation as Side Effect
+
+Notifications are created as a side effect of workflow state transitions, similar to how emails are currently sent. Follow the same pattern: create notifications **after the DB transaction commits**, not inside it. A notification creation failure must not roll back a workflow state change.
+
 ```typescript
-// Launching a workflow creates a snapshot, not a reference
-async function launchWorkflow(templateId: string, initiatorId: string): Promise<WorkflowInstance> {
-  const template = await templateRepo.findWithPhasesAndSteps(templateId);
-  const instance = snapshotTemplate(template); // deep copy with new IDs
-  instance.status = 'in_progress';
-  instance.initiatedBy = initiatorId;
-  instance.launchedAt = new Date();
-  return await instanceRepo.create(instance);
+// In workflow-service.recordAction() — after prisma.$transaction resolves:
+try {
+  await notificationService.createNotification(...)
+} catch (err) {
+  console.error('Failed to create notification:', err); // non-critical
 }
 ```
 
-**Confidence:** HIGH — Validated by multiple sources (Vertabelo, ExceptionNotFound workflow series, pg-workflow schema separation of "type" vs "request").
+### Pattern: Polling over WebSocket for Notifications
 
-### Pattern 2: Explicit State Machine with Valid Transition Guards
+Use `refetchInterval: 30_000` in TanStack Query for the notifications endpoint. This matches the existing `staleTime: 30_000` in the QueryClient config and requires zero new infrastructure. SSE or WebSocket is a post-v1.1 concern.
 
-**What:** Every status change (draft → in_progress, step pending → completed, etc.) goes through a central transition function that enforces allowed transitions. Illegal transitions throw, they do not silently no-op.
-
-**When to use:** Always for workflow state. This is the architecture choice that prevents corrupted workflow state in production.
-
-**Trade-offs:** More explicit code than field updates, but eliminates an entire class of bugs.
-
-**Example:**
 ```typescript
-type InstanceStatus = 'draft' | 'in_progress' | 'approved' | 'refused';
+const { data } = useQuery({
+  queryKey: ['notifications'],
+  queryFn: () => apiFetch<NotificationList>('/notifications?limit=20'),
+  refetchInterval: 30_000,
+});
+```
 
-const ALLOWED_INSTANCE_TRANSITIONS: Record<InstanceStatus, InstanceStatus[]> = {
-  draft:       ['in_progress'],
-  in_progress: ['approved', 'refused'],
-  approved:    [],   // terminal
-  refused:     [],   // terminal
-};
+### Pattern: mammoth.js Dynamic Import for DOCX
 
-function transitionInstance(instance: WorkflowInstance, to: InstanceStatus): WorkflowInstance {
-  const allowed = ALLOWED_INSTANCE_TRANSITIONS[instance.status];
-  if (!allowed.includes(to)) {
-    throw new InvalidTransitionError(`Cannot transition from ${instance.status} to ${to}`);
-  }
-  return { ...instance, status: to, updatedAt: new Date() };
+Import mammoth lazily to avoid adding it to the initial bundle, since DOCX preview is only triggered when a DOCX document is expanded.
+
+```typescript
+// In DocumentPreview.tsx
+if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+  const { default: mammoth } = await import('mammoth');
+  const result = await mammoth.convertToHtml({ arrayBuffer: buffer });
+  setDocxHtml(result.value);
 }
 ```
 
-**Confidence:** HIGH — Corroborated by Windmill FSM docs, pg-workflow state/resolution separation, Nordic APIs REST state machine article.
+### Pattern: Error Boundary at Router Level
 
-### Pattern 3: Secure One-Time Token for Email Actions
+Wrap `<Routes>` in `App.tsx` with a single top-level Error Boundary. This catches render errors in any page without needing per-page boundaries.
 
-**What:** When a validator must approve/refuse a step, the system generates a short-lived, single-use opaque token stored in the DB. The token is embedded in an email link. On click, the API resolves the token → action → user → step, then executes the decision.
+```tsx
+// App.tsx
+import { ErrorBoundary } from './components/ErrorBoundary';
 
-**When to use:** Any time an external actor (who may not have an account session) needs to perform a workflow action via email. This is Validly's primary action channel.
-
-**Trade-offs:** Requires a token store table. Tokens must expire (15–30 min for action links) and be invalidated after use. Replay attacks are prevented by single-use guarantee.
-
-**Implementation notes:**
-- Token = 32+ byte CSPRNG hex string (not JWT — no information leakage)
-- Store: `action_tokens(token_hash, action_type, step_id, validator_id, expires_at, used_at)`
-- Hash the token before storing (store hash, email the plain value)
-- The `GET /actions/:token` endpoint is the sole entry point — it requires no session
-
-**Confidence:** MEDIUM — Magic link pattern is well-documented (Auth0, Postmark, SuperTokens); Validly's use for workflow actions (not auth) is a direct application of the same pattern.
-
-### Pattern 4: Append-Only Action Log for Audit Trail
-
-**What:** Every workflow event (step decision, status change, document upload, email sent) is recorded as an immutable append-only row in an `actions` (or `audit_log`) table. The table is never updated, only inserted into.
-
-**When to use:** Document validation workflows have legal/compliance implications. An audit trail is not optional.
-
-**Trade-offs:** More storage, but critical for debugging and user trust. Querying history requires joining on audit table rather than reading current state.
-
-**Example table:**
-```sql
-CREATE TABLE workflow_actions (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  instance_id UUID NOT NULL REFERENCES workflow_instances(id),
-  step_id     UUID REFERENCES steps(id),
-  actor_id    UUID REFERENCES users(id),
-  action_type TEXT NOT NULL,  -- 'step_approved', 'step_refused', 'doc_uploaded', etc.
-  payload     JSONB,           -- action-specific context
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-  -- NO updated_at — this row never changes
-);
+<QueryClientProvider client={queryClient}>
+  <BrowserRouter>
+    <ErrorBoundary fallback={<ErrorPage />}>
+      <Routes>
+        {/* all routes */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </ErrorBoundary>
+  </BrowserRouter>
+</QueryClientProvider>
 ```
-
-**Confidence:** MEDIUM — Event sourcing / audit trail pattern is extensively documented (Azure Architecture Center, Kurrent.io, Arkency). Document-specific requirement corroborated by multiple workflow platform case studies.
-
-### Pattern 5: Storage Adapter Interface
-
-**What:** A thin interface (`StorageAdapter`) hides whether files go to local disk or MinIO. Both implementations satisfy the same interface. The factory selects the implementation based on config.
-
-**When to use:** From day one — retrofitting this later requires touching every document upload path.
-
-**Example:**
-```typescript
-interface StorageAdapter {
-  put(key: string, data: Buffer, mimeType: string): Promise<void>;
-  get(key: string): Promise<Buffer>;
-  delete(key: string): Promise<void>;
-  url(key: string): string; // signed URL for MinIO, local path for dev
-}
-
-// config.ts selects implementation
-const storage: StorageAdapter = config.storage.driver === 'minio'
-  ? new MinioAdapter(config.storage.minio)
-  : new LocalAdapter(config.storage.localPath);
-```
-
-**Confidence:** MEDIUM — MinIO's ObjectLayer interface pattern and S3-compatible abstraction is well-documented in MinIO's own architecture docs.
 
 ---
 
-## Data Flow
+## Anti-Patterns to Avoid
 
-### Workflow Launch Flow
+### Anti-Pattern: Reusing ActionToken Model for Password Reset
 
-```
-POST /api/workflows
-    │
-    ▼
-Auth Middleware (validate JWT)
-    │
-    ▼
-WorkflowController.create()
-  └─ validate input shape (templateId, title, documents)
-    │
-    ▼
-WorkflowService.launch(templateId, initiatorId)
-  ├─ templateRepo.findWithPhasesAndSteps(templateId)
-  ├─ snapshotTemplate() → create WorkflowInstance tree
-  ├─ instanceRepo.create(snapshot)  [PostgreSQL tx]
-  ├─ documentService.attach(files)  [File Store + DB]
-  └─ notificationService.notifyFirstPhaseValidators()
-       ├─ generate action tokens for each validator
-       ├─ store token hashes in action_tokens table
-       └─ mailer.send(validatorEmail, { token, context })
-    │
-    ▼
-201 Created { instanceId, status: 'in_progress' }
-```
+The `ActionToken` model is coupled to `stepId` and `validatorEmail` — it carries workflow semantics. Password reset tokens are user-account tokens. Create a separate `PasswordResetToken` model. Reuse the SHA-256 hashing pattern from `token-service.ts`, but do not share the model.
 
-### Email Action Resolution Flow (validator clicks link)
+### Anti-Pattern: Storing Notifications in Memory or Redis Only
 
-```
-GET /api/actions/:token
-    │
-    ▼
-TokenResolver Middleware
-  ├─ lookup hash(token) in action_tokens
-  ├─ check expiry, check used_at = NULL
-  └─ resolve → { stepId, validatorId, actionType }
-    │
-    ▼
-WorkflowService.applyValidatorDecision(stepId, validatorId, decision)
-  ├─ load step + parent phase + instance
-  ├─ stateMachine.transitionStep(step, decision)
-  ├─ stepRepo.update(step)
-  ├─ auditLog.append(action_type, context)
-  ├─ tokenRepo.markUsed(tokenHash)
-  │
-  ├─ [if phase completion rule met]
-  │   ├─ stateMachine.transitionPhase(phase, 'completed')
-  │   ├─ [if last phase] stateMachine.transitionInstance(instance, 'approved')
-  │   └─ notificationService.notifyNextPhase() OR notifyCompletion()
-    │
-    ▼
-200 OK (or redirect to confirmation page)
-```
+Notifications must survive server restarts and be queryable per-user. Store them in PostgreSQL. Redis is for BullMQ job queuing only — do not put notifications there.
 
-### State Management
+### Anti-Pattern: Allowing Comment Editing or Deletion
 
-```
-WorkflowInstance
-  status: draft → in_progress → approved
-                             ↘ refused
+The existing platform philosophy is immutability (audit trail is INSERT-only, actions are never deleted). Apply the same to comments. No `PATCH /comments/:id` or `DELETE /comments/:id`. If users need to "retract" a comment, that is a future feature with soft-delete semantics, not a v1.1 concern.
 
-  contains PhaseInstances (ordered)
-    status: pending → in_progress → completed
-                                  ↘ refused
+### Anti-Pattern: Embedding the Notification Center in a Separate Page
 
-    contains StepInstances (one per validator)
-      status: pending → in_progress → completed
-                                    ↘ refused
-```
+The notification center should be a slide-out panel or dropdown overlay anchored to the bell icon, not a separate `/notifications` route. A page navigation breaks the workflow — users expect to click a notification and land on the relevant workflow without a full page reload.
 
-Phase completion is rule-evaluated: "all steps completed", "majority completed", or custom rule per template. The state machine evaluates the rule after each step transition.
+### Anti-Pattern: Blocking the Workflow Transaction on Notification Creation
 
-### Key Data Flows
-
-1. **Template → Instance:** Template is deep-copied at launch. All phase/step structure is snapshot. Instance never references template FK chains — it owns its own full tree.
-2. **Action Token lifecycle:** Issue (insert hash) → email (plain token in link) → resolve (hash lookup) → invalidate (set used_at). Token plain value never persists in DB.
-3. **File storage:** File is streamed directly to File Store adapter (not buffered in API). DB stores only metadata (key, mime, size, uploader). Files are never stored in the DB blob.
-4. **Email queue at MVP scale:** Synchronous send within the request/service call, with 2–3 retry attempts on transient SMTP failure. No message broker needed until scale demands it.
-
----
-
-## Component Boundaries (Build Order Implications)
-
-The following dependency graph implies a bottom-up build order:
-
-```
-PostgreSQL schema + migrations          ← Build first (everything depends on this)
-    │
-    ▼
-Domain models + State Machine           ← No dependencies; pure logic; unit-testable immediately
-    │
-    ▼
-Repositories                            ← Depend on DB schema + domain models
-    │
-    ├──▶ File Store Adapter             ← Independent; can be built in parallel with repos
-    │
-    ├──▶ SMTP Mailer + Token system     ← Depends on repos (for token storage)
-    │
-    ▼
-Services (Workflow, Document, Notification)  ← Depend on repos + adapters + state machine
-    │
-    ▼
-API Layer (routes, middleware, OpenAPI)  ← Depends on services
-    │
-    ▼
-i18n Layer                              ← Threads through API + email templates; can be layered in after core routes exist
-```
-
-**Recommended build sequence for phases:**
-1. DB schema + migrations + core domain models
-2. State machine (pure logic, unit tested)
-3. Repositories (DB access, integration tested)
-4. Storage adapter (local FS first)
-5. Workflow service + launch flow (end-to-end integration test)
-6. Token system + SMTP mailer + notification service
-7. Full action resolution flow (validator email → decision → state advance)
-8. API layer with OpenAPI spec
-9. i18n (EN + FR) threaded through all outputs
-
----
-
-## Scaling Considerations
-
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| 0–500 users | Single Docker Compose stack: API + DB + SMTP relay. Synchronous email send. Local file storage. This is the target for MVP. |
-| 500–10K users | Add MinIO for object storage. Move email to async queue (pg-based queue or Redis). Add read replica for DB. |
-| 10K+ users | Horizontal API scaling (stateless by design). Separate worker process consuming email queue. CDN for file downloads. Consider schema partitioning for audit log. |
-
-### Scaling Priorities
-
-1. **First bottleneck:** Email delivery — SMTP synchronous calls will time out under load. Fix: move to async queue backed by PostgreSQL (pg-boss or similar) before adding more features.
-2. **Second bottleneck:** File storage — local FS does not work across multiple API instances. Fix: MinIO (already planned). Switch is a config + adapter swap if the abstraction layer is built correctly from day 1.
-
----
-
-## Anti-Patterns
-
-### Anti-Pattern 1: Storing State as a Flag Field Without Transition Guards
-
-**What people do:** `UPDATE workflow_instances SET status = 'approved' WHERE id = $1` directly from service or controller code.
-
-**Why it's wrong:** Any code path can set any status. A bug routes `refused` directly to `approved`. There is no enforcement of the transition graph. Impossible states appear in production.
-
-**Do this instead:** Route ALL status changes through the state machine's `transition()` function. Let the FSM throw on illegal transitions. Database constraints can back-stop this (check constraints on status values + trigger-based transition validation), but the application-level guard is mandatory.
-
-### Anti-Pattern 2: Live Template References from Running Instances
-
-**What people do:** WorkflowInstance references the current WorkflowTemplate via FK and reads phase/step definitions dynamically on each request.
-
-**Why it's wrong:** When an admin edits the template mid-execution, all running instances see the changed structure. Steps disappear or appear. This is catastrophic for document workflows.
-
-**Do this instead:** At launch time, deep-copy the template's full phase/step structure into the instance's own rows. The instance owns its structure. Template FK on the instance is for lineage/reporting only, not structural reads.
-
-### Anti-Pattern 3: Business Logic in API Controllers
-
-**What people do:** Put state transition decisions, completion rule evaluation, or file processing directly in route handlers.
-
-**Why it's wrong:** Logic becomes untestable without HTTP infrastructure. It leaks across routes. It makes the domain impossible to reason about independently.
-
-**Do this instead:** Controllers only parse, validate shape, delegate to service, and serialize response. Domain logic is in `domain/`, orchestration is in `services/`.
-
-### Anti-Pattern 4: Storing File Content in the Database
-
-**What people do:** Store uploaded documents as `BYTEA` columns in PostgreSQL for simplicity.
-
-**Why it's wrong:** PostgreSQL is not an object store. Large BLOBs balloon the DB size, degrade vacuum performance, and create backup nightmares. Even the ExceptionNotFound workflow engine series calls this out explicitly as a design shortcoming.
-
-**Do this instead:** Store files in the File Store adapter (local FS → MinIO). Store only metadata in DB (key, filename, size, MIME type, uploader, upload time).
-
-### Anti-Pattern 5: Synchronous Email as the Critical Path for State Transitions
-
-**What people do:** Send email inside a DB transaction: commit state change AND send email atomically.
-
-**Why it's wrong:** SMTP failure rolls back the DB transaction. The workflow hangs because the state wasn't persisted. Or email is sent but DB commit fails, leaving emails with broken token links.
-
-**Do this instead:** Commit DB state change first (including token issuance). Then attempt email send outside the transaction with retry. If email fails, the state is still correct — a retry job or manual resend can recover without state inconsistency.
+Never call `notificationService.createNotification()` inside a `prisma.$transaction()` block. A notification DB write failure would roll back a completed workflow action. Always create notifications after the transaction commits, wrapped in try/catch.
 
 ---
 
 ## Integration Points
 
-### External Services
+### New API Routes (v1.1)
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| SMTP relay (Postfix, SendGrid, etc.) | Nodemailer/equivalent with connection pool + retry | Abstract behind `MailerAdapter` interface for easy swap |
-| MinIO (object storage) | AWS SDK v3 (`@aws-sdk/client-s3`) — MinIO is S3-compatible | Use same SDK for local MinIO and cloud S3; configure endpoint URL |
-| PostgreSQL | Direct driver (pg/postgres.js) with connection pool | No ORM — raw SQL in repositories for full control over queries |
+| Route | Method | Auth | Description |
+|-------|--------|------|-------------|
+| `/auth/forgot-password` | POST | None | Request password reset email |
+| `/auth/reset-password` | POST | None | Consume token, set new password |
+| `/auth/profile` | PATCH | JWT | Update own name/locale |
+| `/auth/change-password` | POST | JWT | Update own password |
+| `/notifications` | GET | JWT | List notifications for current user |
+| `/notifications/:id/read` | PATCH | JWT | Mark one notification read |
+| `/notifications/read-all` | PATCH | JWT | Mark all notifications read |
+| `/workflows/:id/comments` | GET | JWT | List comments on a workflow |
+| `/workflows/:id/comments` | POST | JWT | Post a comment on a workflow |
 
-### Internal Boundaries
+### New Prisma Models (v1.1)
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| API → Service | Direct function call (same process) | No message passing — services are synchronous |
-| Service → State Machine | Direct function call — pass entity, receive new state | State machine is pure function, no side effects |
-| Service → Repository | Direct function call — repositories return domain types | Repositories own DB cursor lifecycle |
-| Service → Notification | Direct function call — notification queues if async needed | Start synchronous, add queue adapter later |
-| Notification → Mailer | Adapter interface call | Decoupled from SMTP implementation |
-| Document Service → File Store | Adapter interface call | Local FS or MinIO swap is transparent to service |
+| Model | Relation | Key Fields |
+|-------|----------|------------|
+| `PasswordResetToken` | User (many-to-one) | tokenHash, userId, expiresAt, usedAt |
+| `Notification` | User (many-to-one), WorkflowInstance | userId, type, workflowId, stepId?, readAt? |
+| `WorkflowComment` | WorkflowInstance, User | workflowId, authorId, body, createdAt |
+
+### Frontend New Routes
+
+| Path | Component | Guard |
+|------|-----------|-------|
+| `/forgot-password` | `ForgotPasswordPage` | None |
+| `/reset-password` | `ResetPasswordPage` | None |
+| `/profile` | `ProfilePage` | AuthGuard |
+
+### External Library Additions
+
+| Library | Side | Purpose | Bundle Impact |
+|---------|------|---------|---------------|
+| `mammoth` | Frontend | DOCX to HTML conversion | ~500KB; use dynamic import to keep from main bundle |
+| `react-error-boundary` (optional) | Frontend | Error boundary hook/component | ~5KB; alternative to writing class component |
+
+---
+
+## Confidence Assessment
+
+| Area | Confidence | Basis |
+|------|------------|-------|
+| Integration points | HIGH | Read directly from codebase |
+| New model design | HIGH | Follows existing patterns (ActionToken, AuditEvent) |
+| Route design | HIGH | Follows existing Fastify route conventions |
+| Frontend component boundaries | HIGH | Based on current page/component structure |
+| DOCX preview approach | HIGH | mammoth.js is the standard; DocumentPreview pattern is clear |
+| Notification polling approach | HIGH | Matches existing TanStack Query usage |
+| Build order | HIGH | Dependency graph derived from actual imports |
 
 ---
 
 ## Sources
 
-- [Architecture Pattern: Orchestration via Workflows — Kislay Verma](https://kislayverma.com/software-architecture/architecture-pattern-orchestration-via-workflows/) — MEDIUM confidence (single source, credible author)
-- [Designing a True REST State Machine — Nordic APIs](https://nordicapis.com/designing-a-true-rest-state-machine/) — MEDIUM confidence (verified via fetch)
-- [Workflow Engine vs State Machine — workflowengine.io](https://workflowengine.io/blog/workflow-engine-vs-state-machine/) — MEDIUM confidence
-- [PostgreSQL Workflow Engine (pg-workflow) — chuckstack/GitHub](https://github.com/chuckstack/pg-workflow) — MEDIUM confidence (live open-source reference)
-- [Design Patterns for Approval Processes — ACM Digital Library](https://dl.acm.org/doi/fullHtml/10.1145/3628034.3628035) — LOW confidence (403 on fetch, citation found via search)
-- [Workflow Pattern — Vertabelo / Red Gate](https://www.red-gate.com/blog/the-workflow-pattern-part-1-using-workflow-patterns-to-manage-the-state-of-any-entity/) — MEDIUM confidence (fetched successfully)
-- [Designing a Workflow Engine Database (8-part series) — ExceptionNotFound](https://exceptionnotfound.net/designing-a-workflow-engine-database-part-1-introduction-and-purpose/) — MEDIUM confidence (structure confirmed; schema limited to intro)
-- [Magic Links / Secure Tokens — Auth0 Docs](https://auth0.com/docs/authenticate/passwordless/authentication-methods/email-magic-link) — HIGH confidence (official documentation)
-- [Magic Link Security Best Practices — Deepak Gupta](https://guptadeepak.com/mastering-magic-link-security-a-deep-dive-for-developers/) — MEDIUM confidence
-- [MinIO ObjectLayer Architecture — MinIO GitHub](https://github.com/minio/minio) — MEDIUM confidence
-- [Event Sourcing Pattern — Azure Architecture Center](https://learn.microsoft.com/en-us/azure/architecture/patterns/event-sourcing) — HIGH confidence (official Microsoft docs)
-- [Designing Scalable Notification Systems — Medium/Anshul Kahar](https://medium.com/@anshulkahar2211/designing-a-scalable-notification-system-email-sms-push-from-hld-to-lld-reliability-to-d5b883d936d8) — LOW confidence (single blog source)
-- [Hexagonal Architecture — AWS Prescriptive Guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/hexagonal-architecture.html) — HIGH confidence (official AWS docs)
+All findings from direct codebase inspection:
+- `/Users/mmaudet/work/validly/backend/prisma/schema.prisma`
+- `/Users/mmaudet/work/validly/backend/src/api/routes/auth.ts`
+- `/Users/mmaudet/work/validly/backend/src/services/auth-service.ts`
+- `/Users/mmaudet/work/validly/backend/src/services/token-service.ts`
+- `/Users/mmaudet/work/validly/backend/src/services/email-service.ts`
+- `/Users/mmaudet/work/validly/backend/src/services/workflow-service.ts`
+- `/Users/mmaudet/work/validly/backend/src/api/routes/users.ts`
+- `/Users/mmaudet/work/validly/frontend/src/App.tsx`
+- `/Users/mmaudet/work/validly/frontend/src/lib/api.ts`
+- `/Users/mmaudet/work/validly/frontend/src/hooks/useAuth.ts`
+- `/Users/mmaudet/work/validly/frontend/src/pages/DashboardPage.tsx`
+- `/Users/mmaudet/work/validly/frontend/src/pages/WorkflowDetailPage.tsx`
+- `/Users/mmaudet/work/validly/frontend/src/pages/LoginPage.tsx`
+- `/Users/mmaudet/work/validly/frontend/src/components/workflow/DocumentPreview.tsx`
+- `/Users/mmaudet/work/validly/frontend/package.json`
+- `/Users/mmaudet/work/validly/backend/package.json`
 
 ---
-*Architecture research for: Document validation workflow platform (Validly)*
-*Researched: 2026-02-19*
+*Architecture research for: Validly v1.1 UX Polish milestone*
+*Researched: 2026-02-20*

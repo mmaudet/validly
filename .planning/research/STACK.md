@@ -1,165 +1,280 @@
 # Stack Research
 
-**Domain:** Document validation workflow platform (open source, API-first)
-**Researched:** 2026-02-19
-**Confidence:** HIGH (core decisions verified against official docs and current release data)
+**Domain:** Document validation workflow platform — v1.1 UX polish additions
+**Researched:** 2026-02-20
+**Confidence:** MEDIUM-HIGH (versions verified via npm search; @fastify/sse Fastify 5 compatibility LOW confidence — see notes)
 
 ---
 
-## Recommended Stack
+> **Scope:** This document covers ONLY additions and changes needed for v1.1 features. The existing stack
+> (Node 22, Fastify 5, Prisma 6, React 19, Vite 6, Tailwind v4, TanStack Query 5, react-hook-form 7,
+> react-router 7, i18next, Zod, BullMQ 5, Redis 7, Nodemailer, react-pdf) is validated and NOT re-researched.
 
-### Core Technologies — Backend
+---
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| Node.js | 22 LTS | Runtime | Active LTS until Oct 2025, maintenance until April 2027. Fastify v5 requires Node 20+. Required for native TypeScript strip-types support in Node 22.6+. |
-| TypeScript | 5.8+ | Language | Current stable (5.8 released March 2025). Required by Fastify v5, Zod v4, Prisma 7. Compiler rewrite in Go coming but irrelevant for new projects. |
-| Fastify | 5.7.x | HTTP framework | Current stable (5.7.4 as of Feb 2026). Built-in JSON Schema validation, OpenAPI plugin ecosystem, plugin architecture keeps code clean. 5-10% faster than v4. OpenJS Foundation project — durable for open source. NestJS considered but rejected (see Alternatives). |
-| Prisma | 6.x (not 7) | ORM + migrations | Prisma 6.19.x is current stable recommended. Prisma 7 (Nov 2025) breaks significantly: requires driver adapters, ESM-only, removes middleware, breaks seeding. For a new v1 project, Prisma 6 gives the best migration DX (prisma migrate dev is gold-standard) with full PostgreSQL support, no architectural upheaval. Upgrade to 7 post-launch when the ecosystem stabilizes. |
-| PostgreSQL | 15+ | Primary database | Specified constraint. Identity columns (not serial) per 2025 best practices. Append-only audit trail, JSONB for workflow state snapshots. |
-| Zod | 4.x | Runtime validation | Stable as of July 2025. 14x faster parsing than v3. Use for request body validation before Fastify's JSON Schema layer, and for config validation. @fastify/swagger + Zod schemas bridge possible via zod-to-json-schema. |
+## New Dependencies by Feature
 
-### Core Technologies — Frontend
+### Feature 1: Password Reset Email Flow
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| React | 19.2.x | UI framework | Current stable (19.2.4). Largest contributor base of any frontend framework — critical for open source project adoption. Shadcn/ui, TanStack Query, react-i18next all target React first. |
-| Vite | 7.x | Build tool | Current stable (7.3.1). Standard for React SPAs in 2026. HMR in milliseconds. TypeScript out of the box. Docker build: compile once, serve statically. |
-| Tailwind CSS | 4.x | Styling | v4 released 2025. Shadcn/ui has full v4 support since Feb 2025. Smaller bundle, faster builds than v3. PostCSS-free in v4. |
-| shadcn/ui | current (CLI-driven) | Component library | 65k+ GitHub stars, adopted by Vercel and Supabase. Components are copied into your repo — zero runtime dependency, full ownership, contributors can modify directly. Not a package version but a CLI that installs components. |
-| TanStack Query | 5.90.x | Server state / data fetching | Current stable (5.90.21 as of Feb 2026). Handles caching, background sync, optimistic updates. Ideal for "My pending actions" and "My submissions" views that poll for state changes. Replaces ad-hoc fetch + useState patterns. |
+**Verdict: No new libraries needed.** The existing stack already covers this completely.
 
-### Supporting Libraries — Backend
+| What's needed | Existing solution |
+|---------------|-------------------|
+| Token generation | `crypto.randomBytes(32).toString('hex')` — Node 22 built-in |
+| Email delivery | `nodemailer` (already installed) |
+| Email templates | `react-email` / `@react-email/components` (already in stack) |
+| Rate limiting | `@fastify/rate-limit` (already installed) |
+| Token storage | Prisma 6 + PostgreSQL — new `password_reset_tokens` table |
+| Form validation | `react-hook-form 7` + Zod (already installed) |
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| @fastify/swagger | 9.x | OpenAPI 3.x spec generation | Register before routes. Auto-generates spec from JSON Schema route definitions. |
-| @fastify/swagger-ui | 5.x | Swagger UI endpoint | Serves /documentation. Register after @fastify/swagger. |
-| @fastify/jwt | 9.x | JWT auth middleware | Decorates request with jwtVerify, uses fast-jwt internally. Integrates cleanly with Fastify plugin lifecycle. |
-| @fastify/multipart | 8.x | File upload handling | Streams multipart uploads. Use with storage abstraction layer (local disk → MinIO swap). |
-| @fastify/cors | 9.x | CORS headers | Needed for React SPA on separate origin during dev. |
-| @fastify/rate-limit | 9.x | Rate limiting email actions | Prevent token replay attacks on email action endpoints. |
-| nodemailer | 6.x | SMTP email delivery | De-facto Node.js standard, 13M+ weekly downloads, TypeScript types built-in. Configurable SMTP transport matches self-hosted, sovereign deployment. |
-| react-email | 3.x | HTML email templates | React components compiled to email-safe HTML. Works with nodemailer via render(). TypeScript-native. Avoids MJML's separate templating language. Previews in browser during dev. |
-| BullMQ | 5.x | Background job queue | Current stable (5.69.3 as of Feb 2026). Email sends, deadline reminders, audit log writes must be async — never block HTTP response. Requires Redis. |
-| Redis | 7.x | BullMQ backend | Use via Docker Compose. Redis 7 in Docker: sub-5ms latency, persistent AOF mode. |
-| i18next | 24.x | Backend i18n (email, error messages) | Server-side translation for email templates and API error messages. i18next-fs-backend loads JSON files. Shared translation keys with frontend. |
-| zod-to-json-schema | 3.x | Bridge Zod schemas to Fastify | Converts Zod v4 schemas to JSON Schema for Fastify route schema + OpenAPI generation. Single source of truth for validation + docs. |
-| crypto (Node.js built-in) | — | Secure token generation | Use `crypto.randomBytes(32).toString('hex')` for email action tokens. No library needed — Node 22 built-in is sufficient. |
-| pino | 9.x | Structured logging | Fastify's native logger. JSON output, minimal overhead. Use with pino-pretty for development. |
+**Pattern:** Single-use token. Store `HMAC-SHA256(token)` in DB, send raw token in URL. Token expires in 1 hour.
+`/auth/forgot-password` → rate-limited by email. `/auth/reset-password/:token` → validates token, hashes new password, marks token used.
 
-### Supporting Libraries — Frontend
+---
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| react-i18next | 15.x | UI internationalization | Hooks-based, TypeScript type-safe translation keys. Shares translation JSON files with backend. |
-| react-router | 7.x | Client-side routing | Data loaders in v7 reduce TanStack Query boilerplate for initial page loads. Standard SPA routing. |
-| react-hook-form | 7.x | Form state management | Zero-dependency, performant forms. Use with Zod resolver (@hookform/resolvers/zod) for type-safe validation mirroring backend schemas. |
-| @hookform/resolvers | 4.x | Zod adapter for react-hook-form | Connects Zod schemas to react-hook-form validation. |
-| date-fns | 4.x | Date formatting | Lightweight, tree-shakable. Replaces moment.js. Format deadlines, timestamps in audit trail. |
-| lucide-react | current | Icons | Default icon set for shadcn/ui. SVG icons, tree-shakable. |
-| sonner | 1.x | Toast notifications | shadcn/ui's recommended replacement for the toast component as of 2025. |
+### Feature 2: In-App Notification Center (Real-Time)
 
-### Development Tools
+**Recommended approach: Server-Sent Events (SSE) via native Fastify streaming + TanStack Query polling fallback.**
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| tsx | TypeScript execution in dev | `tsx watch src/index.ts` for backend hot reload. Faster than ts-node. No compilation step during development. |
-| vitest | Unit and integration testing | Vite-native test runner. Shares config with Vite frontend. Replaces Jest — no transform setup needed. |
-| @playwright/test | E2E testing | Browser automation. Test email action flows end-to-end. |
-| drizzle-kit (not used) | — | Not chosen — see Alternatives. |
-| eslint + @typescript-eslint | Linting | Standard for TypeScript projects. Use flat config (eslint.config.ts) format for ESLint 9+. |
-| prettier | Formatting | No debates on style. Integrate as eslint plugin. |
-| docker compose | Local dev environment | Backend + PostgreSQL + Redis + MinIO all in one `docker compose up`. |
-| openapi-typescript | OpenAPI → TS types | Generate TypeScript types from the auto-generated OpenAPI spec for frontend fetch calls. Eliminates duplicate type definitions. |
+#### Backend: SSE
+
+**Do not use `fastify-sse-v2`** — last published 8+ months ago, Fastify 5 compatibility unconfirmed.
+**`@fastify/sse` (official)** — version 0.4.0, last published ~3 months ago (Nov 2025). LOW confidence on Fastify 5 peer compatibility; verify before installing.
+
+**Recommended: Raw Fastify streaming (no plugin dependency):**
+
+```typescript
+// No library needed — Fastify 5 supports raw reply streaming
+fastify.get('/notifications/stream', async (request, reply) => {
+  reply.raw.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  });
+  // push via reply.raw.write(`data: ${JSON.stringify(payload)}\n\n`)
+  request.raw.on('close', cleanup);
+});
+```
+
+Caveat: `reply.raw` bypasses Fastify lifecycle hooks. Authenticate via JWT query param or cookie on this route specifically; do not rely on `@fastify/jwt` hook running automatically.
+
+#### Frontend: EventSource API
+
+| What | How |
+|------|-----|
+| SSE client | Native browser `EventSource` — no library |
+| State management | TanStack Query 5 (`useQuery` + `queryClient.invalidateQueries`) |
+| UI component | shadcn/ui `Popover` + `ScrollArea` + Badge (unread count) — no new library |
+| Polling fallback | TanStack Query `refetchInterval: 30_000` when `EventSource` unavailable |
+
+**No new npm packages required for notifications.**
+
+**DB schema addition:** `notifications` table with `user_id`, `type`, `payload JSONB`, `read_at`, `created_at`.
+
+---
+
+### Feature 3: Workflow Comments/Discussion Thread
+
+**Verdict: No new libraries needed.** Pure UI composition with existing stack.
+
+| What's needed | Existing solution |
+|---------------|-------------------|
+| Form (post comment) | `react-hook-form 7` + Zod |
+| Data fetching | TanStack Query 5 (`useInfiniteQuery` for pagination) |
+| Optimistic updates | React 19 `useOptimistic` hook — built-in, no library |
+| Timestamps | `date-fns 4` (already in stack) |
+| UI components | shadcn/ui `Card`, `Avatar`, `Textarea`, `Button` |
+| Mentions (`@user`) | Custom — no library needed for v1.1 (textarea + user search query) |
+
+**Pattern:** Append-only `workflow_comments` table. TanStack Query `useMutation` with `optimisticUpdate` shows comment instantly, rolls back on error. Use `useInfiniteQuery` for cursor-based pagination if thread grows large.
+
+---
+
+### Feature 4: DOCX In-Browser Preview (Client-Side)
+
+**New library needed: `docx-preview`**
+
+| Library | Version | Purpose | Why |
+|---------|---------|---------|-----|
+| `docx-preview` | 0.3.7 | Convert DOCX → DOM in browser | Better fidelity than mammoth.js for visual preview. Renders to a container element, preserves layout, tables, styles. 178+ dependents, last published Sep 2025. |
+| `dompurify` | 3.3.1 | Sanitize HTML output before DOM insertion | Mandatory. docx-preview and mammoth both warn they do NOT sanitize. User-uploaded DOCX files are untrusted. DOMPurify 3.3.1 is current stable (published Dec 2025, 19M weekly downloads). |
+
+**Why `docx-preview` over `mammoth`:**
+- mammoth produces semantic HTML (good for content extraction, loses visual fidelity)
+- docx-preview renders a faithful visual representation (tables, columns, page breaks, fonts) — better for document preview use case
+- mammoth is already usable for text extraction elsewhere if needed
+
+**Installation:**
+```bash
+npm install docx-preview dompurify
+npm install -D @types/dompurify
+```
+
+**Integration pattern:**
+```typescript
+import { renderAsync } from 'docx-preview';
+import DOMPurify from 'dompurify';
+
+// Container ref receives the rendered DOCX DOM
+await renderAsync(arrayBuffer, containerRef.current, undefined, {
+  className: 'docx-preview',
+  injectStylesheet: true,
+});
+// After render, sanitize the container innerHTML
+containerRef.current.innerHTML = DOMPurify.sanitize(containerRef.current.innerHTML);
+```
+
+**Note:** react-pdf (already installed) handles PDF previews. docx-preview handles DOCX. Route by file extension/MIME type in a `<DocumentPreview>` component.
+
+---
+
+### Feature 5: Responsive/Mobile Layout
+
+**Verdict: No new libraries needed.** Tailwind v4 already handles this.
+
+**Pattern — Tailwind v4 mobile-first:**
+
+Tailwind v4 uses the same breakpoint system as v3 but configured via CSS `@theme` variables instead of `tailwind.config.js`. No new config file syntax needed:
+
+```css
+/* globals.css — already where @theme lives in v4 */
+@theme {
+  --breakpoint-sm: 40rem;   /* 640px */
+  --breakpoint-md: 48rem;   /* 768px */
+  --breakpoint-lg: 64rem;   /* 1024px */
+}
+```
+
+**Key patterns for the dashboard:**
+
+```html
+<!-- Sidebar: hidden on mobile, visible on lg+ -->
+<aside class="hidden lg:flex lg:w-64 ...">
+
+<!-- Navigation: bottom nav on mobile, left sidebar on desktop -->
+<nav class="fixed bottom-0 lg:hidden ...">
+
+<!-- Grid: 1 col mobile, 2 col md, 3 col lg -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ...">
+```
+
+shadcn/ui `Sheet` component (already available via shadcn CLI) — use for mobile slide-in navigation. No new library.
+
+**Mobile-specific additions to document preview:** cap container width, use `overflow-x-auto` on docx-preview output since DOCX pages are fixed-width.
+
+---
+
+### Feature 6: Error Boundaries and Error Pages
+
+**New library recommended: `react-error-boundary`**
+
+| Library | Version | Purpose | Why |
+|---------|---------|---------|-----|
+| `react-error-boundary` | 6.1.1 | Declarative error boundaries with hooks | React 19 improved error reporting but class-based error boundaries are still required to catch render errors. react-error-boundary eliminates the class boilerplate and provides `useErrorBoundary()` hook for imperative throwing. Actively maintained (6.1.1 published Feb 2026, 1845 dependents). |
+
+**Installation:**
+```bash
+npm install react-error-boundary
+```
+
+**Integration with React 19 and react-router 7:**
+
+```typescript
+// Route-level error boundary wrapping each major view
+import { ErrorBoundary } from 'react-error-boundary';
+
+<ErrorBoundary
+  FallbackComponent={ErrorPage}
+  onError={(error, info) => logger.error(error, info)}
+  onReset={() => navigate('/')}
+>
+  <WorkflowDetailPage />
+</ErrorBoundary>
+```
+
+**React 19 note:** React 19 added `onCaughtError` / `onUncaughtError` / `onRecoverableError` root-level hooks and eliminated duplicate error logging. react-error-boundary 6.x is compatible and recommended over hand-rolling class components.
+
+**Error page components:** Build using shadcn/ui primitives (no library). Standard pages: 404, 500, network error, permission denied.
+
+---
+
+### Feature 7: User Profile/Settings Page
+
+**Verdict: No new libraries needed.** Pure composition of existing stack.
+
+| What's needed | Existing solution |
+|---------------|-------------------|
+| Form state | `react-hook-form 7` with `defaultValues` from TanStack Query |
+| Validation | Zod schema (share with backend) |
+| Avatar upload | `@fastify/multipart` (backend already installed) |
+| Password change form | react-hook-form + Zod (confirm password cross-field validation) |
+| Notification preferences | react-hook-form checkbox fields |
+| i18n preference | i18next `changeLanguage()` — already integrated |
+| UI | shadcn/ui `Form`, `Input`, `Select`, `Switch`, `Separator`, `Avatar` |
+
+**Pattern:** Two separate `useForm` instances — profile fields and password change. `defaultValues` populated via `useQuery` on user profile endpoint. Dirty-state check via `formState.isDirty` before prompting navigation away.
+
+---
+
+## Recommended Stack Additions (Summary)
+
+### New Frontend Libraries
+
+| Library | Version | Feature | Why |
+|---------|---------|---------|-----|
+| `docx-preview` | 0.3.7 | DOCX preview | Best client-side DOCX-to-DOM fidelity |
+| `dompurify` | 3.3.1 | DOCX/HTML sanitization | Security — DOCX output is untrusted HTML |
+| `react-error-boundary` | 6.1.1 | Error boundaries | Eliminates class boilerplate, hooks API |
+
+### New Backend Libraries
+
+**None.** Password reset, notifications, comments all use existing Fastify 5, Prisma 6, nodemailer, BullMQ, and crypto built-ins.
+
+### New DB Tables Required
+
+| Table | Feature | Key Columns |
+|-------|---------|-------------|
+| `password_reset_tokens` | Password reset | `token_hash`, `user_id`, `expires_at`, `used_at` |
+| `notifications` | Notification center | `user_id`, `type`, `payload JSONB`, `read_at`, `created_at` |
+| `workflow_comments` | Comment threads | `workflow_id`, `user_id`, `content`, `created_at` |
 
 ---
 
 ## Installation
 
 ```bash
-# Backend — core
-npm install fastify @fastify/swagger @fastify/swagger-ui @fastify/jwt @fastify/multipart @fastify/cors @fastify/rate-limit
-npm install @prisma/client prisma
-npm install nodemailer react-email @react-email/components
-npm install bullmq
-npm install zod zod-to-json-schema
-npm install i18next i18next-fs-backend
-npm install pino
-
-# Backend — dev
-npm install -D typescript tsx vitest @types/node @types/nodemailer
-npm install -D eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser prettier
-
-# Frontend — core
-npm create vite@latest frontend -- --template react-ts
-npm install @tanstack/react-query
-npm install react-router
-npm install react-hook-form @hookform/resolvers
-npm install react-i18next i18next i18next-http-backend
-npm install date-fns lucide-react sonner
-npx shadcn@latest init  # interactive setup for Tailwind v4 + shadcn/ui
-
-# Frontend — dev
-npm install -D @playwright/test vitest @testing-library/react openapi-typescript
+# Frontend — new additions only
+npm install docx-preview dompurify react-error-boundary
+npm install -D @types/dompurify
 ```
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | When to Use Alternative Instead |
-|-------------|-------------|----------------------------------|
-| Fastify 5 | NestJS | NestJS makes sense if team size is 10+ and you want enforced module/DI structure. For a lean open-source project targeting contributors, NestJS decorator magic and Angular-style architecture raises the bar to contribute. Fastify's plugin system is simpler to explain. |
-| Fastify 5 | Hono | Hono excels at edge/multi-runtime deployments. Validly is Node.js + Docker Compose — no edge deployment, so Hono's main advantage doesn't apply. Fastify has a larger plugin ecosystem (swagger, multipart, jwt). |
-| Prisma 6 | Prisma 7 | Prisma 7 is the future but breaking changes (driver adapters required, ESM-only, removed middleware) make it risky for greenfield v1. Revisit after stable ecosystem catch-up (H2 2026). |
-| Prisma 6 | Drizzle ORM | Drizzle is excellent for edge/serverless where bundle size matters. For a Docker Compose PostgreSQL project, Prisma's migration DX (`prisma migrate dev`) is superior — Drizzle migrations require manual SQL review. Prisma wins on team onboarding. |
-| BullMQ + Redis | pg-boss | pg-boss uses PostgreSQL as the queue backend (no Redis dependency). Valid alternative for simpler deployments. Choose pg-boss if Redis in Docker Compose feels like too much overhead — it eliminates one service. BullMQ has better DX, monitoring, and retry logic. |
-| react-email | MJML | MJML has its own template language (XML-like) — contributors need to learn it. react-email uses React + TypeScript that developers already know. MJML can be used as a compilation target by react-email internally. |
-| Vite SPA | Next.js | Next.js adds SSR complexity for a dashboard app that requires authentication anyway. Vite SPA with TanStack Query for data fetching is simpler, faster to build, and easier to deploy (static files + API). |
-| TanStack Query | SWR | SWR is a solid alternative. TanStack Query wins on feature depth (prefetching, optimistic updates, devtools) and shadcn/ui tutorials consistently use it. |
-| React | Vue 3 | Vue 3 has excellent TypeScript support but half the contributor potential (4M vs 25M weekly npm downloads). For open-source contributor acquisition, React's larger community is the deciding factor. |
+| Recommended | Alternative | Why Not |
+|-------------|-------------|---------|
+| `docx-preview` | `mammoth.js` | mammoth produces clean semantic HTML optimized for content extraction, not visual fidelity. For preview use case, docx-preview renders closer to Word's appearance. |
+| `docx-preview` | `react-doc-viewer` | react-doc-viewer is a React wrapper around multiple renderers including docx-preview. Adds unnecessary abstraction; use docx-preview directly for control. |
+| `docx-preview` | Microsoft Office Online embed | Requires sending document to Microsoft servers — not acceptable for a self-hosted, privacy-first platform. |
+| `react-error-boundary` | Custom class component | Class-based error boundaries still work but require 15+ lines of boilerplate per boundary. react-error-boundary is the community standard (1845 dependents, Kent C. Dodds maintainer). |
+| Native SSE (raw reply) | `@fastify/sse` plugin | @fastify/sse is at v0.4.0 (experimental versioning) — Fastify 5 peer compatibility is LOW confidence (not verified from official source). Native streaming is 10 lines of code and has no dependency risk. |
+| Native SSE | WebSockets | Notifications are unidirectional (server → client). WebSockets add bidirectional complexity and require ws/socket.io libraries. SSE is HTTP/1.1 native, auto-reconnects, works through proxies. |
+| Native SSE | TanStack Query polling only | Polling at 30s intervals is acceptable fallback but SSE gives instant notification delivery. Implement SSE with polling fallback for graceful degradation. |
 
 ---
 
-## What NOT to Use
+## What NOT to Add
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Express.js | Maintained but stagnant. No built-in TypeScript, no schema validation, no OpenAPI generation out of the box. Plugin ecosystem requires manual assembly. Fastify solves all of these natively. | Fastify 5 |
-| jsonwebtoken (direct) | Uses synchronous sign/verify which blocks the event loop. No longer maintained at the same pace. @fastify/jwt wraps fast-jwt (async, faster). | @fastify/jwt |
-| TypeORM | Decorator-based, deeply coupled to class syntax. Migration tooling is unreliable — known data loss bugs. Large-scale TypeScript projects abandoned it for Prisma/Drizzle 2023-2024. | Prisma 6 |
-| Sequelize | JavaScript-era ORM. TypeScript support bolted on, not native. Awkward for complex queries. | Prisma 6 |
-| Moment.js | 67kb bundle, deprecated by its own maintainers. | date-fns 4 |
-| Webpack | Slow cold starts, complex config for TypeScript. No reason to use over Vite 7 for a new project. | Vite 7 |
-| Agenda / node-schedule | Agenda requires MongoDB. node-schedule is in-memory only (lost on restart). Neither has the retry/dead-letter queue semantics needed for email delivery reliability. | BullMQ 5 |
-| Prisma 7 (for v1) | Driver adapters required, ESM-only module format, removed middleware, changed seeding — too many unknowns for a v1 launch. Ecosystem adapters (ioredis, etc.) need time to catch up. | Prisma 6 |
-| Handlebars / EJS for emails | Static template strings without type safety. No component reuse. No browser preview. | react-email |
-| axios (frontend) | Larger bundle than native fetch. TanStack Query uses fetch internally. No reason to add axios in 2026 for a new project. | native fetch + TanStack Query |
-
----
-
-## Stack Patterns by Variant
-
-**For local development:**
-- `docker compose up` starts PostgreSQL 15, Redis 7, MinIO
-- `tsx watch` runs backend with hot reload
-- `vite dev` runs frontend with HMR
-- `react-email` preview server shows email templates in browser
-
-**For file storage (v1 → v2 migration path):**
-- v1: `@fastify/multipart` streams to local disk. Abstraction: `StorageService` interface with `LocalDiskAdapter`.
-- v2: Swap in `MinIOAdapter` implementing same `StorageService` interface. MinIO's S3-compatible API means `@aws-sdk/client-s3` works for both.
-- No code changes to upload routes — only config.
-
-**For workflow state machine:**
-- Implement as pure TypeScript state machine (not XState). XState v5 adds 50kb+ and actor model complexity for what is a simple finite automaton (draft → in_review → approved/refused/cancelled).
-- Store current state in PostgreSQL `workflow_instances.state` column (enum). Transitions are recorded in `audit_log` (append-only). PostgreSQL transactions guarantee atomicity of state transition + audit entry.
-
-**For email action tokens:**
-- Generate with `crypto.randomBytes(32).toString('hex')` → store hash in `email_tokens` table with `expires_at` and `used_at`.
-- Token endpoint: verify token, mark used (single-use), execute workflow transition, redirect to web dashboard with confirmation.
-- @fastify/rate-limit on token endpoint prevents brute force.
+| `socket.io` | Bidirectional WebSocket library — overkill for read-only notification push. Adds 80kb+ to bundle, requires socket.io server adapter for Fastify. | Native SSE (raw reply) |
+| `mammoth` (for preview) | Strips formatting, produces plain HTML — not suitable for "preview" UX. | `docx-preview` |
+| `react-hot-toast` | Sonner is already in the stack (shadcn/ui's recommended toast). Do not add a competing toast library. | `sonner` (already installed) |
+| `marked` / `remark` | No Markdown rendering needed for comments in v1.1. Plain text with line breaks is sufficient. Add in v1.2 if users request it. | Plain textarea + `white-space: pre-wrap` |
+| `@tanstack/react-virtual` | Virtual scrolling for comment threads — premature optimization. Add only if thread exceeds 200+ items. | `useInfiniteQuery` + native scroll |
+| `react-query-devtools` | Already available — just not listed. It ships with `@tanstack/react-query`. | Already included |
 
 ---
 
@@ -167,34 +282,59 @@ npm install -D @playwright/test vitest @testing-library/react openapi-typescript
 
 | Package | Compatible With | Notes |
 |---------|-----------------|-------|
-| Fastify 5.7.x | Node.js 20+, 22 LTS | Node 18 dropped in Fastify v5 |
-| Prisma 6.19.x | Node.js 18+, TypeScript 5.x | Prisma 7 is ESM-only — avoid for now |
-| Zod 4.x | TypeScript 5.5+ | Zod 4 released July 2025, stable |
-| React 19.2.x | Node.js 18+ (build), any browser | React 19 requires React DOM 19 — install together |
-| Tailwind v4 | Vite 5+/7, React 18+ | PostCSS-free in v4; shadcn/ui supports since Feb 2025 |
-| BullMQ 5.x | Redis 7.x, Node.js 18+ | Valkey and DragonflyDB also compatible |
-| @fastify/swagger 9.x | Fastify 5.x | Must register before routes |
-| react-email 3.x | React 18+/19 | Server-side render via render() from @react-email/components |
-| react-router 7.x | React 19 | v7 introduced "framework mode" (like Next.js) — use library mode (SPA) not framework mode |
+| `docx-preview` 0.3.7 | Browser (no Node.js) | Client-side only. Uses ArrayBuffer input from FileReader or fetch. |
+| `dompurify` 3.3.1 | Browser + Node.js (with jsdom) | Use browser build in React. @types/dompurify available for TypeScript. |
+| `react-error-boundary` 6.1.1 | React 18+, React 19 | 6.x updated for React 19 error hook changes. |
+| Native SSE (Fastify 5) | Fastify 5.x, Node 22 | `reply.raw` available in all Fastify versions. Bypasses lifecycle — auth must be explicit. |
+
+---
+
+## Stack Patterns for v1.1
+
+**DOCX preview component structure:**
+```
+<DocumentPreview file={...}>
+  ├── if PDF → <PDFPreview /> (react-pdf, existing)
+  └── if DOCX → <DocxPreview /> (docx-preview, new)
+      └── sanitize output with DOMPurify after render
+```
+
+**Notification architecture:**
+```
+Backend: SSE endpoint /api/notifications/stream
+         Reads from Redis pub/sub channel per user_id
+         BullMQ job publishes to Redis on workflow state change
+
+Frontend: EventSource hook → React state → Badge count + Popover list
+          TanStack Query refetchInterval=30s as fallback
+```
+
+**Error boundary placement:**
+```
+App root (catches catastrophic failures)
+  └── Route layout (catches page-level render errors)
+      └── DocumentPreview (catches DOCX parse failures)
+      └── CommentThread (catches data errors without breaking page)
+```
 
 ---
 
 ## Sources
 
-- Fastify v5 official docs (fastify.dev) — version 5.7.x confirmed current stable, Node 20+ requirement
-- Fastify v5 migration guide (fastify.dev/docs/v5.1.x/Guides/Migration-Guide-V5/) — breaking changes verified
-- Prisma changelog (prisma.io/changelog) — Prisma 7.3.0 confirmed Jan 2026; Prisma 6.19.x is last v6 stable
-- Prisma 7 upgrade guide (prisma.io/docs/orm/more/upgrade-guides) — driver adapter requirement confirmed HIGH confidence
-- Zod official site (zod.dev) — v4 stable confirmed ("Zod 4 is now stable!")
-- BullMQ npm (npmjs.com/package/bullmq) — version 5.69.3 confirmed Feb 2026
-- React versions (react.dev/versions) — 19.2.4 current stable
-- Vite releases (vite.dev/releases) — 7.3.1 current stable
-- shadcn/ui changelog (ui.shadcn.com/docs/changelog) — Tailwind v4 + React 19 support confirmed Feb 2025
-- TanStack Query npm — 5.90.21 current stable Feb 2026
-- Node.js releases (nodejs.org) — Node 22 LTS active, recommended for production
-- WebSearch (multiple sources) — Prisma vs Drizzle 2026 comparison, Fastify vs NestJS DX, React vs Vue contributor ecosystem
-- WebSearch (multiple sources) — BullMQ vs pg-boss, react-email vs MJML, i18next current state
+- WebSearch: `mammoth` npm — version 1.11.0, browser support confirmed; official warning: "performs no sanitisation"
+- WebSearch: `docx-preview` npm — version 0.3.7, published ~Sep 2025 (MEDIUM confidence — npm blocked direct fetch)
+- WebSearch: `dompurify` npm — version 3.3.1, published Dec 2025, 19M weekly downloads (MEDIUM confidence)
+- WebSearch: `react-error-boundary` npm — version 6.1.1, published Feb 2026, 1845 dependents (MEDIUM confidence)
+- WebSearch: `@fastify/sse` npm — version 0.4.0, published ~Nov 2025; Fastify 5 peer compatibility unconfirmed (LOW confidence)
+- WebSearch: fastify-sse-v2 — last published 8+ months ago, Fastify 5 compatibility unconfirmed (LOW confidence)
+- WebSearch: Fastify raw reply streaming for SSE — documented in official Fastify Reply reference
+- react.dev/blog/2024/12/05/react-19 — React 19 error hook additions (onCaughtError, onUncaughtError) confirmed
+- tailwindcss.com/docs/responsive-design — v4 breakpoint system via @theme CSS variables confirmed
+- shadcn/ui — Sheet, Popover, ScrollArea, Badge, Avatar components confirmed available (CLI install)
+- WebSearch: DOMPurify required after mammoth/docx-preview — official mammoth.js README warning confirmed
+- WebSearch: useOptimistic hook React 19 — confirmed as built-in, no library needed for comment optimistic updates
 
 ---
-*Stack research for: Validly — open-source document validation workflow platform*
-*Researched: 2026-02-19*
+
+*Stack research for: Validly v1.1 UX polish — document validation workflow platform*
+*Researched: 2026-02-20*

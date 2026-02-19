@@ -1,243 +1,197 @@
 # Project Research Summary
 
-**Project:** Validly — open-source document validation workflow platform
-**Domain:** Document approval circuit automation (self-hosted, API-first, email-driven)
-**Researched:** 2026-02-19
-**Confidence:** MEDIUM (stack HIGH, features MEDIUM, architecture MEDIUM, pitfalls MEDIUM)
+**Project:** Validly v1.1 UX Polish
+**Domain:** Document validation workflow platform — UX polish milestone on established v1.0 codebase
+**Researched:** 2026-02-20
+**Confidence:** HIGH (architecture from direct codebase inspection; features and pitfalls from official sources)
 
 ## Executive Summary
 
-Validly is a document validation workflow platform targeting French public-sector organizations and any team that needs sovereign, self-hosted approval circuits. The research confirms this is a well-understood domain with established patterns (template/instance split, explicit state machines, append-only audit trails), but the combination of email-based action tokens as the primary approval channel — not just notifications — differentiates Validly from all surveyed competitors. The recommended architecture is a layered Node.js/Fastify/PostgreSQL backend with a Vite/React/shadcn frontend, deployed via Docker Compose. The workflow engine with its state machine and quorum rules is the critical-path dependency: everything else — email tokens, notifications, dashboard, templates — depends on it being built correctly first.
+Validly v1.1 is a UX polish milestone layered on a mature v1.0 codebase (Node 22, Fastify 5, Prisma 6, React 19, Tailwind v4, TanStack Query 5). All 7 features in scope are additive — they extend existing pages, services, and DB patterns rather than replacing them. The existing codebase has strong conventions (SHA-256 token hashing in `token-service.ts`, BullMQ for async jobs, TanStack Query for server state, react-hook-form for forms) that must be followed consistently. The primary recommendation is to treat this as a dependency-ordered build: schema migrations unlock backend work, backend APIs unlock frontend pages, and the highest-complexity feature (notification center) must be built last with the most context available.
 
-The two most important architectural decisions to make correctly from day one are: (1) treat the workflow state machine as a pure domain module with explicit transition guards, and (2) ensure i18n is scaffolded before any feature strings are written. Both are prohibitively expensive to retrofit. The email action token system (the core differentiator) introduces meaningful security requirements — CSPRNG tokens, hash-only storage, single-use enforcement, scope binding — that must be built into the initial implementation rather than added as an afterthought. The stack is mature and well-matched to the problem: Prisma 6 over Prisma 7, Fastify 5 over NestJS or Express, BullMQ for async work, and react-email for type-safe multilingual email templates.
+The recommended technical approach has minimal new dependencies: only `docx-preview` + `dompurify` (DOCX preview with mandatory XSS sanitization) and `react-error-boundary` (error boundaries without class boilerplate) are net-new frontend packages. No new backend libraries are needed. Notification delivery uses REST polling at 30-second intervals via TanStack Query `refetchInterval` — not WebSockets — which matches the domain's async workflow timescales and requires zero new infrastructure. The existing BullMQ/Redis setup handles job queuing; the existing Prisma/PostgreSQL handles all new persistent state.
 
-The primary product risk is not technical — it is scope creep toward features that look valuable but derail v1: drag-and-drop visual workflow builders, eIDAS signatures, document versioning mid-circuit, and SSO. Research strongly supports deferring all of these. The MVP definition is already ambitious: 18 P1 features including the full email action channel, quorum rules, sequential/parallel phase engine, workflow templates, and i18n. The roadmap should be structured to ship a working, secure approval loop as early as possible and layer in polish features only after the core loop is validated.
-
----
+The main risks are security-related and integration-specific, not architectural. Four pitfalls require non-negotiable prevention: (1) ghost sessions after password change — existing refresh tokens must be deleted on every password change; (2) XSS via DOCX preview — mammoth.js or docx-preview output must always pass through DOMPurify before `dangerouslySetInnerHTML`; (3) TOCTOU race on password reset token consumption — must use atomic `updateMany WHERE usedAt IS NULL`, not read-then-update; (4) the recurring `apiFetch Content-Type` bug — must be fixed once, at the start of v1.1, before any new endpoints are added. These are not hypothetical edge cases; three of the four have established precedent in the v1.0 codebase.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The backend is Node.js 22 LTS + TypeScript 5.8 + Fastify 5 + Prisma 6 + PostgreSQL 15. Fastify was chosen over NestJS (too much contributor overhead for an OSS project) and Express (stagnant, no built-in schema validation or OpenAPI). Prisma 6 over Prisma 7: the v7 breaking changes (driver adapters required, ESM-only, removed middleware) are unnecessary risk for a greenfield v1 — revisit after H2 2026. BullMQ 5 + Redis 7 handles async work (email delivery, deadline reminders). The frontend is Vite 7 + React 19 + Tailwind 4 + shadcn/ui, with TanStack Query 5 for server state and react-hook-form 7 + Zod 4 for validated forms. React was chosen over Vue for OSS contributor acquisition (25M vs 4M weekly npm downloads).
+The v1.0 stack is fully reused. Only 3 new frontend packages are added across all 7 features. The backend adds zero new libraries. See `.planning/research/STACK.md` for full version details, rationale, and alternatives considered.
 
-**Core technologies:**
-- **Node.js 22 LTS + TypeScript 5.8:** Runtime and language — required by Fastify 5, Zod 4, Prisma 6; native strip-types support in Node 22.6+
-- **Fastify 5:** HTTP framework — built-in JSON Schema validation, OpenAPI plugin ecosystem, simpler contributor onboarding than NestJS
-- **Prisma 6:** ORM + migrations — superior `prisma migrate dev` DX vs Drizzle; avoid Prisma 7 for v1 (too many breaking changes)
-- **PostgreSQL 15:** Primary database — identity columns, JSONB for workflow snapshots, append-only audit table with row-level security
-- **Zod 4:** Validation — 14x faster than v3; single schema source of truth for API validation + OpenAPI via zod-to-json-schema
-- **BullMQ 5 + Redis 7:** Async job queue — email sends and deadline reminders must never block HTTP responses
-- **React 19 + Vite 7 + shadcn/ui:** Frontend — largest OSS contributor pool, shadcn components fully owned in-repo (no runtime dep)
-- **react-email 3:** Email templates — TypeScript-native, React component model, browser preview, works with nodemailer
-- **i18next 24 / react-i18next 15:** i18n — shared translation JSON files between backend (email, errors) and frontend (UI)
+**New dependencies (frontend only):**
+- `docx-preview` 0.3.7: DOCX-to-DOM rendering — better visual fidelity than mammoth for preview use case; loaded via dynamic import to keep out of the main bundle
+- `dompurify` 3.3.1: HTML sanitization — mandatory after any DOCX-to-HTML conversion; 19M weekly downloads, OWASP-endorsed
+- `react-error-boundary` 6.1.1: Error boundary hooks — eliminates class component boilerplate; React 19 compatible; provides `useErrorBoundary()` for propagating async errors into boundaries
 
-See `.planning/research/STACK.md` for full version matrix and alternatives considered.
+**New DB tables (3 Prisma models, no new enums):**
+- `PasswordResetToken` — single-use SHA-256-hashed tokens with expiry, mirrors existing `ActionToken` pattern
+- `Notification` — per-user event records; type stored as a string column (not a PostgreSQL enum) to avoid Prisma enum migration pitfalls
+- `WorkflowComment` — append-only discussion thread records, immutable by design consistent with audit trail philosophy
+
+**What was considered and rejected:**
+- `socket.io` / WebSockets for notifications — bidirectional overkill for read-only push; async workflow timescales make 30s polling sufficient
+- `@fastify/sse` plugin for SSE — Fastify 5 peer compatibility is LOW confidence; native `reply.raw` streaming is the safe fallback if SSE is ever added post-v1.1
+- `mammoth` as the DOCX library — produces semantic HTML optimized for content extraction, lower visual fidelity than `docx-preview`; either is viable (see Gaps section)
+- Rich text markdown libraries — XSS complexity and mobile keyboard friction not justified for v1.1 comment threads
 
 ### Expected Features
 
-The MVP scope is larger than typical for v1 because the core differentiators (email-action tokens, quorum rules, refusal routing to previous step) are tightly coupled to the workflow engine and cannot be added after launch without significant rework. All 18 P1 features should be treated as launch requirements.
+**Must have — table stakes (users expect these in any authenticated web app):**
+- Password reset flow — users locked out without it; existing `token-service.ts` SHA-256 pattern applies directly
+- Responsive mobile layout — validators open email approval links on phone; `ActionConfirmPage` is the critical mobile path and cannot be desktop-only
+- Error pages + form validation UX — bare browser 404/500 pages and generic form error catch-alls signal an unfinished product
+- User profile / settings — name, password, language toggle; `User.locale` already stored in DB, just not editable by the user
 
-**Must have (table stakes):**
-- Document upload (PDF, DOCX, images) with in-browser preview — expected by all approval system users
-- Sequential and parallel approval routing — fundamental to the domain
-- Email notifications on pending action — system is unusable without this
-- Approve/Refuse with mandatory comment — bare approval buttons are insufficient for audit
-- Immutable audit trail with CSV export — compliance baseline for target market
-- Dashboard: "my submissions" + "my pending actions" views
-- Workflow status visualization (timeline, pending validators, action history)
-- User authentication (email/password + JWT) and submitter/validator role distinction
-- Deadlines with automated reminder emails — workflows stall without them
-- Docker Compose single-command deployment — self-hosted requirement
+**Should have — differentiators (reinforce Validly's core value proposition):**
+- In-app notification center — bell icon + 30s REST polling; reduces missed workflow updates without email dependency
+- Workflow comments / discussion thread — chronological thread on `WorkflowDetailPage`; explicitly separate from `WorkflowAction.comment` (which is validator decision justification, not freeform discussion)
+- DOCX in-browser preview — DOCX is the dominant enterprise file format; "no preview — please download" breaks the mobile validator experience
 
-**Should have (Validly differentiators — all in v1):**
-- Email-based Approve/Refuse without login (secure one-time tokens) — the core differentiator; no competitor does this
-- Quorum rules per step (unanimity, majority, any-of) — real circuits are not always "everyone must approve"
-- Refusal routes back to previous step, not to initiator — matches public-sector validation patterns
-- Workflow templates shared at org level — repetitive workflows are the primary use case
-- i18n EN + FR (UI and email templates) — target market is primarily French-speaking
-- OpenAPI / Swagger documentation — enables ecosystem integrations without Validly building them
-
-**Defer (v2+):**
-- SSO / SAML / OIDC — highest-priority post-v1, but high per-IdP complexity
-- Delegation of approval authority — audit trail ambiguity; let initiators reconfigure instead
-- Document versioning mid-circuit — invalidates prior approvals; require new submission
-- Conditional routing — dramatically complicates the state machine; validate demand first
-- eIDAS / qualified electronic signatures — regulatory overhead; internal workflows don't need it
-- Native mobile app — email-based approval from mobile email client covers the use case
-- Third-party integrations (SharePoint, Google Drive, Slack) — API-first enables community-built connectors
-
-See `.planning/research/FEATURES.md` for full prioritization matrix and competitor analysis.
+**Defer to v2+:**
+- Rich text comments (markdown) — XSS sanitization complexity, mobile keyboard friction; plain text with preserved newlines is sufficient
+- @mentions in threads — typeahead + notification routing complexity not justified for v1.1
+- WebSocket/SSE real-time notifications — async workflow timescales make polling adequate; 30s latency has no UX impact on multi-hour approval workflows
+- Email digest / batched notifications — scheduled job complexity not warranted yet; per-event in-app notifications with per-type opt-out is better UX anyway
+- 2FA — separate security hardening milestone
+- Avatar photo uploads — image resize pipeline is disproportionate infrastructure cost for an internal tool; initials-based avatars are the standard enterprise SaaS pattern
+- Browser push notifications — service worker + VAPID key overhead not warranted for an internal tool
 
 ### Architecture Approach
 
-The architecture is a layered monolith: API layer (Fastify routes) → Service layer (use-case orchestration) → Domain layer (pure state machine + business rules) → Repository layer (all SQL) → Infrastructure adapters (file storage, SMTP mailer). The domain layer has zero infrastructure dependencies, making the state machine fast to unit test and safe to reason about in isolation. All file content goes to a `StorageAdapter` interface (local FS in dev, MinIO in production) — never to the database. The workflow state machine is a pure TypeScript finite automaton; XState is explicitly rejected (50kb+ overhead, actor model complexity not warranted for a simple FSM).
+All 7 features integrate into the existing layered architecture (Fastify routes → services → Prisma → PostgreSQL, with BullMQ for async jobs and React/TanStack Query on the frontend). The codebase is 8,971 LOC and was read directly — all integration points, touch files, and new component boundaries are known with HIGH confidence. No structural changes to the architecture are needed; this is purely additive work. See `.planning/research/ARCHITECTURE.md` for the complete component boundary map, new API route table, and dependency-ordered build graph.
 
-**Major components:**
-1. **State Machine Engine** — Core domain; evaluates phase/step completion rules (unanimity/majority/any-of), enforces valid transitions, rejects illegal ones; pure logic, no infrastructure dependencies
-2. **Workflow Service** — Orchestrates WorkflowInstance lifecycle: creates from template snapshot, advances phases, delegates to state machine; owns the critical template→instance deep-copy pattern
-3. **Token Resolver** — Dedicated handler for `GET /actions/:token`; resolves secure one-time tokens to workflow actions without requiring a session; the email-action channel entry point
-4. **Notification Service** — Composes and dispatches localized emails; issues tokens for email action links; email send happens outside DB transactions (commit state first, then send)
-5. **Repository Layer** — All SQL isolated here; services never write raw queries; schema changes only touch this layer
-6. **StorageAdapter** — Local FS (dev) / MinIO (production) behind a single interface; swap is a config change, zero route changes required
+**New backend components:**
+1. Password Reset — `PasswordResetToken` model, 2 auth routes (`POST /auth/forgot-password`, `POST /auth/reset-password`), email template in `email-service.ts`
+2. User Profile — 2 self-service routes (`PATCH /auth/profile`, `POST /auth/change-password`) — deliberately separate from the existing admin-only `PATCH /users/:id`
+3. Notification Center — `Notification` model, `notification-service.ts`, 3 notification routes, creation hooks added to `workflow-service.ts` after state transitions (non-blocking side effects, outside transactions)
+4. Comments — `WorkflowComment` model, `comment-service.ts`, 2 workflow routes (`GET /workflows/:id/comments`, `POST /workflows/:id/comments`)
 
-Build order (dependency-driven): DB schema + migrations → Domain models + State Machine → Repositories → File Store Adapter → SMTP Mailer + Token system → Services → API Layer → i18n threading.
+**New frontend components:**
+1. Password Reset — `ForgotPasswordPage.tsx`, `ResetPasswordPage.tsx`
+2. User Profile — `ProfilePage.tsx` at `/profile`
+3. Error Handling — `ErrorBoundary.tsx`, `NotFoundPage.tsx`, `ErrorPage.tsx`
+4. DOCX Preview — extend existing `DocumentPreview.tsx` with a new MIME type branch; dynamic import to keep conversion library out of the main bundle
+5. Notification Center — `NotificationCenter.tsx` as a slide-out panel (not a page), `useNotifications` hook with 30s polling
+6. Comments — `CommentThread.tsx` added to `WorkflowDetailPage`
+7. Responsive Layout — retrofit existing pages; optionally extract a shared `PageHeader.tsx` to apply nav changes once
 
-See `.planning/research/ARCHITECTURE.md` for full data flow diagrams and anti-pattern catalog.
+**Key patterns to follow:**
+- Notification creation as a non-blocking side effect: never inside `prisma.$transaction()`, always wrapped in `try/catch` after transaction commits — a notification failure must not roll back a workflow state change
+- Self-service profile routes use `req.user.sub` from JWT (not a URL path param) — structurally prevents one user from updating another's profile
+- Comments are immutable (append-only) — no `PATCH` or `DELETE` on comments, consistent with the existing audit trail philosophy
+- `docx-preview` loaded via dynamic `import('docx-preview')` — keeps the library out of the initial bundle since DOCX preview is only triggered when a DOCX is opened
 
 ### Critical Pitfalls
 
-1. **Non-atomic state transitions + email** — Commit DB state change first (including audit log entry) inside a single transaction, then send email outside the transaction with retry. Never send email inside a DB transaction. SMTP failure must not roll back state. Address in: workflow engine core (Phase 3).
+1. **`apiFetch` Content-Type on empty-body POST requests** — Fastify 5 rejects requests with `Content-Type: application/json` and an empty body (`FST_ERR_CTP_EMPTY_JSON_BODY`). This bug has been fixed 3 times already in v1.0. It will recur on every new no-body POST (mark-all-notifications-read, dismiss notification, etc.) unless fixed at the root. Fix `apiFetch` once, at the very start of v1.1, to only set the header when `options.body` is non-null and non-empty.
 
-2. **Insecure email approval tokens** — Use 32+ byte CSPRNG hex (not UUIDs), store only the hash, enforce expiry (24-48h configurable), mark single-use on first consumption, scope tokens to specific step + action + validator identity. This is the highest-security surface in the system. Address in: email action channel phase (Phase 4).
+2. **XSS via DOCX preview HTML output** — mammoth.js and docx-preview both explicitly document that they perform no sanitization. A malicious DOCX with embedded script tags can steal JWT tokens from localStorage. Mitigation: always pipe output through `DOMPurify.sanitize()` before `dangerouslySetInnerHTML`. Non-negotiable from the first commit of the preview feature.
 
-3. **Mutable audit trail** — Create a dedicated `audit_events` table with DB-level INSERT-only grant for the application user (no UPDATE or DELETE). Consider SHA-256 hash chain for tamper detection. Test at DB layer: an attempted UPDATE must fail, not just be rejected by the application. Address in: data model phase (Phase 1).
+3. **Ghost sessions after password change** — existing JWTs and refresh tokens remain valid after a password change unless explicitly invalidated. Call `prisma.refreshToken.deleteMany({ where: { userId } })` in both the password reset handler and the profile password-change handler. The existing `authService.logout()` already does this — reuse it.
 
-4. **Quorum race condition** — Use `UPDATE steps SET decision_count = decision_count + 1 WHERE id = ? RETURNING decision_count` atomically; wrap "record decision + check quorum + trigger transition" in a serializable transaction with row-level lock. Test with 10 concurrent approval requests to the same step. Address in: workflow engine core (Phase 3).
+4. **Password reset TOCTOU race** — a read-then-update sequence on token consumption allows two simultaneous requests with the same token to both succeed. Use atomic `prisma.passwordResetToken.updateMany({ where: { tokenHash, usedAt: null, expiresAt: { gt: new Date() } }, data: { usedAt: new Date() } })`. If `result.count === 0`, the token is already used or expired.
 
-5. **Hardcoded strings outside i18n** — Configure zero-tolerance linter rule before the first feature commit; create full `en/` and `fr/` key structure before writing any user-facing strings; treat FR placeholder keys as acceptable, untranslated literal strings as never acceptable. Address in: project scaffold (Phase 0/1).
-
-6. **Deadline timer loss/duplication** — Persist timers in DB with `scheduled_for` + `fired_at`; use `SELECT FOR UPDATE SKIP LOCKED` to prevent duplicate processing; `fired_at` is set atomically when the escalation fires. In-memory timers and naive cron jobs are unacceptable. Address in: deadline subsystem (Phase 3).
-
-See `.planning/research/PITFALLS.md` for full pitfall catalog, recovery strategies, and "looks done but isn't" checklist.
-
----
+5. **Prisma enum migration failure** — `ALTER TYPE ADD VALUE` cannot run inside a PostgreSQL transaction block, which is how Prisma wraps all migrations by default. Store `Notification.type` as a string column (not a PostgreSQL enum) to avoid this entirely. Never extend existing enums (`WorkflowStatus`, `PhaseStatus`, `StepStatus`, etc.) in v1.1 migrations.
 
 ## Implications for Roadmap
 
-Based on the dependency graph from ARCHITECTURE.md, the feature dependency tree from FEATURES.md, and the phase-to-pitfall mapping from PITFALLS.md, the following phase structure is recommended. The ordering is driven by one principle: build the workflow engine correctly before building anything that depends on it.
+Based on the dependency graph from ARCHITECTURE.md, the feature dependency tree from FEATURES.md, and the pitfall timing requirements from PITFALLS.md, three phases are recommended for the v1.1 milestone.
 
-### Phase 0: Project Foundation
-**Rationale:** i18n and project structure cannot be retrofitted. Every string, every error message, every email template must be i18n-aware from commit 1. Establish Docker Compose environment so all contributors develop against the same infrastructure from the start.
-**Delivers:** Monorepo structure (backend/frontend), Docker Compose (PostgreSQL 15 + Redis 7 + MinIO), TypeScript configs, ESLint + Prettier with i18n enforcement rule, i18next skeleton (en/ + fr/ key structure), Vitest + Playwright setup, Fastify app scaffold with OpenAPI plugin registered.
-**Avoids:** Hardcoded string pitfall (Pitfall 5) — zero-tolerance from day 1.
-**Research flag:** Standard patterns — skip `/gsd:research-phase`.
+### Phase 1: Foundation — Schema, APIs, and Self-Contained Frontend Features
+**Rationale:** All 3 Prisma models must be migrated before any backend services reference them — batch all schema changes into one migration event. The `apiFetch` fix must be the very first commit of the milestone. Self-contained frontend features (error pages, DOCX preview, form validation with Zod) have no new backend dependencies and deliver immediate user-visible value. Password reset and user profile are the most straightforward backend features (they reuse existing token and auth service patterns exactly) and should ship early.
+**Delivers:** All 3 new Prisma models migrated; `apiFetch` Content-Type bug fixed permanently; password reset flow (full end-to-end: request email, consume token, change password, invalidate sessions); user profile / settings page (name, locale, password change); DOCX in-browser preview with DOMPurify sanitization; error pages + form validation with Zod on all existing and new forms; responsive mobile layout for critical paths (`ActionConfirmPage`, `LoginPage`).
+**Addresses:** Password reset flow, User profile / settings, DOCX preview, Error pages + form validation, Responsive layout (critical paths)
+**Avoids:**
+  - `apiFetch` Content-Type bug — fixed before any new endpoint is tested from the frontend
+  - Password reset TOCTOU — atomic token consume implemented from day one
+  - Ghost sessions — refresh token deletion on password change in the same PR as the feature
+  - DOCX XSS — DOMPurify pass required before any DOCX preview is committed
+  - Prisma enum migration failure — string column for `Notification.type` decided at schema design time, not after migration
+**Research flag:** Standard patterns. All integration points are known from direct codebase inspection. No deeper research needed.
 
-### Phase 1: Data Model + Authentication
-**Rationale:** All other phases depend on the DB schema and user identity. The audit trail immutability constraint must be baked into the schema — retrofitting PostgreSQL row-level security after rows exist is painful.
-**Delivers:** Full PostgreSQL schema with migrations (users, workflow_templates, workflow_instances, phases, steps, action_tokens, workflow_actions/audit_events, documents metadata); JWT auth (signup, login, refresh via @fastify/jwt); submitter/validator role distinction; DB-level INSERT-only grant on audit_events table.
-**Addresses:** User authentication (table stakes), role distinction (table stakes).
-**Avoids:** Mutable audit trail (Pitfall 3) — enforce at schema level, not application level.
-**Research flag:** Standard patterns — skip `/gsd:research-phase`.
+### Phase 2: Social Features — Comments and Notification Center
+**Rationale:** Both features depend on the schema and API foundation from Phase 1 (the `Notification` and `WorkflowComment` models must exist). Comments are simpler (two REST endpoints, one new component in `WorkflowDetailPage`) and should be built before the notification center to validate the `WorkflowDetailPage` extension pattern. The notification center is the highest-complexity feature across all 7 — it hooks into `workflow-service.ts` (high blast radius), has badge state, 30s polling, and preferences integration — and benefits from being built last with full context.
+**Delivers:** Workflow discussion threads on all workflow detail pages (append-only, plain text, disabled on terminal-state workflows); in-app bell icon notification center with unread count badge, 30s polling, mark-as-read, navigate-to-workflow links; `COMMENT_ADDED` notification type for workflow participants; per-user notification type preferences integrated into the profile settings page from Phase 1.
+**Addresses:** Workflow comments / discussion thread, In-app notification center
+**Avoids:**
+  - Notification loop — design the full notification event graph (comment triggers notification, notification never triggers further notification; system events use `UnrecoverableError` in BullMQ) before writing any notification code
+  - N+1 on unread count — dedicated `COUNT(*) WHERE readAt IS NULL` endpoint for the badge; paginated full-list endpoint only loaded when panel is opened; `@@index([userId, readAt])` added at schema creation time
+  - Comments on closed workflows — input disabled when `workflow.status` is a terminal state
+**Research flag:** Notification center warrants brief pre-planning to explicitly map the notification event graph (what triggers what, what must not cascade). The BullMQ `UnrecoverableError` pattern for notification jobs and the badge vs list endpoint split are implementation decisions with production performance implications.
 
-### Phase 2: Document Upload + Preview
-**Rationale:** The workflow engine needs documents to act on. Building upload before the engine gives a testable surface and validates the StorageAdapter abstraction before it's depended on by workflow launch.
-**Delivers:** `@fastify/multipart` streaming upload, StorageAdapter interface with LocalAdapter (streams to disk, no DB blobs), document metadata in DB, PDF.js in-browser preview for validators.
-**Addresses:** Document upload + in-browser preview (table stakes).
-**Avoids:** Files stored in DB (Architecture Anti-Pattern 4).
-**Research flag:** PDF preview needs light research — PDF.js integration patterns in Vite/React SPA. Consider `/gsd:research-phase` if team is unfamiliar.
-
-### Phase 3: Workflow Engine Core
-**Rationale:** This is the critical-path phase. Every other feature (email tokens, notifications, dashboard, templates, deadlines) depends on a correct state machine. Rushing this creates technical debt that is expensive to undo. Quorum rules belong in this phase — they are a property of the engine's step model, not a separate feature.
-**Delivers:** Pure TypeScript FSM (WorkflowInstance → PhaseInstance → StepInstance state transitions with explicit guards); quorum evaluation (unanimity, majority, any-of per step); template→instance deep-copy (snapshot pattern); workflow launch flow (POST /api/workflows); refusal routing to previous step; deadline scheduling (persisted in DB, not in-memory); repository layer for all workflow entities.
-**Addresses:** Sequential + parallel routing (table stakes), quorum rules (differentiator), refusal routing (differentiator), deadlines (table stakes).
-**Avoids:** Non-atomic transitions (Pitfall 1), quorum race condition (Pitfall 4), deadline timer loss (Pitfall 6), live template references from running instances (Architecture Anti-Pattern 2), business logic in controllers (Architecture Anti-Pattern 3).
-**Research flag:** High complexity — strongly recommend `/gsd:research-phase` for quorum atomicity patterns and the template/instance snapshot schema before planning this phase.
-
-### Phase 4: Email Action Channel
-**Rationale:** With the workflow engine complete, the email action system can be built as a pure consumer of engine state transitions. This is Validly's core differentiator and the most security-sensitive surface. Building it after Phase 3 means tokens can be validated against real workflow state.
-**Delivers:** react-email templates (EN + FR) with approval/refusal context and document summary; nodemailer SMTP integration with BullMQ async queue; secure token generation (CSPRNG, hash-stored, scoped to step+action+validator); `GET /actions/:token` resolver with expiry, single-use, scope validation; "already actioned" and "expired link" UX pages; rate limiting on token endpoint (@fastify/rate-limit); BullMQ deadline reminder jobs.
-**Addresses:** Email notifications (table stakes), email-based Approve/Refuse without login (differentiator), reminders (table stakes).
-**Avoids:** Insecure tokens (Pitfall 2), email send inside DB transaction (Pitfall 1), SMTP Basic Auth (Integration Gotcha).
-**Research flag:** Token security patterns are well-documented (Auth0 magic links, OWASP). Standard patterns — skip `/gsd:research-phase` if team follows PITFALLS.md guidance precisely.
-
-### Phase 5: Dashboard + Workflow Visualization
-**Rationale:** With engine + email channel working, the web dashboard is a read layer over already-correct state. TanStack Query's polling and caching make the "my pending actions" view straightforward to build.
-**Delivers:** Dashboard ("my submissions" initiator view + "my pending actions" validator view); workflow status timeline visualization (completed/active/pending steps, pending validators, action history); TanStack Query data fetching with background refresh; audit trail view with CSV export; pagination on all list views (cursor-based from first endpoint).
-**Addresses:** Dashboard (table stakes), workflow visualization (table stakes), audit export (table stakes).
-**Avoids:** No pagination on list views (Performance Trap), loading entire workflow history for current state (Performance Trap).
-**Research flag:** Standard patterns — skip `/gsd:research-phase`.
-
-### Phase 6: Workflow Templates
-**Rationale:** Templates are a configuration layer on top of the engine. They must be built after the engine (Phase 3) to know exactly what the template schema needs to capture. Org-level sharing is the differentiator; the form-based creation UI is the v1 approach (visual drag-and-drop is explicitly deferred).
-**Delivers:** Workflow template CRUD (create, list, share at org level, use as launch basis); form-based template creation (phases, steps, validators, quorum rules, deadlines per step); template instantiation (uses Phase 3 snapshot pattern); "My Templates" section in dashboard.
-**Addresses:** Workflow templates (differentiator).
-**Avoids:** Drag-and-drop visual builder (Anti-Feature — deferred to v2+).
-**Research flag:** Standard patterns — skip `/gsd:research-phase`.
-
-### Phase 7: i18n Completion + Polish
-**Rationale:** The i18n skeleton was set up in Phase 0 and keys added throughout development. This phase completes all French translations, validates every user-facing surface in FR locale in CI, and addresses email deliverability setup (SPF/DKIM/DMARC) before any public release.
-**Delivers:** Complete FR translations (UI strings, error messages, email templates, validation messages); CI test run with FR locale for all surfaces; SPF/DKIM/DMARC configuration documentation for self-hosted deployments; mail-tester.com ≥9/10 score on test domain; Docker Compose production hardening (pinned image versions, named volumes, health checks).
-**Addresses:** i18n EN + FR (differentiator), Docker Compose deployment (table stakes).
-**Avoids:** Email deliverability failures (Integration Gotcha), Docker Compose data loss (Integration Gotcha), partial i18n coverage (Pitfall 5).
-**Research flag:** Email deliverability setup (SPF/DKIM/DMARC) is well-documented but transactional email provider selection may warrant brief research if undecided. Light `/gsd:research-phase` optional.
+### Phase 3: Polish Completion — Full Responsive Layout and i18n
+**Rationale:** Responsive layout changes are intentionally last. Retrofitting responsive CSS to existing components risks breaking features (notification panel, comment drawer, DOCX preview) that were built in prior phases assuming a fixed layout. Doing this phase after all feature components are stable means the final layout state can be tested holistically and desktop visual regressions can be caught before shipping.
+**Delivers:** All pages responsive at 375px (mobile), 768px (tablet), 1280px (desktop) breakpoints; mobile navigation (hamburger menu or bottom nav bar) built as a standalone component before being integrated into existing pages; desktop layout visually regression-tested at 1280px before and after all layout changes; all new EN and FR i18n keys complete for every new surface added in Phases 1 and 2.
+**Addresses:** Responsive mobile layout (remaining pages beyond critical paths), i18n completion for all v1.1 surfaces
+**Avoids:**
+  - Responsive layout regression — audit all hardcoded pixel widths (`w-96`, `w-128`, etc.) across layout files before adding any responsive classes; build mobile nav in isolation first; take 1280px snapshots before touching layout components
+**Research flag:** Before starting Phase 3, do a full audit of hardcoded pixel widths and fixed-layout components in `DashboardPage.tsx` and `WorkflowDetailPage.tsx`. The scope of changes may be larger than estimated until the audit is complete. No library research needed — Tailwind v4 responsive utilities are sufficient.
 
 ### Phase Ordering Rationale
 
-- **Foundation before features:** Phase 0 (i18n skeleton, tooling) must precede all feature work because retrofitting i18n is codebase-wide surgery.
-- **Schema before services:** Phase 1 (data model) must precede Phase 3 (engine) because the FSM transitions write to schema tables. Getting audit immutability right at schema time avoids a migration nightmare.
-- **Engine before consumers:** Phase 3 (workflow engine) must precede Phases 4, 5, and 6 because the email channel, dashboard, and templates all consume engine state. A correct engine means no correctness bugs propagate into the consuming layers.
-- **Upload before engine:** Phase 2 (document upload) precedes the engine launch flow because launching a workflow requires attaching documents. The StorageAdapter abstraction is also validated early.
-- **Email channel before dashboard:** Phase 4 before Phase 5 ensures the primary action channel works before building the secondary (web) channel. Validators who use email-first should be functional before the dashboard is complete.
-- **Templates after engine:** Phase 6 after Phase 3 ensures template schema is designed against a fully-known engine model, not a hypothetical one.
+- **Security non-negotiables in Phase 1:** The `apiFetch` fix, TOCTOU atomic token, ghost session deletion, and DOMPurify on DOCX output are security requirements that cannot be deferred — they must ship with or before the features they protect.
+- **Schema-first:** All 3 new Prisma models land in one migration batch in Phase 1. This avoids partial-state issues from incremental migrations and ensures Phase 2 has a stable schema to build against.
+- **Notification center last across all phases:** It is the highest-complexity feature, hooks into `workflow-service.ts` which touches everything, and its notification event graph depends on knowing what comments do (Phase 2) and what the profile preferences page looks like (Phase 1). Building it last eliminates speculative design.
+- **Responsive layout last of all:** Any restructuring of `DashboardPage.tsx` or `WorkflowDetailPage.tsx` layout creates merge conflicts with features being built in the same files. All feature components should be stable before layout is retrofitted around them.
 
 ### Research Flags
 
-Phases likely needing `/gsd:research-phase` before planning:
-- **Phase 3 (Workflow Engine Core):** High complexity. Quorum atomicity (PostgreSQL serializable transactions + `RETURNING` pattern), template/instance snapshot schema (what gets deep-copied vs referenced), and deadline persistence pattern all warrant deeper research before committing to a plan. This is the highest-risk phase.
-- **Phase 2 (Document Upload) — optional:** PDF.js integration in Vite/React SPA is straightforward but DOCX preview (requires conversion pipeline) may need research if included in v1 scope.
+Phases with well-documented patterns — skip `/gsd:research-phase`:
+- **Phase 1 — Password Reset:** Identical token pattern to existing `ActionToken` + `token-service.ts`. Replicate the existing pattern. No research needed.
+- **Phase 1 — DOCX Preview:** Single file change (`DocumentPreview.tsx`) + known library (`docx-preview` 0.3.7). Integration pattern is described in STACK.md.
+- **Phase 1 — Error Pages + Form Validation:** React Router 7 `errorElement` is documented; Zod + `@hookform/resolvers` is the community standard. No research needed.
+- **Phase 1 — User Profile:** Two new auth routes reusing `verifyPassword` + `hashPassword` from existing `auth-service.ts`. No research needed.
+- **Phase 2 — Comments:** Two REST endpoints + one new component. Straightforward.
+- **Phase 3 — Responsive Layout:** Tailwind v4 responsive utilities are documented; no new libraries. Pre-phase width audit is the only prerequisite.
 
-Phases with well-documented standard patterns (skip research-phase):
-- **Phase 0:** Docker Compose + TypeScript scaffold + ESLint are fully standardized.
-- **Phase 1:** JWT auth with Fastify and PostgreSQL schema migration with Prisma are extensively documented.
-- **Phase 4:** Magic link / secure token pattern is well-documented; follow PITFALLS.md checklist exactly.
-- **Phase 5:** Dashboard + TanStack Query patterns are well-documented via shadcn/ui examples.
-- **Phase 6:** Template CRUD is standard Fastify/Prisma CRUD work once engine is known.
-- **Phase 7:** i18next completion and Docker hardening are configuration, not architecture.
-
----
+Phases that may benefit from pre-planning investigation:
+- **Phase 2 — Notification Center:** Map the notification event graph before writing code. Define what triggers a notification, what must not cascade, and how BullMQ jobs for notifications handle failure (`UnrecoverableError`). Confirm the badge endpoint (`COUNT`) vs list endpoint (`paginated`) split before implementing either.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Core technologies verified against official docs and current release data. Version compatibility matrix cross-checked. Alternatives analysis is opinionated but well-reasoned (Prisma 6 vs 7, Fastify vs NestJS, BullMQ vs pg-boss). |
-| Features | MEDIUM | Competitor analysis via WebSearch is credible but single-source for some claims. French public sector specifics (DINUM, LaSuite patterns) have lower confidence — one primary source. MVP feature set is well-reasoned from first principles. |
-| Architecture | MEDIUM | Core patterns (template/instance split, explicit FSM, append-only audit, storage adapter) are corroborated by multiple converging sources. Validly-specific choices (email-as-action-channel, no BPMN) are first-principles derivations — sound but not battle-tested references available. |
-| Pitfalls | MEDIUM | Cross-referenced via WebSearch across multiple sources. No single authoritative post-mortem for this exact domain combination exists. Security pitfalls (OWASP, Auth0) have HIGH-confidence backing. Email deliverability pitfalls (SPF/DKIM Google enforcement) are HIGH confidence. |
+| Stack | MEDIUM-HIGH | Existing v1.0 stack is HIGH confidence — in production. New additions (`docx-preview`, `dompurify`, `react-error-boundary`) are MEDIUM — versions verified via npm search but not installed and integrated yet. `@fastify/sse` Fastify 5 compatibility is LOW — not applicable since polling is chosen for v1.1. |
+| Features | HIGH | All 7 features scoped against actual codebase files. Feature research validated against `token-service.ts`, `email-service.ts`, `DocumentPreview.tsx`, Prisma schema. The defer list is clearly reasoned from domain requirements, not arbitrary. |
+| Architecture | HIGH | All integration points derived from direct inspection of 8,971 LOC. Component boundaries, new routes, modified files, and build order are specific and known. No speculative architecture. |
+| Pitfalls | HIGH | Critical pitfalls verified against official sources: Fastify GitHub #5148 (Content-Type bug), Prisma GitHub #5290/#8424 (enum migration), mammoth.js README (no sanitization warning), OWASP/PortSwigger (TOCTOU, XSS). Three of the four critical pitfalls have established precedent in the v1.0 codebase itself. |
 
-**Overall confidence:** MEDIUM — sufficient to plan all phases with the standard pattern phases at HIGH confidence. Phase 3 (engine core) carries the most uncertainty and warrants deeper pre-planning research.
+**Overall confidence:** HIGH — sufficient to plan all phases without pre-planning research, with the exception of the notification event graph mapping for Phase 2.
 
 ### Gaps to Address
 
-- **Transactional email provider choice:** PITFALLS.md flags that SMTP Basic Auth is deprecated (Google 2025, Microsoft 2025-2026). The self-hosted deployment model means organizations will configure their own SMTP relay. The Docker Compose setup needs clear documentation on how to configure a compatible provider (Postmark, Mailjet, SES) vs self-hosted Postfix. Resolve during Phase 0 or Phase 4 planning.
-- **DOCX preview scope:** FEATURES.md lists "PDF, DOCX, images" for document upload. PDF.js handles PDF. DOCX preview requires a conversion pipeline (e.g., LibreOffice headless → PDF → PDF.js, or a cloud API). If DOCX preview is in-scope for v1, Phase 2 needs a research spike. If only PDF + images are required for v1 preview, the gap closes.
-- **pg-boss vs BullMQ decision for small deployments:** STACK.md notes pg-boss (PostgreSQL-backed queue, no Redis) as a valid alternative for simpler deployments. For an OSS project targeting resource-constrained self-hosters, eliminating the Redis service has appeal. The Phase 4 plan should make a final call and document the rationale.
-- **MinIO in v1 Docker Compose:** STACK.md describes the v1→v2 storage migration path (local FS → MinIO). The question of whether MinIO should be included in the v1 Docker Compose (for consistency with the production path) vs excluded (simpler dev environment) should be resolved before Phase 2 starts.
-
----
+- **`docx-preview` vs `mammoth` final decision:** STACK.md recommends `docx-preview` for visual fidelity (tables, merged cells, columns, fonts). FEATURES.md and ARCHITECTURE.md reference `mammoth` for semantic HTML. Both are viable. Resolve at implementation time by testing `docx-preview` 0.3.7 against representative DOCX samples from actual users. If visual fidelity is insufficient, `mammoth` with Tailwind `prose` styling is the fallback. Both require the same DOMPurify sanitization step.
+- **Token expiry for password reset:** STACK.md recommends 1 hour; FEATURES.md cites 30 minutes (OWASP); PITFALLS.md UX section recommends 2 hours minimum to account for email delivery delays. Recommended resolution: 1 hour (balances OWASP guidance and UX practicality). Include "link expires in 1 hour" explicitly in the reset email body.
+- **Notification type string constants vs TypeScript enum:** Using a string column on the `Notification` model avoids Prisma PostgreSQL enum migration pitfalls. To maintain type safety, define a TypeScript `const` object or Zod enum in a shared types file at the start of Phase 2. This provides compile-time safety without requiring a DB-level enum.
+- **`apiFetch` for binary document download in DOCX preview:** PITFALLS.md notes that `apiFetch` sets `Content-Type: application/json` on all requests — this breaks binary downloads. The DOCX file fetch inside `DocumentPreview.tsx` must use raw `fetch()`, not `apiFetch`. Confirm and document this boundary explicitly when implementing the DOCX preview branch.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Fastify v5 official docs (fastify.dev) — version 5.7.x, Node 20+ requirement, plugin system
-- Prisma changelog (prisma.io) — Prisma 6.19.x stable, Prisma 7 breaking changes confirmed
-- Zod official site (zod.dev) — v4 stable, 14x perf improvement confirmed
-- React versions (react.dev) — 19.2.4 current stable
-- Node.js releases (nodejs.org) — Node 22 LTS active
-- Auth0 Magic Links docs — token security pattern, single-use enforcement
-- Event Sourcing — Azure Architecture Center (official Microsoft docs)
-- Hexagonal Architecture — AWS Prescriptive Guidance
-- OWASP CSRF Prevention Cheat Sheet — token security, replay prevention
-- Google DMARC Enforcement (Proofpoint) — enforcement timeline confirmed
+- Direct codebase inspection — `/Users/mmaudet/work/validly/` — all architecture integration points, 8,971 LOC
+- mammoth.js GitHub (mwilliamson/mammoth.js) — "performs no sanitisation" documented in official README
+- Fastify GitHub Issue #5148 — `FST_ERR_CTP_EMPTY_JSON_BODY` confirmed behavior
+- Prisma GitHub Issues #5290, #8424 — `ALTER TYPE ADD VALUE` cannot run inside transaction block
+- OWASP Forgot Password Cheat Sheet — token security requirements (30 min expiry, single-use, user enumeration prevention)
+- PortSwigger Web Security Academy — TOCTOU race conditions in reset flows
+- OWASP Cross-Site Scripting Prevention Cheat Sheet — HTML sanitization requirements
+- React Router 7 official docs — `errorElement` error boundary integration
+- BullMQ official docs — `UnrecoverableError` pattern for bounded retries
+- react.dev/blog/2024/12/05/react-19 — React 19 error hook changes (onCaughtError, onUncaughtError)
+- DOMPurify GitHub (cure53/DOMPurify) — OWASP-endorsed HTML sanitizer
 
 ### Secondary (MEDIUM confidence)
-- BullMQ npm (5.69.3 as of Feb 2026), TanStack Query npm (5.90.21), Vite releases (7.3.1)
-- shadcn/ui changelog — Tailwind v4 + React 19 support since Feb 2025
-- WebSearch: Prisma vs Drizzle 2026, Fastify vs NestJS DX, React vs Vue contributor ecosystem
-- WebSearch: competitor analysis (DocuSign, Kissflow, ProcessMaker, Bonita) feature comparison
-- Vertabelo / Red Gate — workflow pattern (template/instance split)
-- ExceptionNotFound workflow engine series — project structure rationale
-- Nordic APIs REST state machine article — FSM transition guard patterns
-- pg-workflow (chuckstack/GitHub) — open-source workflow engine schema reference
-- HubiFi, OpsHub Signal — immutable audit trail best practices
-- Mailtrap — email deliverability 2026 (SPF/DKIM/DMARC)
-- AWS Step Functions quorum pattern — parallel state race condition
+- npm search results — `docx-preview` 0.3.7 (Sep 2025), `dompurify` 3.3.1 (Dec 2025), `react-error-boundary` 6.1.1 (Feb 2026), `@fastify/sse` 0.4.0 (Nov 2025)
+- Smashing Magazine — design guidelines for notification UX (2025)
+- SuprSend — JIRA-like in-app inbox patterns for workflow applications
+- Ghost Session vulnerability — JWT invalidation on password change pattern
+- JWT Lifecycle Management — refresh token revocation strategies
+- React Error Boundaries async limitation — matches official React docs behavior
 
 ### Tertiary (LOW confidence)
-- DINUM / LaSuite sovereign document platform — French public sector deployment patterns (single source, limited detail)
-- ACM Digital Library — Design Patterns for Approval Processes (403 on fetch, citation only)
+- `@fastify/sse` 0.4.0 Fastify 5 peer compatibility — not confirmed from official source; not applicable for v1.1 since polling is chosen
 
 ---
-*Research completed: 2026-02-19*
+*Research completed: 2026-02-20*
 *Ready for roadmap: yes*
