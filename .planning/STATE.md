@@ -40,6 +40,8 @@ Progress: [████████████] 50% (phase 12, plan 1 of 2)
 | 10-03 | Frontend: ActionConfirmPage enriched with workflow summary | b52e54d |
 | 10-04 | Frontend: WorkflowStepper, StepDetail, DocumentPreview + react-pdf, cancel/notify | f64789a |
 | 10-05 | Frontend: AdminUsersPage, ConfirmDialog, nav link (checkpoint pending) | ea9f5f4 |
+| 11-01 | Engine Wiring Fixes — workflow engine field name alignment (execution field fixes) | (pending) |
+| 11-02 | Engine Wiring Fixes — template field mismatch fix + audit migration | 89bfce6 |
 | 12-01 | Template Management UI — TemplateFormPage, routes, i18n (EN+FR) | 539ab44 |
 
 ## Accumulated Context
@@ -93,5 +95,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 12-01-PLAN.md — TemplateFormPage, routes, i18n ready; 12-02 (TemplateListPage) is next
+Stopped at: Completed 11-02-PLAN.md — template field fix + audit migration done; 12-01 TemplateFormPage already done; 12-02 (TemplateListPage) is next
 Resume file: None

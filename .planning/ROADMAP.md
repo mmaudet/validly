@@ -148,7 +148,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 8. i18n Completion + Docker Polish | Complete | 2026-02-19 |
 | 9. Workflow Creation UI | Complete (3/3) | 2026-02-19 |
 | 10. UX Improvements | Complete (5/5) | 2026-02-19 |
-| 11. Engine & Wiring Fixes | Not started | - |
+| 11. Engine & Wiring Fixes | In Progress (1/2) | - |
 | 12. Template Management UI | Not started | - |
 
 ### Phase 10: Ameliorer gestion demandes et UX
@@ -180,7 +180,7 @@ Plans:
 
 Plans:
 - [ ] 11-01-PLAN.md — Backend: Parallel step activation fix + validator email locale resolution + ARCHIVED domain type
-- [ ] 11-02-PLAN.md — Frontend: Template type field mismatch fix + audit immutability Prisma migration
+- [x] 11-02-PLAN.md — Frontend: Template type field mismatch fix + audit immutability Prisma migration
 
 ### Phase 12: Template Management UI
 
