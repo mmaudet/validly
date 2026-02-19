@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router';
 import { apiFetch } from '../lib/api';
+import { useAuth } from '../hooks/useAuth';
+import { WorkflowStepper } from '../components/workflow/WorkflowStepper';
+import { StepDetail } from '../components/workflow/StepDetail';
+import { DocumentPreview } from '../components/workflow/DocumentPreview';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 interface Action {
   id: string;
@@ -34,7 +39,7 @@ interface Phase {
   steps: Step[];
 }
 
-interface Document {
+interface WorkflowDocument {
   document: {
     id: string;
     title: string;
@@ -51,7 +56,7 @@ interface Workflow {
   createdAt: string;
   updatedAt: string;
   initiator: { id: string; email: string; name: string };
-  documents: Document[];
+  documents: WorkflowDocument[];
   phases: Phase[];
 }
 
@@ -72,17 +77,20 @@ const statusColors: Record<string, string> = {
   PENDING: 'bg-gray-100 text-gray-600 border-gray-200',
 };
 
-const statusDot: Record<string, string> = {
-  IN_PROGRESS: 'bg-blue-500',
-  APPROVED: 'bg-green-500',
-  REFUSED: 'bg-red-500',
-  PENDING: 'bg-gray-300',
-};
-
 export function WorkflowDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
   const [showAudit, setShowAudit] = useState(false);
+  const [selectedPhaseId, setSelectedPhaseId] = useState<string | null>(null);
+  const [expandedDocIds, setExpandedDocIds] = useState<Set<string>>(new Set());
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [notifySuccess, setNotifySuccess] = useState(false);
+  const [notifyCooldown, setNotifyCooldown] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [notifyError, setNotifyError] = useState<string | null>(null);
 
   const { data: workflow, isLoading } = useQuery({
     queryKey: ['workflow', id],
@@ -94,6 +102,46 @@ export function WorkflowDetailPage() {
     queryKey: ['workflow', id, 'audit'],
     queryFn: () => apiFetch<AuditEvent[]>(`/workflows/${id}/audit`),
     enabled: !!id && showAudit,
+  });
+
+  // Derive selectedPhaseId from workflow data when not yet set
+  const phases = workflow?.phases ?? [];
+  const sortedPhases = [...phases].sort((a, b) => a.order - b.order);
+
+  const effectivePhaseId = selectedPhaseId ?? (() => {
+    const inProgress = sortedPhases.find((p) => p.status === 'IN_PROGRESS');
+    if (inProgress) return inProgress.id;
+    return sortedPhases[sortedPhases.length - 1]?.id ?? null;
+  })();
+
+  const selectedPhase = phases.find((p) => p.id === effectivePhaseId) ?? null;
+
+  const cancelMutation = useMutation({
+    mutationFn: () => apiFetch(`/workflows/${id}/cancel`, { method: 'PATCH' }),
+    onSuccess: () => {
+      setShowCancelDialog(false);
+      setCancelError(null);
+      queryClient.invalidateQueries({ queryKey: ['workflow', id] });
+    },
+    onError: (err: Error) => {
+      setCancelError(err.message);
+    },
+  });
+
+  const notifyMutation = useMutation({
+    mutationFn: () => apiFetch(`/workflows/${id}/notify`, { method: 'POST' }),
+    onSuccess: () => {
+      setNotifySuccess(true);
+      setNotifyError(null);
+      setNotifyCooldown(true);
+      setTimeout(() => {
+        setNotifySuccess(false);
+        setNotifyCooldown(false);
+      }, 2000);
+    },
+    onError: (err: Error) => {
+      setNotifyError(err.message);
+    },
   });
 
   const handleExportCsv = async () => {
@@ -110,6 +158,15 @@ export function WorkflowDetailPage() {
     URL.revokeObjectURL(url);
   };
 
+  const toggleDoc = (docId: string) => {
+    setExpandedDocIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(docId)) next.delete(docId);
+      else next.add(docId);
+      return next;
+    });
+  };
+
   if (isLoading || !workflow) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -117,6 +174,10 @@ export function WorkflowDetailPage() {
       </div>
     );
   }
+
+  const isInitiator = user?.email === workflow.initiator.email;
+  const isInProgress = workflow.status === 'IN_PROGRESS';
+  const canActAsInitiator = isInitiator && isInProgress;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -146,84 +207,113 @@ export function WorkflowDetailPage() {
           </div>
         </div>
 
+        {/* Workflow Stepper */}
+        {sortedPhases.length > 0 && (
+          <section className="rounded-lg bg-white shadow p-4">
+            <WorkflowStepper
+              phases={sortedPhases}
+              activePhaseId={effectivePhaseId}
+              onSelectPhase={(phaseId) => setSelectedPhaseId(phaseId)}
+            />
+          </section>
+        )}
+
+        {/* Step Detail for selected phase */}
+        {selectedPhase && (
+          <section>
+            <StepDetail phase={selectedPhase} />
+          </section>
+        )}
+
         {/* Documents */}
         {workflow.documents.length > 0 && (
           <section>
-            <h2 className="text-sm font-semibold text-gray-700 mb-2">{t('dashboard.documents')}</h2>
-            <div className="flex flex-wrap gap-2">
-              {workflow.documents.map((d) => (
-                <span key={d.document.id} className="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm shadow border border-gray-200">
-                  {d.document.title}
-                </span>
-              ))}
+            <h2 className="text-sm font-semibold text-gray-700 mb-3">{t('workflow.documents')}</h2>
+            <div className="space-y-2">
+              {workflow.documents.map((d) => {
+                const doc = d.document;
+                const isExpanded = expandedDocIds.has(doc.id);
+                return (
+                  <div key={doc.id} className="rounded-lg bg-white shadow overflow-hidden">
+                    <div className="flex items-center gap-3 px-4 py-3">
+                      <span className="text-gray-400 text-lg">&#128196;</span>
+                      <span className="text-sm font-medium text-gray-800 flex-1">{doc.title}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleDoc(doc.id)}
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        {isExpanded ? t('workflow.preview') : t('workflow.preview')}
+                      </button>
+                      <a
+                        href={`/api/documents/${doc.id}/file`}
+                        download={doc.title}
+                        className="text-xs text-gray-500 hover:underline"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const token = localStorage.getItem('token');
+                          fetch(`/api/documents/${doc.id}/file`, {
+                            headers: token ? { Authorization: `Bearer ${token}` } : {},
+                          })
+                            .then((r) => r.blob())
+                            .then((blob) => {
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = doc.title;
+                              a.click();
+                              URL.revokeObjectURL(url);
+                            });
+                        }}
+                      >
+                        {t('workflow.download')}
+                      </a>
+                    </div>
+                    {isExpanded && (
+                      <div className="border-t border-gray-100 px-4 py-3">
+                        <DocumentPreview
+                          documentId={doc.id}
+                          mimeType={doc.mimeType}
+                          fileName={doc.title}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}
 
-        {/* Phase / Step visualization */}
-        <section>
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">{t('dashboard.phases')}</h2>
-          <div className="space-y-4">
-            {workflow.phases.map((phase) => (
-              <div key={phase.id} className="rounded-lg bg-white shadow overflow-hidden">
-                <div className={`flex items-center gap-3 px-4 py-3 border-l-4 ${
-                  phase.status === 'APPROVED'
-                    ? 'border-green-500'
-                    : phase.status === 'IN_PROGRESS'
-                    ? 'border-blue-500'
-                    : phase.status === 'REFUSED'
-                    ? 'border-red-500'
-                    : 'border-gray-300'
-                }`}>
-                  <div className={`h-2.5 w-2.5 rounded-full ${statusDot[phase.status] ?? statusDot.PENDING}`} />
-                  <span className="font-medium text-gray-900">{phase.name}</span>
-                  <span className={`ml-auto rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[phase.status] ?? statusColors.PENDING}`}>
-                    {t(`workflow.${phase.status.toLowerCase()}`)}
-                  </span>
-                </div>
-
-                {/* Steps */}
-                <div className="divide-y divide-gray-100">
-                  {phase.steps.map((step) => (
-                    <div key={step.id} className="px-4 py-3 pl-10">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className={`h-2 w-2 rounded-full ${statusDot[step.status] ?? statusDot.PENDING}`} />
-                          <span className="text-sm text-gray-800">{step.name}</span>
-                          <span className="text-xs text-gray-400">
-                            ({step.quorumRule}{step.quorumCount ? ` ${step.quorumCount}` : ''})
-                          </span>
-                        </div>
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[step.status] ?? statusColors.PENDING}`}>
-                          {step.decisionCount}/{step.validatorEmails.length}
-                        </span>
-                      </div>
-
-                      {/* Actions */}
-                      {step.actions.length > 0 && (
-                        <div className="mt-2 ml-4 space-y-1">
-                          {step.actions.map((action) => (
-                            <div key={action.id} className="flex items-start gap-2 text-xs">
-                              <span className={action.action === 'APPROVE' ? 'text-green-600' : 'text-red-600'}>
-                                {action.action === 'APPROVE' ? '\u2713' : '\u2717'}
-                              </span>
-                              <span className="text-gray-600">
-                                <strong>{action.actorEmail}</strong>: {action.comment}
-                              </span>
-                              <span className="ml-auto text-gray-400">
-                                {new Date(action.createdAt).toLocaleString()}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* Initiator actions */}
+        {canActAsInitiator && (
+          <section className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => notifyMutation.mutate()}
+              disabled={notifyCooldown || notifyMutation.isPending}
+              className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50"
+            >
+              {t('workflow.notify_button')}
+            </button>
+            {notifySuccess && (
+              <span className="text-sm text-green-600">{t('workflow.notify_success')}</span>
+            )}
+            {notifyError && (
+              <span className="text-sm text-red-600">{notifyError}</span>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowCancelDialog(true)}
+              className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            >
+              {t('workflow.cancel_button')}
+            </button>
+            {cancelError && (
+              <span className="text-sm text-red-600">{cancelError}</span>
+            )}
+          </section>
+        )}
 
         {/* Audit trail */}
         <section>
@@ -269,6 +359,21 @@ export function WorkflowDetailPage() {
           )}
         </section>
       </main>
+
+      {/* Cancel confirmation dialog */}
+      <ConfirmDialog
+        open={showCancelDialog}
+        title={t('workflow.cancel_title')}
+        message={t('workflow.cancel_message')}
+        confirmLabel={t('workflow.cancel_confirm')}
+        cancelLabel={t('dialog.cancel')}
+        variant="danger"
+        onConfirm={() => cancelMutation.mutate()}
+        onCancel={() => {
+          setShowCancelDialog(false);
+          setCancelError(null);
+        }}
+      />
     </div>
   );
 }

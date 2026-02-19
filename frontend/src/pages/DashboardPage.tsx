@@ -80,6 +80,14 @@ export function DashboardPage() {
             >
               {i18n.language === 'fr' ? 'EN' : 'FR'}
             </button>
+            {user?.role === 'ADMIN' && (
+              <Link
+                to="/admin/users"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                {t('nav.users')}
+              </Link>
+            )}
             <span className="text-sm text-gray-600">{user?.email}</span>
             <button
               onClick={handleLogout}
