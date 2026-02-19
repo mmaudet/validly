@@ -151,7 +151,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 11. Engine & Wiring Fixes | Not started | - |
 | 12. Template Management UI | Not started | - |
 
-### Phase 10: Améliorer gestion demandes et UX
+### Phase 10: Ameliorer gestion demandes et UX
 
 **Goal:** Improve the workflow management experience and UX: enriched action confirmation with workflow summary, horizontal stepper on workflow detail page, dashboard with table/filters/badges, initiator email notifications, BullMQ deadline reminders, workflow cancellation/re-notification, and admin user CRUD with 3-role RBAC
 **Depends on:** Phase 9
@@ -176,7 +176,11 @@ Plans:
   3. Validator emails are sent in the validator's locale (not hardcoded French)
   4. An attempted UPDATE or DELETE on `audit_events` fails at the PostgreSQL level
   5. `ARCHIVED` status is present in domain `WorkflowStatus` type
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Backend: Parallel step activation fix + validator email locale resolution + ARCHIVED domain type
+- [ ] 11-02-PLAN.md — Frontend: Template type field mismatch fix + audit immutability Prisma migration
 
 ### Phase 12: Template Management UI
 
