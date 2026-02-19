@@ -124,6 +124,18 @@ None — no external service configuration required.
 - All 4 requirements (WORKFLOW-STEPPER, STEP-DETAIL, PDF-PREVIEW, INITIATOR-ACTIONS-UI) complete
 - No blockers
 
+## Self-Check: PASSED
+
+| Item | Status |
+|------|--------|
+| frontend/src/components/workflow/WorkflowStepper.tsx | FOUND |
+| frontend/src/components/workflow/StepDetail.tsx | FOUND |
+| frontend/src/components/workflow/DocumentPreview.tsx | FOUND |
+| frontend/src/components/ui/ConfirmDialog.tsx | FOUND |
+| Commit ea9f5f4 (Task 1) | FOUND |
+| Commit f64789a (Task 2) | FOUND |
+| npm run build — zero errors | PASSED |
+
 ---
 *Phase: 10-am-liorer-gestion-demandes-et-ux*
 *Completed: 2026-02-19*
