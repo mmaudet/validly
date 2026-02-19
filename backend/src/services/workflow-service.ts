@@ -41,12 +41,19 @@ async function notifyValidators(
   }
 ) {
   try {
+    // Resolve validator locales (batch query; fallback 'en' for unregistered validators)
+    const validatorUsers = await prisma.user.findMany({
+      where: { email: { in: validatorEmails } },
+      select: { email: true, locale: true },
+    });
+    const localeByEmail = new Map(validatorUsers.map(u => [u.email, u.locale]));
+
     const tokens = await tokenService.createTokensForStep(stepId, validatorEmails);
     for (const email of validatorEmails) {
       const { approveToken, refuseToken } = tokens[email];
       await emailService.sendPendingAction({
         to: email,
-        locale: 'fr',
+        locale: localeByEmail.get(email) ?? 'en',
         workflowTitle: context.workflowTitle,
         documentTitle: context.documentTitle,
         stepName: context.stepName,
@@ -738,13 +745,20 @@ export const workflowService = {
 
     // Use distinct reminder template (not the initial notification)
     try {
+      // Resolve validator locales (batch query; fallback 'en' for unregistered validators)
+      const validatorUsers = await prisma.user.findMany({
+        where: { email: { in: pendingEmails } },
+        select: { email: true, locale: true },
+      });
+      const localeByEmail = new Map(validatorUsers.map(u => [u.email, u.locale]));
+
       const tokens = await tokenService.createTokensForStep(activeStep.id, pendingEmails);
       const docTitle = workflow.documents[0]?.document?.title ?? workflow.title;
       for (const email of pendingEmails) {
         const { approveToken, refuseToken } = tokens[email];
         await emailService.sendManualReminder({
           to: email,
-          locale: 'fr',
+          locale: localeByEmail.get(email) ?? 'en',
           workflowTitle: workflow.title,
           documentTitle: docTitle,
           stepName: activeStep.name,

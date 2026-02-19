@@ -50,19 +50,27 @@ export const reminderWorker = new Worker(
       return;
     }
 
+    // Resolve locales for pending validators (batch query; fallback 'en' for unregistered validators)
+    const validatorUsers = await prisma.user.findMany({
+      where: { email: { in: pendingEmails } },
+      select: { email: true, locale: true },
+    });
+    const localeByEmail = new Map(validatorUsers.map(u => [u.email, u.locale]));
+
     // Create new tokens and send reminder emails for each pending validator
     const tokens = await tokenService.createTokensForStep(stepId, pendingEmails);
 
     for (const email of pendingEmails) {
       const { approveToken, refuseToken } = tokens[email];
+      const locale = localeByEmail.get(email) ?? 'en';
       const deadlineDate = step.deadline
-        ? step.deadline.toLocaleDateString('fr-FR')
+        ? step.deadline.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-GB')
         : '';
 
       try {
         await emailService.sendReminder({
           to: email,
-          locale: 'fr',
+          locale,
           workflowTitle: workflow.title,
           documentTitle: workflow.documents[0]?.document.title ?? workflow.title,
           stepName: step.name,
