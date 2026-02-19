@@ -227,4 +227,64 @@ export async function authRoutes(app: FastifyInstance) {
       throw err;
     }
   });
+
+  // POST /auth/forgot-password — request a password reset email (NO auth required)
+  app.post('/auth/forgot-password', {
+    schema: {
+      tags: ['Auth'],
+      summary: 'Request a password reset email',
+      body: {
+        type: 'object',
+        required: ['email'],
+        properties: {
+          email: { type: 'string', format: 'email' },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            message: { type: 'string' },
+          },
+        },
+      },
+    },
+  }, async (req, reply) => {
+    const { email } = req.body as { email: string };
+    // Fire-and-forget: don't await to avoid timing attacks revealing user existence
+    // But we do await here for correctness; the same 200 is returned regardless (AUTH-04)
+    await passwordResetService.requestPasswordReset(email);
+    return reply.send({ message: 'If an account exists, a reset email has been sent.' });
+  });
+
+  // POST /auth/reset-password — set a new password using a reset token (NO auth required)
+  app.post('/auth/reset-password', {
+    schema: {
+      tags: ['Auth'],
+      summary: 'Reset password using a token',
+      body: {
+        type: 'object',
+        required: ['token', 'password'],
+        properties: {
+          token: { type: 'string' },
+          password: { type: 'string', minLength: 8 },
+        },
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            message: { type: 'string' },
+          },
+        },
+      },
+    },
+  }, async (req, reply) => {
+    const { token, password } = req.body as { token: string; password: string };
+    const result = await passwordResetService.resetPassword(token, password);
+    if (!result.success) {
+      return reply.status(400 as any).send({ message: 'Invalid or expired reset link.' });
+    }
+    return reply.send({ message: 'Password has been reset.' });
+  });
 }

@@ -69,6 +69,12 @@ export interface InitiatorCompleteEmailInput {
   workflowUrl: string;
 }
 
+export interface PasswordResetEmailInput {
+  to: string;
+  locale: string;
+  resetUrl: string;
+}
+
 export const emailService = {
   async sendPendingAction(input: PendingActionEmailInput) {
     const t = (key: string, options?: Record<string, unknown>) => tWithLang(input.locale, key, options);
@@ -222,6 +228,44 @@ export const emailService = {
             ${input.locale === 'fr' ? 'Voir le circuit' : 'View workflow'}
           </a>
         </div>
+      </div>
+    `;
+
+    await getTransporter().sendMail({
+      from: env.SMTP_FROM,
+      to: input.to,
+      subject,
+      html,
+    });
+  },
+
+  async sendPasswordReset(input: PasswordResetEmailInput) {
+    const subject = input.locale === 'fr'
+      ? 'Réinitialiser votre mot de passe'
+      : 'Reset your password';
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #1a1a1a;">
+          ${input.locale === 'fr' ? 'Réinitialisation de mot de passe' : 'Password Reset'}
+        </h2>
+        <p style="color: #444; line-height: 1.6;">
+          ${input.locale === 'fr'
+            ? 'Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe.'
+            : 'You requested a password reset. Click the button below to set a new password.'
+          }
+        </p>
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${input.resetUrl}" style="display: inline-block; padding: 12px 32px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            ${input.locale === 'fr' ? 'Réinitialiser le mot de passe' : 'Reset Password'}
+          </a>
+        </div>
+        <p style="color: #888; font-size: 12px;">
+          ${input.locale === 'fr'
+            ? 'Ce lien expire dans 1 heure. Si vous n\'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.'
+            : 'This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.'
+          }
+        </p>
       </div>
     `;
 
