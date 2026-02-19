@@ -18,10 +18,10 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 
 ### User Profile & Settings
 
-- [ ] **PROF-01**: User can view and edit their display name from a profile page
-- [ ] **PROF-02**: User can change their password (requires current password verification) from the profile page
-- [ ] **PROF-03**: User can switch language (EN/FR) from the profile page, persisted to database
-- [ ] **PROF-04**: Profile page accessible from navigation on all authenticated pages
+- [x] **PROF-01**: User can view and edit their display name from a profile page
+- [x] **PROF-02**: User can change their password (requires current password verification) from the profile page
+- [x] **PROF-03**: User can switch language (EN/FR) from the profile page, persisted to database
+- [x] **PROF-04**: Profile page accessible from navigation on all authenticated pages
 
 ### Document Preview
 
@@ -115,10 +115,10 @@ Deferred to future releases. Tracked but not in current roadmap.
 | AUTH-04 | Phase 13 | Pending |
 | AUTH-05 | Phase 13 | Pending |
 | AUTH-06 | Phase 13 | Complete |
-| PROF-01 | Phase 13 | Pending |
-| PROF-02 | Phase 13 | Pending |
-| PROF-03 | Phase 13 | Pending |
-| PROF-04 | Phase 13 | Pending |
+| PROF-01 | Phase 13 | Complete |
+| PROF-02 | Phase 13 | Complete |
+| PROF-03 | Phase 13 | Complete |
+| PROF-04 | Phase 13 | Complete |
 | DOCX-01 | Phase 13 | Complete |
 | DOCX-02 | Phase 13 | Complete |
 | DOCX-03 | Phase 13 | Complete |

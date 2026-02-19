@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 13 of 15 (Foundation)
-Plan: 2 of 5
+Plan: 5 of 6
 Status: In progress
-Last activity: 2026-02-20 — Plan 13-02 complete: DOCX preview in DocumentPreview component
+Last activity: 2026-02-20 — Plan 13-05 complete: NotFoundPage, ErrorPage, AppErrorBoundary, catch-all route, mapApiError
 
-Progress: [██░░░░░░░░] 10% (v1.1)
+Progress: [████░░░░░░] 22% (v1.1)
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [██░░░░░░░░] 10% (v1.1)
 | 13-02 | DOCX preview via docx-preview + DOMPurify | e35688d |
 | Phase 13 P01 | 3 | 2 tasks | 4 files |
 | Phase 13 P02 | 2 | 1 task | 1 file |
+| Phase 13 P04 | 3 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ Progress: [██░░░░░░░░] 10% (v1.1)
 - [13-02] isDocx constant computed at component level (not inside useEffect) so renderPreview() can use it without prop drilling
 - [13-02] ADD_TAGS: ['style'] passed to DOMPurify to preserve docx-preview inline style blocks that provide DOCX formatting
 - [13-02] docxHtml reset to null at useEffect start to prevent stale HTML flash when switching documents
+- [Phase 13]: [13-04] Language switch: PATCH /auth/profile + i18n.changeLanguage() + fetchProfile() for DB, UI, and hook state sync
+- [Phase 13]: [13-04] Password change deletes ALL refresh tokens (ghost session prevention)
 
 ### v1.1 Key Constraints (from research)
 
@@ -91,5 +94,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 13-02-PLAN.md — DOCX preview in DocumentPreview component
+Stopped at: Completed 13-04-PLAN.md — User profile full stack (backend endpoints + ProfilePage + nav link)
 Resume file: None
