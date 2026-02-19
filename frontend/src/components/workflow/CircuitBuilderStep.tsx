@@ -23,7 +23,7 @@ export function CircuitBuilderStep() {
           executionMode: 'SEQUENTIAL',
           quorumRule: 'UNANIMITY',
           quorumCount: null,
-          validatorEmails: [''],
+          validatorEmails: [{ email: '' }],
           deadlineHours: null,
         },
       ],

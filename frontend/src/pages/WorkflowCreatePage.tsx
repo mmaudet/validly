@@ -2,15 +2,20 @@ import { useState, useRef, DragEvent, ChangeEvent } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import { CircuitBuilderStep } from '../components/workflow/CircuitBuilderStep';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface ValidatorEmailEntry {
+  email: string;
+}
 
 export interface StepForm {
   name: string;
   executionMode: 'SEQUENTIAL' | 'PARALLEL';
   quorumRule: 'UNANIMITY' | 'MAJORITY' | 'ANY_OF';
   quorumCount: number | null;
-  validatorEmails: string[];
+  validatorEmails: ValidatorEmailEntry[];
   deadlineHours: number | null;
 }
 
@@ -50,7 +55,7 @@ export function WorkflowCreatePage() {
                 executionMode: 'SEQUENTIAL',
                 quorumRule: 'UNANIMITY',
                 quorumCount: null,
-                validatorEmails: [''],
+                validatorEmails: [{ email: '' }],
                 deadlineHours: null,
               },
             ],
@@ -128,9 +133,7 @@ export function WorkflowCreatePage() {
               <DocumentUploadStep files={stagedFiles} setFiles={setStagedFiles} />
             )}
             {wizardStep === 1 && (
-              <div className="py-12 text-center text-gray-400">
-                {t('wizard.circuit_placeholder')}
-              </div>
+              <CircuitBuilderStep />
             )}
             {wizardStep === 2 && (
               <div className="py-12 text-center text-gray-400">

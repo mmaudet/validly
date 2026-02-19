@@ -26,7 +26,7 @@ export function PhaseRow({ index, onRemove, removeDisabled }: PhaseRowProps) {
       executionMode: 'SEQUENTIAL',
       quorumRule: 'UNANIMITY',
       quorumCount: null,
-      validatorEmails: [''],
+      validatorEmails: [{ email: '' }],
       deadlineHours: null,
     });
   };
