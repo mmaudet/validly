@@ -5,6 +5,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { WorkflowCreatePage } from './pages/WorkflowCreatePage';
 import { WorkflowDetailPage } from './pages/WorkflowDetailPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
+import { TemplateFormPage } from './pages/TemplateFormPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ActionConfirmPage } from './pages/ActionConfirmPage';
@@ -35,6 +36,8 @@ export default function App() {
           <Route path="/workflows/new" element={<AuthGuard><WorkflowCreatePage /></AuthGuard>} />
           <Route path="/workflows/:id" element={<AuthGuard><WorkflowDetailPage /></AuthGuard>} />
           <Route path="/admin/users" element={<AuthGuard><AdminUsersPage /></AuthGuard>} />
+          <Route path="/templates/new" element={<AuthGuard><TemplateFormPage /></AuthGuard>} />
+          <Route path="/templates/:id/edit" element={<AuthGuard><TemplateFormPage /></AuthGuard>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/action/confirm" element={<ActionConfirmPage />} />

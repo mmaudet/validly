@@ -203,6 +203,26 @@
     "cancel": "Annuler",
     "confirm": "Confirmer"
   },
+  "template": {
+    "page_title_create": "Nouveau mod\u00e8le",
+    "page_title_edit": "Modifier le mod\u00e8le",
+    "name_label": "Nom du mod\u00e8le",
+    "name_placeholder": "ex. Revue juridique standard",
+    "description_label": "Description (optionnel)",
+    "description_placeholder": "D\u00e9crivez quand utiliser ce mod\u00e8le",
+    "save": "Enregistrer le mod\u00e8le",
+    "cancel": "Annuler",
+    "create_button": "Nouveau mod\u00e8le",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "delete_confirm_title": "Supprimer le mod\u00e8le\u00a0?",
+    "delete_confirm_message": "Ce mod\u00e8le sera d\u00e9finitivement supprim\u00e9.",
+    "no_templates": "Aucun mod\u00e8le. Cr\u00e9ez votre premier mod\u00e8le\u00a0!",
+    "column_name": "Nom",
+    "column_description": "Description",
+    "column_actions": "Actions",
+    "error_403": "Vous ne pouvez modifier ou supprimer que vos propres mod\u00e8les"
+  },
   "common": {
     "loading": "Chargement...",
     "save": "Enregistrer",

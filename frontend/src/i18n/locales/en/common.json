@@ -203,6 +203,26 @@
     "cancel": "Cancel",
     "confirm": "Confirm"
   },
+  "template": {
+    "page_title_create": "New Template",
+    "page_title_edit": "Edit Template",
+    "name_label": "Template Name",
+    "name_placeholder": "e.g. Standard Legal Review",
+    "description_label": "Description (optional)",
+    "description_placeholder": "Describe when to use this template",
+    "save": "Save Template",
+    "cancel": "Cancel",
+    "create_button": "New Template",
+    "edit": "Edit",
+    "delete": "Delete",
+    "delete_confirm_title": "Delete template?",
+    "delete_confirm_message": "This template will be permanently removed.",
+    "no_templates": "No templates yet. Create your first template!",
+    "column_name": "Name",
+    "column_description": "Description",
+    "column_actions": "Actions",
+    "error_403": "You can only edit or delete your own templates"
+  },
   "common": {
     "loading": "Loading...",
     "save": "Save",
