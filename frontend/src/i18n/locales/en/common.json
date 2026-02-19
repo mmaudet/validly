@@ -8,7 +8,8 @@
     "submissions": "My Submissions",
     "pending": "Pending Actions",
     "templates": "Templates",
-    "logout": "Log out"
+    "logout": "Log out",
+    "users": "Users"
   },
   "auth": {
     "login": "Log in",
@@ -39,7 +40,47 @@
     "pending": "Pending",
     "approved": "Approved",
     "refused": "Refused",
-    "in_progress": "In progress"
+    "in_progress": "In progress",
+    "stepper_title": "Progression",
+    "step_detail": "Step details",
+    "quorum_unanimity": "Unanimity",
+    "quorum_majority": "Majority",
+    "quorum_any_of": "{{count}} of {{total}}",
+    "execution_sequential": "Sequential",
+    "execution_parallel": "Parallel",
+    "no_deadline": "No deadline",
+    "deadline_label": "Deadline",
+    "validators": "Validators",
+    "actions_history": "Actions",
+    "pending_action": "Pending",
+    "acted_on": "on",
+    "documents": "Documents",
+    "download": "Download",
+    "preview": "Preview",
+    "cancel_title": "Cancel workflow",
+    "cancel_message": "This will cancel the workflow and invalidate all pending action links. This cannot be undone.",
+    "cancel_button": "Cancel workflow",
+    "cancel_confirm": "Confirm cancellation",
+    "notify_button": "Send reminders",
+    "notify_success": "Notifications sent"
+  },
+  "action": {
+    "workflow_summary": "Workflow summary",
+    "step_label": "Step",
+    "phase_label": "Phase",
+    "initiator_label": "Requested by",
+    "documents_label": "Documents",
+    "go_to_dashboard": "Go to dashboard",
+    "token_expired": "This link has expired",
+    "token_used": "This link has already been used",
+    "token_invalid": "Invalid link"
+  },
+  "status": {
+    "in_progress": "In progress",
+    "approved": "Approved",
+    "refused": "Refused",
+    "cancelled": "Cancelled",
+    "draft": "Draft"
   },
   "dashboard": {
     "no_workflows": "No workflows yet. Create your first validation workflow!",
@@ -50,7 +91,21 @@
     "initiated_by": "Initiated by",
     "created_at": "Created",
     "deadline": "Deadline",
-    "documents": "Documents"
+    "documents": "Documents",
+    "my_requests": "My requests",
+    "to_validate": "To validate",
+    "filter_status": "Status",
+    "filter_search": "Search...",
+    "filter_date_from": "From",
+    "filter_date_to": "To",
+    "filter_initiator": "Initiator",
+    "clear_filters": "Clear",
+    "column_title": "Title",
+    "column_status": "Status",
+    "column_date": "Date",
+    "column_step": "Current step",
+    "column_initiator": "Initiator",
+    "no_results": "No workflows found"
   },
   "audit": {
     "trail": "Audit Trail",
@@ -84,11 +139,34 @@
     "next": "Next",
     "back": "Back",
     "submit": "Submit",
-    "circuit_placeholder": "Circuit builder coming soon…",
-    "review_placeholder": "Review & launch coming soon…",
+    "circuit_placeholder": "Circuit builder coming soon\u2026",
+    "review_placeholder": "Review & launch coming soon\u2026",
     "review_title": "Review your workflow",
     "review_subtitle": "Verify the configuration before launching. Once launched, validators will receive their email invitations.",
     "launch": "Launch"
+  },
+  "admin": {
+    "users_title": "User Management",
+    "create_user": "Create user",
+    "edit_user": "Edit user",
+    "delete_user": "Delete user",
+    "delete_confirm_title": "Delete user?",
+    "delete_confirm_message": "This user will be permanently removed.",
+    "field_email": "Email",
+    "field_name": "Name",
+    "field_password": "Password",
+    "field_role": "Role",
+    "field_locale": "Language",
+    "role_admin": "Administrator",
+    "role_initiateur": "Initiator",
+    "role_validateur": "Validator",
+    "no_users": "No users found",
+    "last_admin_error": "Cannot delete the last administrator",
+    "email_exists": "This email is already in use"
+  },
+  "dialog": {
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "common": {
     "loading": "Loading...",

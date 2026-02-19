@@ -34,3 +34,35 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   if (res.status === 204) return undefined as T;
   return res.json();
 }
+
+export interface ActionInfo {
+  action: string;
+  workflowTitle: string;
+  stepName: string;
+  phaseName: string;
+  initiatorName: string;
+  documents: string[];
+}
+
+export interface ActionInfoError {
+  error: true;
+  reason: string;
+}
+
+export async function fetchActionInfo(token: string): Promise<ActionInfo | ActionInfoError> {
+  const res = await fetch(`${API_BASE}/actions/${encodeURIComponent(token)}/info`, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (res.status === 410) {
+    const body = await res.json().catch(() => ({ message: 'expired' }));
+    return { error: true, reason: body.message ?? 'expired' };
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    return { error: true, reason: body.message ?? res.statusText };
+  }
+
+  return res.json();
+}

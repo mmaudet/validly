@@ -1,32 +1,33 @@
 {
   "app": {
     "name": "Validly",
-    "tagline": "La validation documentaire, simplifiée"
+    "tagline": "La validation documentaire, simplifi\u00e9e"
   },
   "nav": {
     "dashboard": "Tableau de bord",
     "submissions": "Mes soumissions",
     "pending": "Actions en attente",
-    "templates": "Modèles",
-    "logout": "Déconnexion"
+    "templates": "Mod\u00e8les",
+    "logout": "D\u00e9connexion",
+    "users": "Utilisateurs"
   },
   "auth": {
     "login": "Se connecter",
-    "signup": "Créer un compte",
+    "signup": "Cr\u00e9er un compte",
     "email": "Email",
     "password": "Mot de passe",
     "confirm_password": "Confirmer le mot de passe",
-    "forgot_password": "Mot de passe oublié ?",
+    "forgot_password": "Mot de passe oubli\u00e9 ?",
     "no_account": "Pas encore de compte ?",
-    "has_account": "Déjà un compte ?"
+    "has_account": "D\u00e9j\u00e0 un compte ?"
   },
   "documents": {
-    "upload": "Téléverser un document",
+    "upload": "T\u00e9l\u00e9verser un document",
     "title": "Titre",
     "description": "Description",
-    "tags": "Étiquettes",
-    "preview": "Aperçu",
-    "download": "Télécharger"
+    "tags": "\u00c9tiquettes",
+    "preview": "Aper\u00e7u",
+    "download": "T\u00e9l\u00e9charger"
   },
   "workflow": {
     "create": "Nouveau circuit",
@@ -37,20 +38,74 @@
     "comment_placeholder": "Ajoutez votre commentaire...",
     "submit": "Soumettre",
     "pending": "En attente",
-    "approved": "Approuvé",
-    "refused": "Refusé",
-    "in_progress": "En cours"
+    "approved": "Approuv\u00e9",
+    "refused": "Refus\u00e9",
+    "in_progress": "En cours",
+    "stepper_title": "Progression",
+    "step_detail": "D\u00e9tails de l'\u00e9tape",
+    "quorum_unanimity": "Unanimit\u00e9",
+    "quorum_majority": "Majorit\u00e9",
+    "quorum_any_of": "{{count}} sur {{total}}",
+    "execution_sequential": "S\u00e9quentiel",
+    "execution_parallel": "Parall\u00e8le",
+    "no_deadline": "Pas de deadline",
+    "deadline_label": "Date limite",
+    "validators": "Validateurs",
+    "actions_history": "Actions",
+    "pending_action": "En attente",
+    "acted_on": "le",
+    "documents": "Documents",
+    "download": "T\u00e9l\u00e9charger",
+    "preview": "Aper\u00e7u",
+    "cancel_title": "Annuler le workflow",
+    "cancel_message": "Cela annulera le workflow et invalidera tous les liens d'action en attente. Cette action est irr\u00e9versible.",
+    "cancel_button": "Annuler le workflow",
+    "cancel_confirm": "Confirmer l'annulation",
+    "notify_button": "Relancer les validateurs",
+    "notify_success": "Notifications envoy\u00e9es"
+  },
+  "action": {
+    "workflow_summary": "R\u00e9sum\u00e9 du workflow",
+    "step_label": "\u00c9tape",
+    "phase_label": "Phase",
+    "initiator_label": "Demand\u00e9 par",
+    "documents_label": "Documents",
+    "go_to_dashboard": "Aller au tableau de bord",
+    "token_expired": "Ce lien a expir\u00e9",
+    "token_used": "Ce lien a d\u00e9j\u00e0 \u00e9t\u00e9 utilis\u00e9",
+    "token_invalid": "Lien invalide"
+  },
+  "status": {
+    "in_progress": "En cours",
+    "approved": "Approuv\u00e9",
+    "refused": "Refus\u00e9",
+    "cancelled": "Annul\u00e9",
+    "draft": "Brouillon"
   },
   "dashboard": {
-    "no_workflows": "Aucun circuit de validation. Créez votre premier !",
-    "no_pending": "Aucune action en attente. Tout est à jour !",
-    "step": "Étape",
+    "no_workflows": "Aucun circuit de validation. Cr\u00e9ez votre premier !",
+    "no_pending": "Aucune action en attente. Tout est \u00e0 jour !",
+    "step": "\u00c9tape",
     "phase": "Phase",
-    "phases": "Phases & Étapes",
-    "initiated_by": "Initié par",
-    "created_at": "Créé le",
-    "deadline": "Échéance",
-    "documents": "Documents"
+    "phases": "Phases & \u00c9tapes",
+    "initiated_by": "Initi\u00e9 par",
+    "created_at": "Cr\u00e9\u00e9 le",
+    "deadline": "\u00c9ch\u00e9ance",
+    "documents": "Documents",
+    "my_requests": "Mes demandes",
+    "to_validate": "A valider",
+    "filter_status": "Statut",
+    "filter_search": "Rechercher...",
+    "filter_date_from": "Du",
+    "filter_date_to": "Au",
+    "filter_initiator": "Initiateur",
+    "clear_filters": "Effacer",
+    "column_title": "Titre",
+    "column_status": "Statut",
+    "column_date": "Date",
+    "column_step": "\u00c9tape courante",
+    "column_initiator": "Initiateur",
+    "no_results": "Aucun workflow trouv\u00e9"
   },
   "audit": {
     "trail": "Piste d'audit",
@@ -62,11 +117,11 @@
     "actor": "Acteur"
   },
   "email": {
-    "token_expired": "Lien expiré",
-    "token_expired_detail": "Ce lien d'action a expiré. Veuillez contacter l'initiateur du circuit pour un nouveau lien.",
-    "token_used": "Lien déjà utilisé",
-    "token_used_detail": "Ce lien d'action a déjà été utilisé. Votre décision a déjà été enregistrée.",
-    "action_recorded": "Décision enregistrée"
+    "token_expired": "Lien expir\u00e9",
+    "token_expired_detail": "Ce lien d'action a expir\u00e9. Veuillez contacter l'initiateur du circuit pour un nouveau lien.",
+    "token_used": "Lien d\u00e9j\u00e0 utilis\u00e9",
+    "token_used_detail": "Ce lien d'action a d\u00e9j\u00e0 \u00e9t\u00e9 utilis\u00e9. Votre d\u00e9cision a d\u00e9j\u00e0 \u00e9t\u00e9 enregistr\u00e9e.",
+    "action_recorded": "D\u00e9cision enregistr\u00e9e"
   },
   "errors": {
     "not_found": "Page introuvable"
@@ -74,21 +129,44 @@
   "wizard": {
     "step_documents": "Documents",
     "step_circuit": "Circuit",
-    "step_review": "Révision",
+    "step_review": "R\u00e9vision",
     "title_label": "Titre du circuit",
     "title_placeholder": "Saisissez un titre pour votre circuit",
-    "upload_title": "Téléverser des documents",
-    "upload_drop": "Glissez-déposez des fichiers ici, ou cliquez pour parcourir",
+    "upload_title": "T\u00e9l\u00e9verser des documents",
+    "upload_drop": "Glissez-d\u00e9posez des fichiers ici, ou cliquez pour parcourir",
     "upload_empty": "Aucun document. Ajoutez-en au moins un pour continuer.",
     "upload_remove": "Supprimer",
     "next": "Suivant",
     "back": "Retour",
     "submit": "Soumettre",
-    "circuit_placeholder": "Constructeur de circuit à venir…",
-    "review_placeholder": "Révision et lancement à venir…",
-    "review_title": "Vérifier votre circuit",
-    "review_subtitle": "Vérifiez la configuration avant de lancer. Une fois lancé, les validateurs recevront leurs invitations par email.",
+    "circuit_placeholder": "Constructeur de circuit \u00e0 venir\u2026",
+    "review_placeholder": "R\u00e9vision et lancement \u00e0 venir\u2026",
+    "review_title": "V\u00e9rifier votre circuit",
+    "review_subtitle": "V\u00e9rifiez la configuration avant de lancer. Une fois lanc\u00e9, les validateurs recevront leurs invitations par email.",
     "launch": "Lancer"
+  },
+  "admin": {
+    "users_title": "Gestion des utilisateurs",
+    "create_user": "Cr\u00e9er un utilisateur",
+    "edit_user": "Modifier l'utilisateur",
+    "delete_user": "Supprimer l'utilisateur",
+    "delete_confirm_title": "Supprimer l'utilisateur ?",
+    "delete_confirm_message": "Cet utilisateur sera d\u00e9finitivement supprim\u00e9.",
+    "field_email": "Email",
+    "field_name": "Nom",
+    "field_password": "Mot de passe",
+    "field_role": "R\u00f4le",
+    "field_locale": "Langue",
+    "role_admin": "Administrateur",
+    "role_initiateur": "Initiateur",
+    "role_validateur": "Validateur",
+    "no_users": "Aucun utilisateur trouv\u00e9",
+    "last_admin_error": "Impossible de supprimer le dernier administrateur",
+    "email_exists": "Cet email est d\u00e9j\u00e0 utilis\u00e9"
+  },
+  "dialog": {
+    "cancel": "Annuler",
+    "confirm": "Confirmer"
   },
   "common": {
     "loading": "Chargement...",
@@ -99,7 +177,7 @@
     "back": "Retour",
     "next": "Suivant",
     "search": "Rechercher",
-    "no_results": "Aucun résultat",
+    "no_results": "Aucun r\u00e9sultat",
     "error": "Une erreur s'est produite"
   }
 }
