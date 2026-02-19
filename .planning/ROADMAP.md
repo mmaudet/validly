@@ -45,7 +45,15 @@
   3. DOCX files open as rendered HTML in the browser without triggering a download, with no XSS risk
   4. Navigating to a non-existent route shows a 404 page with a dashboard link; server errors show a 500 page with recovery guidance
   5. All forms (login, signup, password reset, profile) show inline per-field validation errors before submission reaches the server
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — Infrastructure: Prisma migration (3 models), apiFetch fix, npm packages
+- [ ] 13-02-PLAN.md — DOCX preview in DocumentPreview component
+- [ ] 13-03-PLAN.md — Password reset full stack (backend service + email + frontend pages)
+- [ ] 13-04-PLAN.md — User profile full stack (backend endpoints + ProfilePage + nav link)
+- [ ] 13-05-PLAN.md — Error pages (404, 500) + error boundary + API error mapping
+- [ ] 13-06-PLAN.md — Zod form validation on all forms + mobile responsive (login, signup, action)
 
 ### Phase 14: Social Features
 **Goal**: Users can discuss workflows via a comment thread and receive in-app notifications for validation events they participate in
@@ -84,6 +92,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-12 | v1.0 | — | Complete | 2026-02-20 |
-| 13. Foundation | v1.1 | 0/TBD | Not started | - |
+| 13. Foundation | v1.1 | 0/6 | Planned | - |
 | 14. Social Features | v1.1 | 0/2 | Planned | - |
 | 15. Polish Completion | v1.1 | 0/3 | Planned | - |
