@@ -723,7 +723,7 @@ function TemplatesTab() {
 
   const deleteMutation = useMutation({
     mutationFn: (templateId: string) =>
-      apiFetch<void>(`/templates/${templateId}`, { method: 'DELETE' }),
+      apiFetch<void>(`/templates/${templateId}`, { method: 'DELETE', body: '{}' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['templates'] });
       setDeleteTemplate(null);
@@ -925,7 +925,7 @@ function UsersTab() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
-      apiFetch<void>(`/users/${id}`, { method: 'DELETE' }),
+      apiFetch<void>(`/users/${id}`, { method: 'DELETE', body: '{}' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setDeleteUser(null);
