@@ -6,3 +6,244 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(USER)
+  locale    String   @default("en")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  documents         Document[]
+  workflowInstances WorkflowInstance[]
+  workflowActions   WorkflowAction[]
+  refreshTokens     RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  tags        String[] @default([])
+  fileName    String   @map("file_name")
+  fileSize    Int      @map("file_size")
+  mimeType    String   @map("mime_type")
+  storageKey  String   @unique @map("storage_key")
+  uploaderId  String   @map("uploader_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  uploader          User               @relation(fields: [uploaderId], references: [id])
+  workflowDocuments WorkflowDocument[]
+
+  @@index([uploaderId])
+  @@map("documents")
+}
+
+model WorkflowTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdById String   @map("created_by_id")
+  isShared    Boolean  @default(false) @map("is_shared")
+  structure   Json
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  instances WorkflowInstance[]
+
+  @@map("workflow_templates")
+}
+
+enum WorkflowStatus {
+  DRAFT
+  IN_PROGRESS
+  APPROVED
+  REFUSED
+  CANCELLED
+}
+
+model WorkflowInstance {
+  id           String         @id @default(cuid())
+  templateId   String?        @map("template_id")
+  initiatorId  String         @map("initiator_id")
+  title        String
+  status       WorkflowStatus @default(DRAFT)
+  structure    Json
+  currentPhase Int            @default(0) @map("current_phase")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  template  WorkflowTemplate?  @relation(fields: [templateId], references: [id])
+  initiator User               @relation(fields: [initiatorId], references: [id])
+  documents WorkflowDocument[]
+  phases    PhaseInstance[]
+  actions   WorkflowAction[]
+
+  @@index([initiatorId])
+  @@index([status])
+  @@map("workflow_instances")
+}
+
+model WorkflowDocument {
+  workflowId String @map("workflow_id")
+  documentId String @map("document_id")
+
+  workflow WorkflowInstance @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  document Document         @relation(fields: [documentId], references: [id])
+
+  @@id([workflowId, documentId])
+  @@map("workflow_documents")
+}
+
+enum PhaseStatus {
+  PENDING
+  IN_PROGRESS
+  APPROVED
+  REFUSED
+}
+
+model PhaseInstance {
+  id         String      @id @default(cuid())
+  workflowId String      @map("workflow_id")
+  order      Int
+  name       String
+  status     PhaseStatus @default(PENDING)
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  workflow WorkflowInstance @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  steps    StepInstance[]
+
+  @@unique([workflowId, order])
+  @@map("phase_instances")
+}
+
+enum StepStatus {
+  PENDING
+  IN_PROGRESS
+  APPROVED
+  REFUSED
+}
+
+enum QuorumRule {
+  UNANIMITY
+  MAJORITY
+  ANY_OF
+}
+
+enum StepExecution {
+  SEQUENTIAL
+  PARALLEL
+}
+
+model StepInstance {
+  id            String        @id @default(cuid())
+  phaseId       String        @map("phase_id")
+  order         Int
+  name          String
+  status        StepStatus    @default(PENDING)
+  execution     StepExecution @default(SEQUENTIAL)
+  quorumRule    QuorumRule    @default(UNANIMITY) @map("quorum_rule")
+  quorumCount   Int?          @map("quorum_count")
+  validatorEmails String[]    @map("validator_emails")
+  deadline      DateTime?
+  decisionCount Int           @default(0) @map("decision_count")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  phase  PhaseInstance    @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  tokens ActionToken[]
+  actions WorkflowAction[]
+
+  @@unique([phaseId, order])
+  @@map("step_instances")
+}
+
+model ActionToken {
+  id             String   @id @default(cuid())
+  tokenHash      String   @unique @map("token_hash")
+  stepId         String   @map("step_id")
+  validatorEmail String   @map("validator_email")
+  action         String
+  usedAt         DateTime? @map("used_at")
+  expiresAt      DateTime @map("expires_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  step StepInstance @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@index([stepId])
+  @@map("action_tokens")
+}
+
+model WorkflowAction {
+  id             String   @id @default(cuid())
+  workflowId     String   @map("workflow_id")
+  stepId         String   @map("step_id")
+  actorId        String?  @map("actor_id")
+  actorEmail     String   @map("actor_email")
+  action         String
+  comment        String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  workflow WorkflowInstance @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  step     StepInstance     @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  actor    User?            @relation(fields: [actorId], references: [id])
+
+  @@index([workflowId])
+  @@index([stepId])
+  @@map("workflow_actions")
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  action    String
+  entityType String  @map("entity_type")
+  entityId  String   @map("entity_id")
+  actorId   String?  @map("actor_id")
+  actorEmail String  @map("actor_email")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([actorEmail])
+  @@index([createdAt])
+  @@map("audit_events")
+}
+
+model ScheduledEvent {
+  id          String    @id @default(cuid())
+  type        String
+  entityType  String    @map("entity_type")
+  entityId    String    @map("entity_id")
+  scheduledFor DateTime @map("scheduled_for")
+  firedAt     DateTime? @map("fired_at")
+  metadata    Json?
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([type, scheduledFor])
+  @@index([entityType, entityId])
+  @@map("scheduled_events")
+}

@@ -1,10 +1,12 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import jwt from '@fastify/jwt';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { env } from './config/env.js';
 import { initI18n } from './i18n/index.js';
 import { healthRoutes } from './api/routes/health.js';
+import { authRoutes } from './api/routes/auth.js';
 
 export async function buildApp() {
   await initI18n();
@@ -19,6 +21,11 @@ export async function buildApp() {
   });
 
   await app.register(cors, { origin: true });
+
+  await app.register(jwt, {
+    secret: env.JWT_SECRET,
+    sign: { expiresIn: env.JWT_EXPIRES_IN },
+  });
 
   await app.register(swagger, {
     openapi: {
@@ -49,6 +56,7 @@ export async function buildApp() {
   });
 
   await app.register(healthRoutes, { prefix: '/api' });
+  await app.register(authRoutes, { prefix: '/api' });
 
   return app;
 }
