@@ -26,7 +26,7 @@ export function SignupPage() {
     setLoading(true);
     try {
       await signup(email, password, name);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('common.error'));
     } finally {

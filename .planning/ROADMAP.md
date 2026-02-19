@@ -12,14 +12,14 @@ Validly is built in eight phases, ordered by dependency: project foundation and 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Project scaffold, Docker Compose environment, i18n skeleton, and tooling enforced from day one
-- [ ] **Phase 2: Data Model + Auth** - Full database schema, JWT authentication, and audit trail immutability baked into the schema
-- [ ] **Phase 3: Document Upload + Preview** - Secure document upload with StorageAdapter abstraction and in-browser PDF/image preview
-- [ ] **Phase 4: Workflow Engine** - Pure state machine, quorum rules, refusal routing, deadline scheduling — the critical-path dependency for everything else
-- [ ] **Phase 5: Email Action Channel** - Secure token-based approve/refuse directly from email, BullMQ async queue, deadline reminders
-- [ ] **Phase 6: Dashboard + Audit** - Initiator and validator dashboard views, workflow visualization, audit trail with CSV export
-- [ ] **Phase 7: Workflow Templates** - Template CRUD, org-level sharing, form-based creation, template-to-instance deep copy
-- [ ] **Phase 8: i18n Completion + Docker Polish** - Complete FR translations, CI locale validation, Docker Compose production hardening
+- [x] **Phase 1: Foundation** - Project scaffold, Docker Compose environment, i18n skeleton, and tooling enforced from day one
+- [x] **Phase 2: Data Model + Auth** - Full database schema, JWT authentication, and audit trail immutability baked into the schema
+- [x] **Phase 3: Document Upload + Preview** - Secure document upload with StorageAdapter abstraction and in-browser PDF/image preview
+- [x] **Phase 4: Workflow Engine** - Pure state machine, quorum rules, refusal routing, deadline scheduling — the critical-path dependency for everything else
+- [x] **Phase 5: Email Action Channel** - Secure token-based approve/refuse directly from email, BullMQ async queue, deadline reminders
+- [x] **Phase 6: Dashboard + Audit** - Initiator and validator dashboard views, workflow visualization, audit trail with CSV export
+- [x] **Phase 7: Workflow Templates** - Template CRUD, org-level sharing, form-based creation, template-to-instance deep copy
+- [x] **Phase 8: i18n Completion + Docker Polish** - Complete FR translations, CI locale validation, Docker Compose production hardening
 
 ## Phase Details
 
@@ -121,13 +121,13 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Execution Order:**
 Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
-| 2. Data Model + Auth | 0/TBD | Not started | - |
-| 3. Document Upload + Preview | 0/TBD | Not started | - |
-| 4. Workflow Engine | 0/TBD | Not started | - |
-| 5. Email Action Channel | 0/TBD | Not started | - |
-| 6. Dashboard + Audit | 0/TBD | Not started | - |
-| 7. Workflow Templates | 0/TBD | Not started | - |
-| 8. i18n Completion + Docker Polish | 0/TBD | Not started | - |
+| Phase | Status | Completed |
+|-------|--------|-----------|
+| 1. Foundation | Complete | 2026-02-19 |
+| 2. Data Model + Auth | Complete | 2026-02-19 |
+| 3. Document Upload + Preview | Complete | 2026-02-19 |
+| 4. Workflow Engine | Complete | 2026-02-19 |
+| 5. Email Action Channel | Complete | 2026-02-19 |
+| 6. Dashboard + Audit | Complete | 2026-02-19 |
+| 7. Workflow Templates | Complete | 2026-02-19 |
+| 8. i18n Completion + Docker Polish | Complete | 2026-02-19 |

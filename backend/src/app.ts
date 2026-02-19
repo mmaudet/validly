@@ -12,6 +12,7 @@ import { documentRoutes } from './api/routes/documents.js';
 import { workflowRoutes } from './api/routes/workflows.js';
 import { actionRoutes } from './api/routes/actions.js';
 import { templateRoutes } from './api/routes/templates.js';
+import { auditRoutes } from './api/routes/audit.js';
 
 export async function buildApp() {
   await initI18n();
@@ -70,6 +71,7 @@ export async function buildApp() {
   await app.register(workflowRoutes, { prefix: '/api' });
   await app.register(actionRoutes, { prefix: '/api' });
   await app.register(templateRoutes, { prefix: '/api' });
+  await app.register(auditRoutes, { prefix: '/api' });
 
   return app;
 }

@@ -41,6 +41,36 @@
     "refused": "Refusé",
     "in_progress": "En cours"
   },
+  "dashboard": {
+    "no_workflows": "Aucun circuit de validation. Créez votre premier !",
+    "no_pending": "Aucune action en attente. Tout est à jour !",
+    "step": "Étape",
+    "phase": "Phase",
+    "phases": "Phases & Étapes",
+    "initiated_by": "Initié par",
+    "created_at": "Créé le",
+    "deadline": "Échéance",
+    "documents": "Documents"
+  },
+  "audit": {
+    "trail": "Piste d'audit",
+    "show": "Afficher la piste d'audit",
+    "hide": "Masquer la piste d'audit",
+    "export_csv": "Exporter en CSV",
+    "timestamp": "Horodatage",
+    "action": "Action",
+    "actor": "Acteur"
+  },
+  "email": {
+    "token_expired": "Lien expiré",
+    "token_expired_detail": "Ce lien d'action a expiré. Veuillez contacter l'initiateur du circuit pour un nouveau lien.",
+    "token_used": "Lien déjà utilisé",
+    "token_used_detail": "Ce lien d'action a déjà été utilisé. Votre décision a déjà été enregistrée.",
+    "action_recorded": "Décision enregistrée"
+  },
+  "errors": {
+    "not_found": "Page introuvable"
+  },
   "common": {
     "loading": "Chargement...",
     "save": "Enregistrer",

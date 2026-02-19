@@ -41,6 +41,36 @@
     "refused": "Refused",
     "in_progress": "In progress"
   },
+  "dashboard": {
+    "no_workflows": "No workflows yet. Create your first validation workflow!",
+    "no_pending": "No pending actions. You're all caught up!",
+    "step": "Step",
+    "phase": "Phase",
+    "phases": "Phases & Steps",
+    "initiated_by": "Initiated by",
+    "created_at": "Created",
+    "deadline": "Deadline",
+    "documents": "Documents"
+  },
+  "audit": {
+    "trail": "Audit Trail",
+    "show": "Show audit trail",
+    "hide": "Hide audit trail",
+    "export_csv": "Export CSV",
+    "timestamp": "Timestamp",
+    "action": "Action",
+    "actor": "Actor"
+  },
+  "email": {
+    "token_expired": "Link expired",
+    "token_expired_detail": "This action link has expired. Please contact the workflow initiator for a new link.",
+    "token_used": "Link already used",
+    "token_used_detail": "This action link has already been used. Your decision was already recorded.",
+    "action_recorded": "Decision recorded"
+  },
+  "errors": {
+    "not_found": "Page not found"
+  },
   "common": {
     "loading": "Loading...",
     "save": "Save",
