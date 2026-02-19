@@ -20,10 +20,14 @@ export function DocumentPreview({ documentId, mimeType, fileName }: DocumentPrev
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pdfData, setPdfData] = useState<Uint8Array | null>(null);
   const [imgUrl, setImgUrl] = useState<string | null>(null);
+  const [docxHtml, setDocxHtml] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fileUrl = `/api/documents/${documentId}/file`;
+
+  // Compute isDocx at component level so renderPreview() can access it
+  const isDocx = mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -33,22 +37,48 @@ export function DocumentPreview({ documentId, mimeType, fileName }: DocumentPrev
 
     setLoading(true);
     setError(null);
+    setDocxHtml(null);
 
-    if (mimeType === 'application/pdf' || mimeType.startsWith('image/')) {
+    if (mimeType === 'application/pdf' || mimeType.startsWith('image/') || isDocx) {
       fetch(fileUrl, { headers })
         .then((res) => {
           if (!res.ok) throw new Error('Failed to load file');
           return res.arrayBuffer();
         })
         .then((buffer) => {
-          if (mimeType === 'application/pdf') {
+          if (isDocx) {
+            // Dynamic import to keep docx-preview out of main bundle (DOCX-03)
+            Promise.all([
+              import('docx-preview'),
+              import('dompurify'),
+            ]).then(([docxModule, dompurifyModule]) => {
+              const container = document.createElement('div');
+              docxModule.renderAsync(buffer, container, undefined, {
+                className: 'docx-preview',
+                inWrapper: false,
+              }).then(() => {
+                const DOMPurify = dompurifyModule.default;
+                // Sanitize rendered HTML to prevent XSS (DOCX-02)
+                const sanitized = DOMPurify.sanitize(container.innerHTML, {
+                  USE_PROFILES: { html: true },
+                  ADD_TAGS: ['style'],
+                });
+                setDocxHtml(sanitized);
+                setLoading(false);
+              });
+            }).catch((err: Error) => {
+              setError(err.message);
+              setLoading(false);
+            });
+          } else if (mimeType === 'application/pdf') {
             // Copy into Uint8Array to avoid detached ArrayBuffer issues with react-pdf
             setPdfData(new Uint8Array(buffer));
+            setLoading(false);
           } else {
             const blob = new Blob([buffer], { type: mimeType });
             setImgUrl(URL.createObjectURL(blob));
+            setLoading(false);
           }
-          setLoading(false);
         })
         .catch((err: Error) => {
           setError(err.message);
@@ -98,6 +128,15 @@ export function DocumentPreview({ documentId, mimeType, fileName }: DocumentPrev
         <div className="flex items-center justify-center py-4 text-red-500 text-sm">
           {t('common.error')} — <a href={fileUrl} onClick={handleDownload} className="ml-1 underline text-blue-600">{t('workflow.download')}</a>
         </div>
+      );
+    }
+
+    if (isDocx && docxHtml) {
+      return (
+        <div
+          className="max-h-[600px] overflow-auto bg-white p-4"
+          dangerouslySetInnerHTML={{ __html: docxHtml }}
+        />
       );
     }
 
