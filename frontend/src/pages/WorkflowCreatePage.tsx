@@ -5,21 +5,25 @@ import { useNavigate } from 'react-router';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface StepForm {
+export interface StepForm {
   name: string;
-  quorumRule: 'ALL' | 'ONE' | 'MAJORITY';
+  executionMode: 'SEQUENTIAL' | 'PARALLEL';
+  quorumRule: 'UNANIMITY' | 'MAJORITY' | 'ANY_OF';
+  quorumCount: number | null;
   validatorEmails: string[];
-  deadline: string | null;
+  deadlineHours: number | null;
 }
 
-interface PhaseForm {
+export interface PhaseForm {
   name: string;
   steps: StepForm[];
 }
 
-interface WorkflowForm {
+export interface WorkflowForm {
   title: string;
-  phases: PhaseForm[];
+  structure: {
+    phases: PhaseForm[];
+  };
 }
 
 const WIZARD_STEPS = ['step_documents', 'step_circuit', 'step_review'] as const;
@@ -36,19 +40,23 @@ export function WorkflowCreatePage() {
   const methods = useForm<WorkflowForm>({
     defaultValues: {
       title: '',
-      phases: [
-        {
-          name: '',
-          steps: [
-            {
-              name: '',
-              quorumRule: 'ALL',
-              validatorEmails: [],
-              deadline: null,
-            },
-          ],
-        },
-      ],
+      structure: {
+        phases: [
+          {
+            name: '',
+            steps: [
+              {
+                name: '',
+                executionMode: 'SEQUENTIAL',
+                quorumRule: 'UNANIMITY',
+                quorumCount: null,
+                validatorEmails: [''],
+                deadlineHours: null,
+              },
+            ],
+          },
+        ],
+      },
     },
   });
 
