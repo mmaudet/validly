@@ -5,6 +5,42 @@ import { env } from '../../config/env.js';
 
 export async function actionRoutes(app: FastifyInstance) {
   /**
+   * Token info endpoint — returns workflow summary from an action token without consuming it.
+   * No authentication required — the token is the auth.
+   */
+  app.get('/actions/:token/info', {
+    schema: {
+      tags: ['Actions'],
+      summary: 'Get workflow summary from an action token (non-consuming)',
+      params: {
+        type: 'object',
+        properties: { token: { type: 'string' } },
+        required: ['token'],
+      },
+    },
+  }, async (req, reply) => {
+    const { token } = req.params as any;
+    const result = await tokenService.validateToken(token);
+
+    if (!result.valid || !result.step || !result.workflow) {
+      return reply.status(410).send({ reason: result.reason });
+    }
+
+    // result.step and result.workflow are already loaded via includes in validateToken
+    const step = result.step;
+    const workflow = result.workflow;
+
+    return reply.send({
+      action: result.action,
+      workflowTitle: workflow.title,
+      stepName: step.name,
+      phaseName: step.phase.name,
+      initiatorName: (workflow as any).initiator?.name ?? '',
+      documents: ((workflow as any).documents ?? []).map((d: any) => d.document.title),
+    });
+  });
+
+  /**
    * Token-based action endpoint.
    * Validators click this link from their email to approve/refuse.
    * No authentication required — the token is the auth.

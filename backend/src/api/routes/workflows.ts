@@ -134,6 +134,58 @@ export async function workflowRoutes(app: FastifyInstance) {
     }
   });
 
+  app.patch('/workflows/:id/cancel', {
+    schema: {
+      tags: ['Workflows'],
+      summary: 'Cancel an in-progress workflow (initiator only)',
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: 'object',
+        properties: { id: { type: 'string' } },
+        required: ['id'],
+      },
+    },
+    preHandler: [authenticate],
+  }, async (req, reply) => {
+    try {
+      const { id } = req.params as any;
+      const user = req.user as JwtPayload;
+      await workflowService.cancel(id, user.sub);
+      return reply.status(200).send({ message: 'Workflow cancelled' });
+    } catch (err) {
+      if (err instanceof WorkflowError) {
+        return reply.status(err.statusCode).send({ message: err.message });
+      }
+      throw err;
+    }
+  });
+
+  app.post('/workflows/:id/notify', {
+    schema: {
+      tags: ['Workflows'],
+      summary: 'Re-send notifications to pending validators on the active step',
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: 'object',
+        properties: { id: { type: 'string' } },
+        required: ['id'],
+      },
+    },
+    preHandler: [authenticate],
+  }, async (req, reply) => {
+    try {
+      const { id } = req.params as any;
+      const user = req.user as JwtPayload;
+      await workflowService.notifyCurrentStep(id, user.sub);
+      return reply.status(200).send({ message: 'Notifications sent' });
+    } catch (err) {
+      if (err instanceof WorkflowError) {
+        return reply.status(err.statusCode).send({ message: err.message });
+      }
+      throw err;
+    }
+  });
+
   app.post('/workflows/:workflowId/steps/:stepId/action', {
     schema: {
       tags: ['Workflows'],

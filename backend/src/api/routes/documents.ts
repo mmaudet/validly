@@ -37,7 +37,7 @@ export async function documentRoutes(app: FastifyInstance) {
     try {
       const data = await req.file();
       if (!data) {
-        return reply.status(400).send({ message: 'No file uploaded' });
+        return reply.status(400 as any).send({ message: 'No file uploaded' });
       }
 
       const chunks: Buffer[] = [];
@@ -67,7 +67,7 @@ export async function documentRoutes(app: FastifyInstance) {
       return reply.status(201).send(doc);
     } catch (err) {
       if (err instanceof DocumentError) {
-        return reply.status(err.statusCode).send({ message: err.message });
+        return reply.status(err.statusCode as any).send({ message: err.message });
       }
       throw err;
     }

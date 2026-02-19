@@ -6,6 +6,15 @@ import { tokenService } from './token-service.js';
 import { emailService } from './email-service.js';
 import { env } from '../config/env.js';
 
+/**
+ * Stub: cancel BullMQ reminder job for a step.
+ * Replaced by the real implementation when reminder-service (plan 01) is available.
+ */
+async function cancelReminder(stepId: string): Promise<void> {
+  // No-op stub — reminder-service not yet available
+  void stepId;
+}
+
 export class WorkflowError extends Error {
   constructor(public statusCode: number, message: string) {
     super(message);
@@ -484,6 +493,140 @@ export const workflowService = {
       prisma.workflowInstance.count({ where: { initiatorId } }),
     ]);
     return { workflows, total, page, limit, totalPages: Math.ceil(total / limit) };
+  },
+
+  /**
+   * Cancel an in-progress workflow (initiator only).
+   * Expires all active tokens and creates an audit event.
+   */
+  async cancel(workflowId: string, initiatorId: string) {
+    const workflow = await prisma.workflowInstance.findUnique({
+      where: { id: workflowId },
+      include: {
+        initiator: { select: { id: true, email: true } },
+        phases: {
+          include: {
+            steps: true,
+          },
+        },
+      },
+    });
+
+    if (!workflow) throw new WorkflowError(404, t('workflow.not_found'));
+    if (workflow.initiatorId !== initiatorId) {
+      throw new WorkflowError(403, 'Only the initiator can cancel this workflow');
+    }
+    if (workflow.status !== 'IN_PROGRESS') {
+      throw new WorkflowError(409, 'Workflow is not in progress');
+    }
+
+    // Collect all step IDs across all phases
+    const allStepIds: string[] = [];
+    for (const phase of workflow.phases) {
+      for (const step of phase.steps) {
+        allStepIds.push(step.id);
+      }
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Cancel the workflow
+      await tx.workflowInstance.update({
+        where: { id: workflowId },
+        data: { status: 'CANCELLED' },
+      });
+
+      // Expire all active (unused) tokens for steps in this workflow
+      if (allStepIds.length > 0) {
+        await tx.actionToken.updateMany({
+          where: {
+            stepId: { in: allStepIds },
+            usedAt: null,
+          },
+          data: { expiresAt: new Date(0) },
+        });
+      }
+
+      // Audit event
+      await tx.auditEvent.create({
+        data: {
+          action: 'WORKFLOW_CANCELLED',
+          entityType: 'workflow',
+          entityId: workflowId,
+          actorId: initiatorId,
+          actorEmail: workflow.initiator.email,
+          metadata: { workflowId },
+        },
+      });
+    });
+
+    // Cancel BullMQ reminder jobs for all steps (after transaction)
+    for (const phase of workflow.phases) {
+      for (const step of phase.steps) {
+        try {
+          await cancelReminder(step.id);
+        } catch {
+          // Non-critical — log but continue
+          console.error(`Failed to cancel reminder for step ${step.id}`);
+        }
+      }
+    }
+  },
+
+  /**
+   * Re-send notifications to pending validators on the active step.
+   * Only pending validators (those who haven't acted yet) receive a new notification.
+   */
+  async notifyCurrentStep(workflowId: string, initiatorId: string) {
+    const workflow = await prisma.workflowInstance.findUnique({
+      where: { id: workflowId },
+      include: {
+        initiator: { select: { id: true, name: true } },
+        documents: { include: { document: { select: { title: true } } } },
+        phases: {
+          include: {
+            steps: {
+              include: {
+                actions: true,
+              },
+              orderBy: { order: 'asc' },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+
+    if (!workflow) throw new WorkflowError(404, t('workflow.not_found'));
+    if (workflow.initiatorId !== initiatorId) {
+      throw new WorkflowError(403, 'Only the initiator can re-notify validators');
+    }
+
+    // Find the active phase
+    const activePhase = workflow.phases.find(p => p.status === 'IN_PROGRESS');
+    if (!activePhase) {
+      throw new WorkflowError(409, 'No active step to notify');
+    }
+
+    // Find the active step
+    const activeStep = activePhase.steps.find(s => s.status === 'IN_PROGRESS');
+    if (!activeStep) {
+      throw new WorkflowError(409, 'No active step to notify');
+    }
+
+    // Determine pending validators (those who haven't acted yet)
+    const actedEmails = new Set(activeStep.actions.map((a: any) => a.actorEmail));
+    const pendingEmails = activeStep.validatorEmails.filter((email: string) => !actedEmails.has(email));
+
+    if (pendingEmails.length === 0) {
+      throw new WorkflowError(409, 'All validators have acted');
+    }
+
+    await notifyValidators(activeStep.id, pendingEmails, {
+      workflowTitle: workflow.title,
+      documentTitle: workflow.documents[0]?.document?.title ?? workflow.title,
+      stepName: activeStep.name,
+      initiatorName: workflow.initiator.name,
+    });
   },
 
   async listPendingForValidator(email: string, page = 1, limit = 20) {

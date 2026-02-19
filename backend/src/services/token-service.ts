@@ -44,6 +44,7 @@ export const tokenService = {
               include: {
                 workflow: {
                   include: {
+                    initiator: { select: { name: true } },
                     documents: { include: { document: { select: { id: true, title: true } } } },
                   },
                 },

@@ -97,7 +97,7 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.status(201).send(tokens);
     } catch (err) {
       if (err instanceof AuthError) {
-        return reply.status(err.statusCode).send({ message: err.message });
+        return reply.status(err.statusCode as any).send({ message: err.message });
       }
       throw err;
     }
@@ -109,7 +109,7 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.send(tokens);
     } catch (err) {
       if (err instanceof AuthError) {
-        return reply.status(err.statusCode).send({ message: err.message });
+        return reply.status(err.statusCode as any).send({ message: err.message });
       }
       throw err;
     }
@@ -122,7 +122,7 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.send(tokens);
     } catch (err) {
       if (err instanceof AuthError) {
-        return reply.status(err.statusCode).send({ message: err.message });
+        return reply.status(err.statusCode as any).send({ message: err.message });
       }
       throw err;
     }
