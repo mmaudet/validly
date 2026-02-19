@@ -5,15 +5,7 @@ import { t } from '../i18n/index.js';
 import { tokenService } from './token-service.js';
 import { emailService } from './email-service.js';
 import { env } from '../config/env.js';
-
-/**
- * Stub: cancel BullMQ reminder job for a step.
- * Replaced by the real implementation when reminder-service (plan 01) is available.
- */
-async function cancelReminder(stepId: string): Promise<void> {
-  // No-op stub — reminder-service not yet available
-  void stepId;
-}
+import { scheduleReminder, cancelReminder } from './reminder-service.js';
 
 export class WorkflowError extends Error {
   constructor(public statusCode: number, message: string) {
@@ -161,6 +153,15 @@ export const workflowService = {
         stepName: firstStep.name,
         initiatorName: result.initiator.name,
       });
+
+      // Schedule deadline reminder if the first step has a deadline
+      if (firstStep.deadline) {
+        try {
+          await scheduleReminder(firstStep.id, firstStep.deadline);
+        } catch (err) {
+          console.error('Failed to schedule reminder for first step:', err);
+        }
+      }
     }
 
     return result;
@@ -289,6 +290,15 @@ export const workflowService = {
       return { stepCompleted, phaseAdvanced, workflowAdvanced, newStepStatus, activatedStep };
     });
 
+    // Cancel BullMQ reminder job for the completed step (after transaction)
+    if (result.stepCompleted) {
+      try {
+        await cancelReminder(step.id);
+      } catch (err) {
+        console.error('Failed to cancel reminder for completed step:', err);
+      }
+    }
+
     // Send email notifications to newly activated step validators (after transaction commit)
     if (result.activatedStep) {
       const wf = await prisma.workflowInstance.findUnique({
@@ -305,6 +315,19 @@ export const workflowService = {
           stepName: result.activatedStep.name,
           initiatorName: wf.initiator.name,
         });
+      }
+
+      // Schedule deadline reminder for the newly activated step (if it has a deadline)
+      const activatedStepData = await prisma.stepInstance.findUnique({
+        where: { id: result.activatedStep.id },
+        select: { deadline: true },
+      });
+      if (activatedStepData?.deadline) {
+        try {
+          await scheduleReminder(result.activatedStep.id, activatedStepData.deadline);
+        } catch (err) {
+          console.error('Failed to schedule reminder for activated step:', err);
+        }
       }
     }
 

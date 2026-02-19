@@ -1,8 +1,11 @@
 import { buildApp } from './app.js';
 import { env } from './config/env.js';
+import './jobs/reminder-worker.js';
 
 async function start() {
   const app = await buildApp();
+
+  app.log.info('Reminder worker started');
 
   try {
     await app.listen({ port: env.PORT, host: env.HOST });
