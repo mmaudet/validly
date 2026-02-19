@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 Phase: 10 of 10 (Améliorer gestion demandes et UX)
-Plan: 2 of 5 (10-01 + 10-02 complete — backend foundation + API endpoints)
-Status: In Progress
-Last activity: 2026-02-19 — 10-01 backend foundation (RBAC migration, BullMQ reminders, initiator emails) complete
+Plan: 5 of 5 (10-01 through 10-05 complete — Task 2 checkpoint pending human verification)
+Status: Checkpoint Pending
+Last activity: 2026-02-19 — 10-05 AdminUsersPage frontend complete, awaiting end-to-end human verification
 
-Progress: [██░░░░░░░░] 20%
+Progress: [██████████] 95% (checkpoint pending)
 
 ## Performance Metrics
 
@@ -37,6 +37,9 @@ Progress: [██░░░░░░░░] 20%
 | 9-03 | Workflow Creation UI — Review, Launch, Template Loading | 61137e3 |
 | 10-01 | Backend foundation: RBAC migration, BullMQ reminders, initiator emails | c556ac5 |
 | 10-02 | Backend API: cancel/re-notify/token-info/user-CRUD | c87daf7 |
+| 10-03 | Frontend: ActionConfirmPage enriched with workflow summary | b52e54d |
+| 10-04 | Frontend: WorkflowStepper, StepDetail, WorkflowDetailPage rewrite | ea9f5f4 |
+| 10-05 | Frontend: AdminUsersPage, ConfirmDialog, nav link (checkpoint pending) | ea9f5f4 |
 
 ## Accumulated Context
 
@@ -63,6 +66,9 @@ Progress: [██░░░░░░░░] 20%
 - GET /users accessible to all authenticated users (not admin-only) — needed for validator picker
 - Prisma UserRole enum (ADMIN/INITIATEUR/VALIDATEUR) used directly for type safety in user CRUD
 - tokenService.validateToken() includes initiator for token info endpoint — avoids extra DB query
+- ConfirmDialog created as standalone reusable component in components/ui/ (used by AdminUsersPage and WorkflowDetailPage)
+- AdminUsersPage has inline role guard: user.role !== 'ADMIN' → navigate('/') redirect
+- Role badges: ADMIN=purple, INITIATEUR=blue, VALIDATEUR=green
 
 ### Roadmap Evolution
 
@@ -80,5 +86,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 10-01-PLAN.md (backend foundation — RBAC, BullMQ reminders, initiator emails)
+Stopped at: 10-05-PLAN.md Task 2 checkpoint — awaiting human end-to-end verification of all phase 10 features
 Resume file: None
