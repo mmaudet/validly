@@ -129,7 +129,15 @@
     "action_recorded": "Decision recorded"
   },
   "errors": {
-    "not_found": "Page not found"
+    "not_found": "Page not found",
+    "not_found_title": "Page not found",
+    "not_found_message": "The page you're looking for doesn't exist or has been moved.",
+    "go_to_dashboard": "Go to Dashboard",
+    "server_error_title": "Something went wrong",
+    "server_error_message": "An unexpected error occurred. Please try again or return to the dashboard.",
+    "try_again": "Try again",
+    "generic_error": "An error occurred. Please try again.",
+    "unauthorized": "You are not authorized to perform this action."
   },
   "wizard": {
     "step_documents": "Documents",

@@ -129,7 +129,15 @@
     "action_recorded": "D\u00e9cision enregistr\u00e9e"
   },
   "errors": {
-    "not_found": "Page introuvable"
+    "not_found": "Page introuvable",
+    "not_found_title": "Page non trouv\u00e9e",
+    "not_found_message": "La page que vous cherchez n\u2019existe pas ou a \u00e9t\u00e9 d\u00e9plac\u00e9e.",
+    "go_to_dashboard": "Aller au tableau de bord",
+    "server_error_title": "Une erreur est survenue",
+    "server_error_message": "Une erreur inattendue s\u2019est produite. Veuillez r\u00e9essayer ou retourner au tableau de bord.",
+    "try_again": "R\u00e9essayer",
+    "generic_error": "Une erreur est survenue. Veuillez r\u00e9essayer.",
+    "unauthorized": "Vous n\u2019\u00eates pas autoris\u00e9 \u00e0 effectuer cette action."
   },
   "wizard": {
     "step_documents": "Documents",

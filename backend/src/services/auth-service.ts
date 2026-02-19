@@ -6,13 +6,13 @@ import { t } from '../i18n/index.js';
 
 const scryptAsync = promisify(scrypt);
 
-async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString('hex');
   const hash = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${salt}:${hash.toString('hex')}`;
 }
 
-async function verifyPassword(password: string, stored: string): Promise<boolean> {
+export async function verifyPassword(password: string, stored: string): Promise<boolean> {
   const [salt, hash] = stored.split(':');
   const hashBuffer = Buffer.from(hash, 'hex');
   const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer;
@@ -188,6 +188,51 @@ export const authService = {
       throw new AuthError(404, t('errors.not_found'));
     }
     return user;
+  },
+
+  async updateProfile(userId: string, data: { name?: string; locale?: string }) {
+    if (data.name !== undefined) {
+      if (data.name.length < 1 || data.name.length > 100) {
+        throw new AuthError(400, 'Name must be between 1 and 100 characters');
+      }
+    }
+    if (data.locale !== undefined) {
+      if (!['en', 'fr'].includes(data.locale)) {
+        throw new AuthError(400, 'Locale must be en or fr');
+      }
+    }
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data,
+      select: { id: true, email: true, name: true, role: true, locale: true, createdAt: true },
+    });
+    return user;
+  },
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new AuthError(404, t('errors.not_found'));
+    }
+    const valid = await verifyPassword(currentPassword, user.password);
+    if (!valid) {
+      throw new AuthError(401, 'Current password is incorrect');
+    }
+    const hashedPassword = await hashPassword(newPassword);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+    await prisma.refreshToken.deleteMany({ where: { userId } });
+    await prisma.auditEvent.create({
+      data: {
+        action: 'PASSWORD_CHANGED',
+        entityType: 'user',
+        entityId: userId,
+        actorId: userId,
+        actorEmail: user.email,
+      },
+    });
   },
 };
 
