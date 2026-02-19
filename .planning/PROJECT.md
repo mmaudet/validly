@@ -35,7 +35,16 @@ Any validator can approve or refuse a document directly from their email, withou
 
 ### Active
 
-(Next milestone requirements to be defined via `/gsd:new-milestone`)
+- [ ] Password reset via email link
+- [ ] User profile page (edit name, change password, language preference)
+- [ ] Notification preferences (toggle categories)
+- [ ] In-app notification center (validation events: pending step, approved, refused, cancelled)
+- [ ] Workflow comments thread (discussion on workflow detail page)
+- [ ] DOCX in-browser preview (mammoth.js client-side rendering)
+- [ ] File type icons in document lists
+- [ ] Responsive layout for mobile browsers
+- [ ] User-friendly error pages (404, 500, network errors)
+- [ ] Form validation improvements (inline errors, better feedback)
 
 ### Out of Scope
 
@@ -87,5 +96,17 @@ Any validator can approve or refuse a document directly from their email, withou
 | PostgreSQL triggers for audit immutability | DB-level enforcement, not application-level | Good — tamper-proof |
 | BullMQ for deadline/reminder scheduling | Reliable job processing with Redis | Good — async, idempotent |
 
+## Current Milestone: v1.1 UX Polish
+
+**Goal:** Improve user experience with password reset, user profiles, in-app notifications, workflow comments, DOCX preview, responsive layout, and better error handling.
+
+**Target features:**
+- Password reset + user profile/settings
+- In-app notification center with configurable preferences
+- Workflow discussion thread
+- DOCX client-side preview (mammoth.js)
+- Responsive mobile layout
+- Error handling improvements
+
 ---
-*Last updated: 2026-02-20 after v1.0 milestone*
+*Last updated: 2026-02-20 after v1.1 milestone start*

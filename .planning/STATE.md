@@ -5,13 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Any validator can approve or refuse a document directly from their email, without ever logging into the platform — making validation as frictionless as possible while maintaining a complete audit trail.
-**Current focus:** v1.0 shipped — planning next milestone
+**Current focus:** v1.1 UX Polish — defining requirements
 
 ## Current Position
 
-Phase: v1.0 complete (12/12 phases shipped)
-Status: Milestone complete
-Last activity: 2026-02-20 — v1.0 milestone archived
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-20 — Milestone v1.1 started
 
 ## Performance Metrics
 
