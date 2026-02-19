@@ -85,7 +85,10 @@
     "back": "Retour",
     "submit": "Soumettre",
     "circuit_placeholder": "Constructeur de circuit à venir…",
-    "review_placeholder": "Révision et lancement à venir…"
+    "review_placeholder": "Révision et lancement à venir…",
+    "review_title": "Vérifier votre circuit",
+    "review_subtitle": "Vérifiez la configuration avant de lancer. Une fois lancé, les validateurs recevront leurs invitations par email.",
+    "launch": "Lancer"
   },
   "common": {
     "loading": "Chargement...",

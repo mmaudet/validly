@@ -85,7 +85,10 @@
     "back": "Back",
     "submit": "Submit",
     "circuit_placeholder": "Circuit builder coming soon…",
-    "review_placeholder": "Review & launch coming soon…"
+    "review_placeholder": "Review & launch coming soon…",
+    "review_title": "Review your workflow",
+    "review_subtitle": "Verify the configuration before launching. Once launched, validators will receive their email invitations.",
+    "launch": "Launch"
   },
   "common": {
     "loading": "Loading...",
