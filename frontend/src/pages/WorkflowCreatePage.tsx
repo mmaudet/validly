@@ -2,7 +2,12 @@ import { useState, useRef, DragEvent, ChangeEvent } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CircuitBuilderStep } from '../components/workflow/CircuitBuilderStep';
+import { TemplatePicker } from '../components/workflow/TemplatePicker';
+import type { Template } from '../components/workflow/TemplatePicker';
+import { ReviewStep } from '../components/workflow/ReviewStep';
+import { apiFetch } from '../lib/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,16 +36,101 @@ export interface WorkflowForm {
   };
 }
 
+interface DocumentUploadResponse {
+  id: string;
+  title: string;
+  fileName: string;
+}
+
+interface WorkflowCreateResponse {
+  id: string;
+  title: string;
+}
+
 const WIZARD_STEPS = ['step_documents', 'step_circuit', 'step_review'] as const;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Upload a single File via POST /documents (multipart/form-data).
+ * Returns the document id.
+ */
+async function uploadFile(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file, file.name);
+  formData.append('title', file.name);
+  const doc = await apiFetch<DocumentUploadResponse>('/documents', {
+    method: 'POST',
+    body: formData,
+  });
+  return doc.id;
+}
+
+/**
+ * Map WorkflowForm to the payload expected by POST /workflows.
+ * Key transforms:
+ *  - validatorEmails: { email }[] → string[]
+ *  - executionMode → execution (backend field name)
+ *  - quorumCount: null → omitted (backend ignores null)
+ */
+function buildWorkflowPayload(
+  data: WorkflowForm,
+  documentIds: string[],
+) {
+  return {
+    title: data.title,
+    documentIds,
+    structure: {
+      phases: data.structure.phases.map((phase) => ({
+        name: phase.name,
+        steps: phase.steps.map((step) => {
+          const base = {
+            name: step.name,
+            execution: step.executionMode,
+            quorumRule: step.quorumRule,
+            validatorEmails: step.validatorEmails.map((v) => v.email),
+            ...(step.deadlineHours != null ? { deadlineHours: step.deadlineHours } : {}),
+            ...(step.quorumRule === 'ANY_OF' && step.quorumCount != null
+              ? { quorumCount: step.quorumCount }
+              : {}),
+          };
+          return base;
+        }),
+      })),
+    },
+  };
+}
+
+/**
+ * Convert a template's structure (uses `execution` field) to the form's
+ * StepForm shape (uses `executionMode` field).
+ */
+function templateStructureToForm(template: Template): WorkflowForm['structure'] {
+  return {
+    phases: template.structure.phases.map((phase) => ({
+      name: phase.name,
+      steps: phase.steps.map((step) => ({
+        name: step.name,
+        executionMode: step.executionMode,
+        quorumRule: step.quorumRule,
+        quorumCount: step.quorumCount ?? null,
+        validatorEmails: step.validatorEmails.map((email) => ({ email })),
+        deadlineHours: step.deadlineHours ?? null,
+      })),
+    })),
+  };
+}
 
 // ─── Wizard ───────────────────────────────────────────────────────────────────
 
 export function WorkflowCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [wizardStep, setWizardStep] = useState<number>(0);
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  const [launchError, setLaunchError] = useState<string | null>(null);
 
   const methods = useForm<WorkflowForm>({
     defaultValues: {
@@ -65,15 +155,24 @@ export function WorkflowCreatePage() {
     },
   });
 
-  const { register, trigger, formState: { errors } } = methods;
+  const { register, trigger, getValues, reset, handleSubmit, formState: { errors } } = methods;
+
+  // ── Template loading ───────────────────────────────────────────────────────
+
+  const handleTemplateSelect = (template: Template) => {
+    reset({
+      ...getValues(),
+      structure: templateStructureToForm(template),
+    });
+  };
+
+  // ── Step navigation ────────────────────────────────────────────────────────
 
   const handleNext = async () => {
     let valid = true;
     if (wizardStep === 0) {
       valid = await trigger('title');
       if (valid && stagedFiles.length === 0) {
-        // Block advancement without files — no explicit validation trigger needed,
-        // the UI disables the button.
         return;
       }
     }
@@ -87,6 +186,34 @@ export function WorkflowCreatePage() {
   };
 
   const canProceedStep0 = stagedFiles.length > 0;
+
+  // ── Launch mutation ────────────────────────────────────────────────────────
+
+  const launchMutation = useMutation<WorkflowCreateResponse, Error, WorkflowForm>({
+    mutationFn: async (data: WorkflowForm) => {
+      // 1. Upload all staged files in parallel
+      const documentIds = await Promise.all(stagedFiles.map(uploadFile));
+
+      // 2. Build and send the workflow payload
+      const payload = buildWorkflowPayload(data, documentIds);
+      return apiFetch<WorkflowCreateResponse>('/workflows', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: (workflow) => {
+      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      navigate(`/workflows/${workflow.id}`);
+    },
+    onError: (err) => {
+      setLaunchError(err.message);
+    },
+  });
+
+  const onLaunch = handleSubmit((data) => {
+    setLaunchError(null);
+    launchMutation.mutate(data);
+  });
 
   return (
     <FormProvider {...methods}>
@@ -109,22 +236,32 @@ export function WorkflowCreatePage() {
           {/* Step indicator */}
           <StepIndicator current={wizardStep} steps={WIZARD_STEPS.map((k) => t(`wizard.${k}`))} />
 
-          {/* Workflow title (always visible) */}
+          {/* Workflow title + template picker (always visible) */}
           <div className="mt-6 mb-6">
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              {t('wizard.title_label')}
-            </label>
-            <input
-              {...register('title', { required: true })}
-              type="text"
-              placeholder={t('wizard.title_placeholder')}
-              className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.title ? 'border-red-400' : 'border-gray-300'
-              }`}
-            />
-            {errors.title && (
-              <p className="mt-1 text-xs text-red-600">{t('common.error')}</p>
-            )}
+            <div className="mb-3 flex items-end gap-3">
+              <div className="flex-1">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {t('wizard.title_label')}
+                </label>
+                <input
+                  {...register('title', { required: true })}
+                  type="text"
+                  placeholder={t('wizard.title_placeholder')}
+                  className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors.title ? 'border-red-400' : 'border-gray-300'
+                  }`}
+                />
+                {errors.title && (
+                  <p className="mt-1 text-xs text-red-600">{t('common.error')}</p>
+                )}
+              </div>
+              {/* Template picker — shown on circuit step */}
+              {wizardStep === 1 && (
+                <div className="flex-shrink-0">
+                  <TemplatePicker onSelect={handleTemplateSelect} />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Step content */}
@@ -136,11 +273,16 @@ export function WorkflowCreatePage() {
               <CircuitBuilderStep />
             )}
             {wizardStep === 2 && (
-              <div className="py-12 text-center text-gray-400">
-                {t('wizard.review_placeholder')}
-              </div>
+              <ReviewStep files={stagedFiles} />
             )}
           </div>
+
+          {/* Launch error */}
+          {launchError && wizardStep === 2 && (
+            <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {launchError}
+            </div>
+          )}
 
           {/* Navigation */}
           <div className="mt-6 flex items-center justify-between">
@@ -165,9 +307,11 @@ export function WorkflowCreatePage() {
             ) : (
               <button
                 type="button"
-                className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                onClick={onLaunch}
+                disabled={launchMutation.isPending}
+                className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-60"
               >
-                {t('wizard.submit')}
+                {launchMutation.isPending ? t('common.loading') : t('wizard.launch')}
               </button>
             )}
           </div>
