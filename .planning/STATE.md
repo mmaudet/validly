@@ -58,6 +58,7 @@ Progress: [██████████] 100%
 ### Roadmap Evolution
 
 - Phase 9 added: Workflow Creation UI — Multi-step wizard for creating workflows from the dashboard
+- Phase 10 added: Améliorer gestion demandes et UX
 
 ### Pending Todos
 
