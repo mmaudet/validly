@@ -147,3 +147,16 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Workflow Templates | Complete | 2026-02-19 |
 | 8. i18n Completion + Docker Polish | Complete | 2026-02-19 |
 | 9. Workflow Creation UI | Complete (3/3) | 2026-02-19 |
+
+### Phase 10: Améliorer gestion demandes et UX
+
+**Goal:** Improve the workflow management experience and UX: enriched action confirmation with workflow summary, horizontal stepper on workflow detail page, dashboard with table/filters/badges, initiator email notifications, BullMQ deadline reminders, workflow cancellation/re-notification, and admin user CRUD with 3-role RBAC
+**Depends on:** Phase 9
+**Plans:** 5 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Backend: Schema migration (3-role RBAC) + BullMQ reminder pipeline + initiator email notifications
+- [ ] 10-02-PLAN.md — Backend: Workflow cancel/notify endpoints + action token info + admin user CRUD API
+- [ ] 10-03-PLAN.md — Frontend: Enriched action confirmation page + dashboard table/filters/badges
+- [ ] 10-04-PLAN.md — Frontend: Workflow detail stepper + step details + PDF preview + cancel/notify actions
+- [ ] 10-05-PLAN.md — Frontend: Admin users page + end-to-end verification checkpoint
