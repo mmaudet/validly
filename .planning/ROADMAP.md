@@ -20,6 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Dashboard + Audit** - Initiator and validator dashboard views, workflow visualization, audit trail with CSV export
 - [x] **Phase 7: Workflow Templates** - Template CRUD, org-level sharing, form-based creation, template-to-instance deep copy
 - [x] **Phase 8: i18n Completion + Docker Polish** - Complete FR translations, CI locale validation, Docker Compose production hardening
+- [ ] **Phase 9: Workflow Creation UI** - Multi-step wizard for creating workflows from the dashboard: document upload, validation circuit builder, template loading, and launch
 
 ## Phase Details
 
@@ -116,10 +117,24 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. `docker-compose up` on a fresh machine starts a production-ready instance with pinned image versions, named volumes, and health checks passing
 **Plans**: TBD
 
+### Phase 9: Workflow Creation UI
+**Goal**: Users can create and launch validation workflows directly from the dashboard, with document upload, a dynamic circuit builder (phases/steps/validators/quorum rules), optional template loading, and a review step before launch
+**Depends on**: Phase 8
+**Success Criteria** (what must be TRUE):
+  1. A "New Workflow" button is visible on the dashboard and navigates to the creation wizard
+  2. A user can upload one or more documents and see them listed before proceeding
+  3. A user can define a validation circuit with multiple phases, each containing steps with configurable quorum rules and validator emails
+  4. A user can optionally load a saved template to pre-fill the circuit builder
+  5. A review step shows the full configuration before launch, and clicking "Launch" creates the workflow and redirects to the detail page
+**Plans**:
+  - [x] 09-01: Wizard scaffold, document upload step, route, New Workflow button, i18n keys
+  - [ ] 09-02: Circuit builder step
+  - [ ] 09-03: Review & launch step
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
 
 | Phase | Status | Completed |
 |-------|--------|-----------|
@@ -131,3 +146,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 6. Dashboard + Audit | Complete | 2026-02-19 |
 | 7. Workflow Templates | Complete | 2026-02-19 |
 | 8. i18n Completion + Docker Polish | Complete | 2026-02-19 |
+| 9. Workflow Creation UI | In progress (1/3) | - |
