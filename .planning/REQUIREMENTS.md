@@ -9,11 +9,11 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 
 ### Authentication & Security
 
-- [ ] **AUTH-01**: User can request a password reset link by entering their email on a "Forgot password?" page
-- [ ] **AUTH-02**: User receives a password reset email with a secure single-use token link (1h expiry)
-- [ ] **AUTH-03**: User can set a new password via the reset link, with all existing sessions invalidated
-- [ ] **AUTH-04**: Password reset endpoint prevents user enumeration (same response regardless of email existence)
-- [ ] **AUTH-05**: Password reset token consumption is atomic (TOCTOU-safe)
+- [x] **AUTH-01**: User can request a password reset link by entering their email on a "Forgot password?" page
+- [x] **AUTH-02**: User receives a password reset email with a secure single-use token link (1h expiry)
+- [x] **AUTH-03**: User can set a new password via the reset link, with all existing sessions invalidated
+- [x] **AUTH-04**: Password reset endpoint prevents user enumeration (same response regardless of email existence)
+- [x] **AUTH-05**: Password reset token consumption is atomic (TOCTOU-safe)
 - [x] **AUTH-06**: `apiFetch` only sets `Content-Type: application/json` when body is non-null (fix recurring Fastify empty-body bug)
 
 ### User Profile & Settings
@@ -49,12 +49,12 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 
 ### Error Handling & Form Validation
 
-- [ ] **ERR-01**: Dedicated 404 Not Found page with navigation back to dashboard
-- [ ] **ERR-02**: Dedicated 500 Server Error page with recovery guidance
-- [ ] **ERR-03**: React Router error boundary catches unhandled navigation errors
+- [x] **ERR-01**: Dedicated 404 Not Found page with navigation back to dashboard
+- [x] **ERR-02**: Dedicated 500 Server Error page with recovery guidance
+- [x] **ERR-03**: React Router error boundary catches unhandled navigation errors
 - [ ] **ERR-04**: All forms use Zod schema validation with inline per-field error messages
 - [ ] **ERR-05**: Form validation applied to existing forms (login, signup) and all new v1.1 forms
-- [ ] **ERR-06**: API error responses mapped to user-readable messages
+- [x] **ERR-06**: API error responses mapped to user-readable messages
 
 ### Responsive Layout
 
@@ -109,11 +109,11 @@ Deferred to future releases. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 13 | Pending |
-| AUTH-02 | Phase 13 | Pending |
-| AUTH-03 | Phase 13 | Pending |
-| AUTH-04 | Phase 13 | Pending |
-| AUTH-05 | Phase 13 | Pending |
+| AUTH-01 | Phase 13 | Complete |
+| AUTH-02 | Phase 13 | Complete |
+| AUTH-03 | Phase 13 | Complete |
+| AUTH-04 | Phase 13 | Complete |
+| AUTH-05 | Phase 13 | Complete |
 | AUTH-06 | Phase 13 | Complete |
 | PROF-01 | Phase 13 | Complete |
 | PROF-02 | Phase 13 | Complete |
@@ -122,12 +122,12 @@ Deferred to future releases. Tracked but not in current roadmap.
 | DOCX-01 | Phase 13 | Complete |
 | DOCX-02 | Phase 13 | Complete |
 | DOCX-03 | Phase 13 | Complete |
-| ERR-01 | Phase 13 | Pending |
-| ERR-02 | Phase 13 | Pending |
-| ERR-03 | Phase 13 | Pending |
+| ERR-01 | Phase 13 | Complete |
+| ERR-02 | Phase 13 | Complete |
+| ERR-03 | Phase 13 | Complete |
 | ERR-04 | Phase 13 | Pending |
 | ERR-05 | Phase 13 | Pending |
-| ERR-06 | Phase 13 | Pending |
+| ERR-06 | Phase 13 | Complete |
 | RESP-01 | Phase 13 | Pending |
 | RESP-02 | Phase 13 | Pending |
 | COMM-01 | Phase 14 | Pending |

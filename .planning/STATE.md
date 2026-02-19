@@ -50,6 +50,8 @@ Progress: [████░░░░░░] 22% (v1.1)
 | Phase 13 P01 | 3 | 2 tasks | 4 files |
 | Phase 13 P02 | 2 | 1 task | 1 file |
 | Phase 13 P04 | 3 | 2 tasks | 9 files |
+| Phase 13 P05 | 4 | 2 tasks | 7 files |
+| Phase 13 P03 | 3 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -65,6 +67,11 @@ Progress: [████░░░░░░] 22% (v1.1)
 - [13-02] docxHtml reset to null at useEffect start to prevent stale HTML flash when switching documents
 - [Phase 13]: [13-04] Language switch: PATCH /auth/profile + i18n.changeLanguage() + fetchProfile() for DB, UI, and hook state sync
 - [Phase 13]: [13-04] Password change deletes ALL refresh tokens (ghost session prevention)
+- [13-05] FallbackProps from react-error-boundary must be used (not inline type): error is 'unknown', requires instanceof Error guard
+- [13-05] mapApiError returns original message as fallback — safe to call everywhere without conditional checks
+- [Phase 13]: [13-03] Atomic token consumption via updateMany (not findUnique + update) prevents TOCTOU race conditions on password reset
+- [Phase 13]: [13-03] hashPassword/verifyPassword exported from auth-service.ts for reuse in password-reset-service.ts (not duplicated)
+- [Phase 13]: [13-03] Same 200 response for /auth/forgot-password regardless of email existence (AUTH-04 anti-enumeration)
 
 ### v1.1 Key Constraints (from research)
 
@@ -94,5 +101,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 13-04-PLAN.md — User profile full stack (backend endpoints + ProfilePage + nav link)
+Stopped at: Completed 13-05-PLAN.md — Error pages (NotFoundPage, ErrorPage), AppErrorBoundary, catch-all route, mapApiError
 Resume file: None
