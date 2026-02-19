@@ -4,6 +4,8 @@ import './i18n';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { ActionConfirmPage } from './pages/ActionConfirmPage';
+import { ActionErrorPage } from './pages/ActionErrorPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +24,10 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/action/confirm" element={<ActionConfirmPage />} />
+          <Route path="/action/expired" element={<ActionErrorPage />} />
+          <Route path="/action/used" element={<ActionErrorPage />} />
+          <Route path="/action/invalid" element={<ActionErrorPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
