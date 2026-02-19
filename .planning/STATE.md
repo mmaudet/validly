@@ -2,25 +2,24 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-19)
+See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Any validator can approve or refuse a document directly from their email, without ever logging into the platform — making validation as frictionless as possible while maintaining a complete audit trail.
-**Current focus:** Phase 12 — Template Management UI
+**Current focus:** v1.0 shipped — planning next milestone
 
 ## Current Position
 
-Phase: 12 of 12 (Template Management UI)
-Plan: 1 of 2 complete (12-01 done, 12-02 pending)
-Status: In Progress
-Last activity: 2026-02-19 — 12-01 TemplateFormPage created with routes and i18n keys
-
-Progress: [████████████] 50% (phase 12, plan 1 of 2)
+Phase: v1.0 complete (12/12 phases shipped)
+Status: Milestone complete
+Last activity: 2026-02-20 — v1.0 milestone archived
 
 ## Performance Metrics
 
-**Velocity:**
-- Total phases completed: 8
-- Execution approach: Direct implementation without intermediary planning steps
+**v1.0 MVP:**
+- 12 phases, 12 plans, 64 commits
+- 8,971 LOC TypeScript, 127 files
+- 41/41 requirements satisfied
+- Timeline: 2026-02-19 to 2026-02-20
 
 **By Phase:**
 
@@ -32,61 +31,31 @@ Progress: [████████████] 50% (phase 12, plan 1 of 2)
 | 4 | Workflow Engine | 8de7690 |
 | 5+7 | Email + Templates (parallel) | d2c9f97 |
 | 6+8 | Dashboard + Audit + i18n + Docker (parallel) | TBD |
-| 9-01 | Workflow Creation UI — Wizard Scaffold + Doc Upload | 1ff9c33 |
-| 9-02 | Workflow Creation UI — Dynamic Circuit Builder | da21662 |
-| 9-03 | Workflow Creation UI — Review, Launch, Template Loading | 61137e3 |
-| 10-01 | Backend foundation: RBAC migration, BullMQ reminders, initiator emails | c556ac5 |
-| 10-02 | Backend API: cancel/re-notify/token-info/user-CRUD | c87daf7 |
-| 10-03 | Frontend: ActionConfirmPage enriched with workflow summary | b52e54d |
-| 10-04 | Frontend: WorkflowStepper, StepDetail, DocumentPreview + react-pdf, cancel/notify | f64789a |
-| 10-05 | Frontend: AdminUsersPage, ConfirmDialog, nav link (checkpoint pending) | ea9f5f4 |
-| 11-01 | Engine Wiring Fixes — parallel activation, locale resolution, ARCHIVED type | 7f108f0 |
-| 11-02 | Engine Wiring Fixes — template field mismatch fix + audit migration | 89bfce6 |
-| 12-01 | Template Management UI — TemplateFormPage, routes, i18n (EN+FR) | 539ab44 |
+| 9-01 | Wizard Scaffold + Doc Upload | 1ff9c33 |
+| 9-02 | Dynamic Circuit Builder | da21662 |
+| 9-03 | Review, Launch, Template Loading | 61137e3 |
+| 10-01 | Backend: RBAC, BullMQ, initiator emails | c556ac5 |
+| 10-02 | Backend: cancel/notify/token-info/user-CRUD | c87daf7 |
+| 10-03 | Frontend: ActionConfirmPage + dashboard | b52e54d |
+| 10-04 | Frontend: WorkflowStepper + cancel/notify | f64789a |
+| 10-05 | Frontend: AdminUsersPage + ConfirmDialog | ea9f5f4 |
+| 11-01 | Parallel activation + locale + ARCHIVED | 7f108f0 |
+| 11-02 | Template field fix + audit migration | 89bfce6 |
+| 12-01 | TemplateFormPage + routes + i18n | 539ab44 |
+| 12-02 | TemplatesTab + DashboardPage CRUD | c04d4f1 |
 
 ## Accumulated Context
 
 ### Decisions
 
-- Stack: Node.js + TypeScript 5.8 + Fastify 5 + Prisma 6 + PostgreSQL 15 + BullMQ 5 + Redis 7 + React 19 + Vite 6 + Tailwind v4 + TanStack Query 5
-- Phases 5+7 parallelized (Email + Templates are independent after Phase 4)
-- Phases 6+8 parallelized (Dashboard/Audit + i18n/Docker are independent)
-- Audit immutability enforced at DB level via PostgreSQL triggers
-- Email action tokens use CSPRNG + SHA-256 hash-only storage + single-use + scoped + time-limited
-- Quorum evaluation is atomic (decisionCount increment + re-evaluation in transaction)
-- Refusal routing goes to previous phase, not initiator
-- Wizard step index as useState<number> with FormProvider wrapping entire wizard
-- Duplicate file detection by name+size composite key in document upload step
-- validatorEmails stored as { email: string }[] (not string[]) — react-hook-form useFieldArray requires objects
-- Quorum rule enum uses UNANIMITY/MAJORITY/ANY_OF to match backend engine values
-- TemplatePicker uses enabled: isOpen for lazy fetch — no API call until dropdown opened
-- executionMode (form field) renamed to execution only in API payload builder — form type unchanged
-- Launch mutation uploads files in parallel (Promise.all) then POSTs workflow with collected IDs
-- UserRole migrated from USER/ADMIN to ADMIN/INITIATEUR/VALIDATEUR using PostgreSQL enum recreation pattern
-- BullMQ reminder jobs use jobId `reminder-{stepId}` for idempotent scheduling
-- IORedis imported as named `{ Redis }` export for ESM compatibility
-- Initiator completion detection: workflowAdvanced (approval) or stepCompleted + no activatedStep (refusal)
-- GET /users accessible to all authenticated users (not admin-only) — needed for validator picker
-- Prisma UserRole enum (ADMIN/INITIATEUR/VALIDATEUR) used directly for type safety in user CRUD
-- tokenService.validateToken() includes initiator for token info endpoint — avoids extra DB query
-- DocumentPreview fetches via fetch() with Authorization header + ArrayBuffer — avoids JWT tokens in URLs
-- effectivePhaseId auto-derives from phases: IN_PROGRESS first, then last phase — no extra query
-- ConfirmDialog created as standalone reusable component in components/ui/ (used by AdminUsersPage and WorkflowDetailPage)
-- AdminUsersPage has inline role guard: user.role !== 'ADMIN' → navigate('/') redirect
-- Role badges: ADMIN=purple, INITIATEUR=blue, VALIDATEUR=green
-- ActionConfirmPage uses useQuery with enabled:!!token to fetch workflow summary before form — token error displayed inline
-- DashboardPage filter state in Filters interface with DEFAULT_FILTERS const reset on tab switch
-- Status i18n uses status.* namespace (not workflow.*) for dashboard filter label consistency
-- Template type field renamed from executionMode to execution in TemplatePicker (phase 11-02) — templateToForm reads step.execution, buildTemplatePayload still renames executionMode->execution for API payload
-- Parallel phase detection: if ANY step in phase has execution=PARALLEL, ALL steps in that phase activate simultaneously (phase 11-01)
-- Unregistered validators (not in users table) fall back to locale 'en' for email templates (phase 11-01)
-- tryAdvance() returns activatedSteps[] (parallel) alongside activatedStep (singular/sequential); recordAction() normalizes both into stepsToNotify[] (phase 11-01)
-- ARCHIVED added to WorkflowStatus domain type and state-machine WORKFLOW_TRANSITIONS: terminal states APPROVED/REFUSED/CANCELLED -> ARCHIVED (phase 11-01)
+- Stack: Node.js 22 + TypeScript 5.7 + Fastify 5 + Prisma 6 + PostgreSQL 15 + BullMQ 5 + Redis 7 + React 19 + Vite 6 + Tailwind v4 + TanStack Query 5
+- See PROJECT.md Key Decisions table for full list
 
 ### Roadmap Evolution
 
-- Phase 9 added: Workflow Creation UI — Multi-step wizard for creating workflows from the dashboard
-- Phase 10 added: Améliorer gestion demandes et UX
+- Phases 1-9 planned in initial roadmap
+- Phase 10 added: UX improvements (RBAC, stepper, dashboard redesign)
+- Phases 11-12 added: Gap closure from v1.0 audit
 
 ### Pending Todos
 
@@ -98,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-19
-Stopped at: Completed 11-01-PLAN.md — parallel activation, locale resolution, ARCHIVED type all fixed
+Last session: 2026-02-20
+Stopped at: v1.0 milestone completion
 Resume file: None
