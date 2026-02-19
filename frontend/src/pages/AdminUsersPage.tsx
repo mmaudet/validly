@@ -197,7 +197,10 @@ export function AdminUsersPage() {
             <Link to="/dashboard" className="text-sm text-blue-600 hover:underline">
               &larr; {t('common.back')}
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">{t('app.name')}</h1>
+            <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900">
+              <img src="/logo.svg" alt="" className="h-8 w-auto" />
+              {t('app.name')}
+            </h1>
           </div>
           <span className="text-sm text-gray-600">{user?.email}</span>
         </div>

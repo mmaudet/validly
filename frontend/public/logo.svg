@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" width="120" height="140">
+  <defs>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D9488"/>
+      <stop offset="100%" stop-color="#0F766E"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14B8A6"/>
+      <stop offset="100%" stop-color="#0D9488"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Document shape -->
+  <g transform="translate(8, 6)">
+    <path d="M10 0 H72 L104 32 V118 Q104 128 94 128 H10 Q0 128 0 118 V10 Q0 0 10 0 Z" fill="url(#brandGrad)"/>
+    <!-- Folded corner -->
+    <path d="M72 0 V22 Q72 32 82 32 H104 L72 0 Z" fill="url(#accentGrad)" opacity="0.6"/>
+
+    <!-- "Validly" white text at top, smaller to avoid corner overlap -->
+    <text x="10" y="28" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#fff" opacity="0.95">Validly</text>
+
+    <!-- Document content lines -->
+    <rect x="10" y="46" width="40" height="5" rx="2.5" fill="#fff" opacity="0.35"/>
+    <rect x="10" y="60" width="60" height="5" rx="2.5" fill="#fff" opacity="0.35"/>
+    <rect x="10" y="74" width="30" height="5" rx="2.5" fill="#fff" opacity="0.35"/>
+
+    <!-- Checkmark circle -->
+    <circle cx="74" cy="100" r="22" fill="url(#accentGrad)" stroke="#fff" stroke-width="2.5"/>
+    <!-- Checkmark -->
+    <polyline points="62,100 70,108 87,91" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Workflow dots -->
+    <circle cx="14" cy="104" r="4" fill="#fff" opacity="0.5"/>
+    <circle cx="30" cy="104" r="4" fill="#fff" opacity="0.5"/>
+    <line x1="18" y1="104" x2="26" y2="104" stroke="#fff" stroke-width="2" opacity="0.4"/>
+  </g>
+</svg>

@@ -221,7 +221,10 @@ export function WorkflowCreatePage() {
         {/* Header */}
         <header className="border-b border-gray-200 bg-white">
           <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-            <h1 className="text-xl font-bold text-gray-900">{t('app.name')}</h1>
+            <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900">
+              <img src="/logo.svg" alt="" className="h-8 w-auto" />
+              {t('app.name')}
+            </h1>
             <button
               type="button"
               onClick={() => navigate('/dashboard')}

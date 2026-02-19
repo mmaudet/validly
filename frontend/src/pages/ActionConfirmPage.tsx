@@ -91,7 +91,8 @@ export function ActionConfirmPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{t('app.name')}</h1>
+          <img src="/logo.png" alt="Validly" className="mx-auto h-24 w-auto" />
+          <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('app.name')}</h1>
         </div>
 
         <div className="rounded-lg bg-white p-8 shadow space-y-6">
