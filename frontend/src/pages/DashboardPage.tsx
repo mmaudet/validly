@@ -92,6 +92,17 @@ export function DashboardPage() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6">
+        {/* Page header with New Workflow action */}
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-800">{t('nav.dashboard')}</h2>
+          <Link
+            to="/workflows/new"
+            className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
+          >
+            {t('workflow.create')}
+          </Link>
+        </div>
+
         {/* Tabs */}
         <div className="mb-6 flex gap-1 rounded-lg bg-gray-200 p-1">
           <button

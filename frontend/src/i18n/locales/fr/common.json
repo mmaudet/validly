@@ -71,6 +71,22 @@
   "errors": {
     "not_found": "Page introuvable"
   },
+  "wizard": {
+    "step_documents": "Documents",
+    "step_circuit": "Circuit",
+    "step_review": "Révision",
+    "title_label": "Titre du circuit",
+    "title_placeholder": "Saisissez un titre pour votre circuit",
+    "upload_title": "Téléverser des documents",
+    "upload_drop": "Glissez-déposez des fichiers ici, ou cliquez pour parcourir",
+    "upload_empty": "Aucun document. Ajoutez-en au moins un pour continuer.",
+    "upload_remove": "Supprimer",
+    "next": "Suivant",
+    "back": "Retour",
+    "submit": "Soumettre",
+    "circuit_placeholder": "Constructeur de circuit à venir…",
+    "review_placeholder": "Révision et lancement à venir…"
+  },
   "common": {
     "loading": "Chargement...",
     "save": "Enregistrer",

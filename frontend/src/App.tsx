@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import './i18n';
 import { DashboardPage } from './pages/DashboardPage';
+import { WorkflowCreatePage } from './pages/WorkflowCreatePage';
 import { WorkflowDetailPage } from './pages/WorkflowDetailPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
@@ -30,6 +31,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<AuthGuard><DashboardPage /></AuthGuard>} />
+          <Route path="/workflows/new" element={<AuthGuard><WorkflowCreatePage /></AuthGuard>} />
           <Route path="/workflows/:id" element={<AuthGuard><WorkflowDetailPage /></AuthGuard>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />

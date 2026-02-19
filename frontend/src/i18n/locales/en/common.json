@@ -71,6 +71,22 @@
   "errors": {
     "not_found": "Page not found"
   },
+  "wizard": {
+    "step_documents": "Documents",
+    "step_circuit": "Circuit",
+    "step_review": "Review",
+    "title_label": "Workflow title",
+    "title_placeholder": "Enter a title for your workflow",
+    "upload_title": "Upload documents",
+    "upload_drop": "Drag & drop files here, or click to browse",
+    "upload_empty": "No documents yet. Add at least one to continue.",
+    "upload_remove": "Remove",
+    "next": "Next",
+    "back": "Back",
+    "submit": "Submit",
+    "circuit_placeholder": "Circuit builder coming soon…",
+    "review_placeholder": "Review & launch coming soon…"
+  },
   "common": {
     "loading": "Loading...",
     "save": "Save",
