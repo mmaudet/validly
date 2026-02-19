@@ -107,55 +107,53 @@ Deferred to future releases. Tracked but not in current roadmap.
 
 ## Traceability
 
-Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | — | Pending |
-| AUTH-02 | — | Pending |
-| AUTH-03 | — | Pending |
-| AUTH-04 | — | Pending |
-| AUTH-05 | — | Pending |
-| AUTH-06 | — | Pending |
-| PROF-01 | — | Pending |
-| PROF-02 | — | Pending |
-| PROF-03 | — | Pending |
-| PROF-04 | — | Pending |
-| DOCX-01 | — | Pending |
-| DOCX-02 | — | Pending |
-| DOCX-03 | — | Pending |
-| NOTIF-01 | — | Pending |
-| NOTIF-02 | — | Pending |
-| NOTIF-03 | — | Pending |
-| NOTIF-04 | — | Pending |
-| NOTIF-05 | — | Pending |
-| NOTIF-06 | — | Pending |
-| NOTIF-07 | — | Pending |
-| COMM-01 | — | Pending |
-| COMM-02 | — | Pending |
-| COMM-03 | — | Pending |
-| COMM-04 | — | Pending |
-| COMM-05 | — | Pending |
-| ERR-01 | — | Pending |
-| ERR-02 | — | Pending |
-| ERR-03 | — | Pending |
-| ERR-04 | — | Pending |
-| ERR-05 | — | Pending |
-| ERR-06 | — | Pending |
-| RESP-01 | — | Pending |
-| RESP-02 | — | Pending |
-| RESP-03 | — | Pending |
-| RESP-04 | — | Pending |
-| RESP-05 | — | Pending |
-| RESP-06 | — | Pending |
-| I18N-01 | — | Pending |
-| I18N-02 | — | Pending |
+| AUTH-01 | Phase 13 | Pending |
+| AUTH-02 | Phase 13 | Pending |
+| AUTH-03 | Phase 13 | Pending |
+| AUTH-04 | Phase 13 | Pending |
+| AUTH-05 | Phase 13 | Pending |
+| AUTH-06 | Phase 13 | Pending |
+| PROF-01 | Phase 13 | Pending |
+| PROF-02 | Phase 13 | Pending |
+| PROF-03 | Phase 13 | Pending |
+| PROF-04 | Phase 13 | Pending |
+| DOCX-01 | Phase 13 | Pending |
+| DOCX-02 | Phase 13 | Pending |
+| DOCX-03 | Phase 13 | Pending |
+| ERR-01 | Phase 13 | Pending |
+| ERR-02 | Phase 13 | Pending |
+| ERR-03 | Phase 13 | Pending |
+| ERR-04 | Phase 13 | Pending |
+| ERR-05 | Phase 13 | Pending |
+| ERR-06 | Phase 13 | Pending |
+| RESP-01 | Phase 13 | Pending |
+| RESP-02 | Phase 13 | Pending |
+| COMM-01 | Phase 14 | Pending |
+| COMM-02 | Phase 14 | Pending |
+| COMM-03 | Phase 14 | Pending |
+| COMM-04 | Phase 14 | Pending |
+| COMM-05 | Phase 14 | Pending |
+| NOTIF-01 | Phase 14 | Pending |
+| NOTIF-02 | Phase 14 | Pending |
+| NOTIF-03 | Phase 14 | Pending |
+| NOTIF-04 | Phase 14 | Pending |
+| NOTIF-05 | Phase 14 | Pending |
+| NOTIF-06 | Phase 14 | Pending |
+| NOTIF-07 | Phase 14 | Pending |
+| RESP-03 | Phase 15 | Pending |
+| RESP-04 | Phase 15 | Pending |
+| RESP-05 | Phase 15 | Pending |
+| RESP-06 | Phase 15 | Pending |
+| I18N-01 | Phase 15 | Pending |
+| I18N-02 | Phase 15 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 39 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 39
+- Mapped to phases: 39/39
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-20*
-*Last updated: 2026-02-20 after initial definition*
+*Last updated: 2026-02-20 — traceability filled after roadmap creation*

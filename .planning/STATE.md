@@ -5,14 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Any validator can approve or refuse a document directly from their email, without ever logging into the platform — making validation as frictionless as possible while maintaining a complete audit trail.
-**Current focus:** v1.1 UX Polish — defining requirements
+**Current focus:** v1.1 UX Polish — Phase 13: Foundation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-20 — Milestone v1.1 started
+Phase: 13 of 15 (Foundation)
+Plan: — of TBD
+Status: Ready to plan
+Last activity: 2026-02-20 — Roadmap created for v1.1 milestone (3 phases, 39 requirements)
+
+Progress: [░░░░░░░░░░] 0% (v1.1)
 
 ## Performance Metrics
 
@@ -31,7 +33,6 @@ Last activity: 2026-02-20 — Milestone v1.1 started
 | 3 | Document Upload + Preview | c2dd671 |
 | 4 | Workflow Engine | 8de7690 |
 | 5+7 | Email + Templates (parallel) | d2c9f97 |
-| 6+8 | Dashboard + Audit + i18n + Docker (parallel) | TBD |
 | 9-01 | Wizard Scaffold + Doc Upload | 1ff9c33 |
 | 9-02 | Dynamic Circuit Builder | da21662 |
 | 9-03 | Review, Launch, Template Loading | 61137e3 |
@@ -52,11 +53,22 @@ Last activity: 2026-02-20 — Milestone v1.1 started
 - Stack: Node.js 22 + TypeScript 5.7 + Fastify 5 + Prisma 6 + PostgreSQL 15 + BullMQ 5 + Redis 7 + React 19 + Vite 6 + Tailwind v4 + TanStack Query 5
 - See PROJECT.md Key Decisions table for full list
 
+### v1.1 Key Constraints (from research)
+
+- Notification.type stored as string column, NOT Prisma enum (avoids migration pitfalls)
+- apiFetch Content-Type bug must be fixed first (AUTH-06) — recurring Fastify empty-body issue
+- DOCX preview requires DOMPurify sanitization before rendering (XSS prevention)
+- Password reset token consumption must be atomic (TOCTOU-safe, AUTH-05)
+- Password change must delete all refresh tokens (ghost session prevention)
+- Notification delivery via REST polling 30s (TanStack Query refetchInterval), no WebSocket
+- New frontend packages: docx-preview, dompurify, react-error-boundary
+
 ### Roadmap Evolution
 
 - Phases 1-9 planned in initial roadmap
 - Phase 10 added: UX improvements (RBAC, stepper, dashboard redesign)
 - Phases 11-12 added: Gap closure from v1.0 audit
+- Phases 13-15: v1.1 UX Polish milestone
 
 ### Pending Todos
 
@@ -69,5 +81,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: v1.0 milestone completion
+Stopped at: v1.1 roadmap created — ready to plan Phase 13
 Resume file: None
