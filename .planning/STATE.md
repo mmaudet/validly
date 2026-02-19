@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Core value:** Any validator can approve or refuse a document directly from their email, without ever logging into the platform — making validation as frictionless as possible while maintaining a complete audit trail.
-**Current focus:** Phase 9 — Workflow Creation UI
+**Current focus:** Phase 10 — Améliorer gestion demandes et UX
 
 ## Current Position
 
-Phase: 9 of 9 (Workflow Creation UI)
-Plan: 3 of 3 (09-03 complete — Phase 9 complete)
-Status: Complete
-Last activity: 2026-02-19 — 09-03 review/launch (TemplatePicker, ReviewStep, launch mutation) complete
+Phase: 10 of 10 (Améliorer gestion demandes et UX)
+Plan: 2 of 5 (10-02 complete — backend API: cancel, re-notify, token info, user CRUD)
+Status: In Progress
+Last activity: 2026-02-19 — 10-02 backend API endpoints complete
 
-Progress: [██████████] 100%
+Progress: [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -35,6 +35,7 @@ Progress: [██████████] 100%
 | 9-01 | Workflow Creation UI — Wizard Scaffold + Doc Upload | 1ff9c33 |
 | 9-02 | Workflow Creation UI — Dynamic Circuit Builder | da21662 |
 | 9-03 | Workflow Creation UI — Review, Launch, Template Loading | 61137e3 |
+| 10-02 | Backend API: cancel/re-notify/token-info/user-CRUD | c87daf7 |
 
 ## Accumulated Context
 
@@ -54,6 +55,9 @@ Progress: [██████████] 100%
 - TemplatePicker uses enabled: isOpen for lazy fetch — no API call until dropdown opened
 - executionMode (form field) renamed to execution only in API payload builder — form type unchanged
 - Launch mutation uploads files in parallel (Promise.all) then POSTs workflow with collected IDs
+- GET /users accessible to all authenticated users (not admin-only) — needed for validator picker
+- Prisma UserRole enum (ADMIN/INITIATEUR/VALIDATEUR) used directly for type safety in user CRUD
+- tokenService.validateToken() includes initiator for token info endpoint — avoids extra DB query
 
 ### Roadmap Evolution
 
@@ -71,5 +75,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 09-03-PLAN.md (review/launch — TemplatePicker, ReviewStep, launch mutation) — Phase 9 complete
+Stopped at: Completed 10-02-PLAN.md (backend API — cancel/re-notify/token-info/user-CRUD)
 Resume file: None
