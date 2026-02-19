@@ -105,15 +105,21 @@ export const workflowService = {
           },
         });
 
+        // Determine if this phase uses parallel execution
+        const phaseHasParallel = phaseDef.steps.some(
+          (s: any) => s.execution === 'PARALLEL'
+        );
+
         for (let si = 0; si < phaseDef.steps.length; si++) {
           const stepDef = phaseDef.steps[si];
-          const isFirstStep = pi === 0 && si === 0;
+          // In phase 0: activate ALL steps if phase is parallel, else only step 0
+          const isActiveStep = pi === 0 && (phaseHasParallel || si === 0);
           await tx.stepInstance.create({
             data: {
               phaseId: phase.id,
               order: si,
               name: stepDef.name,
-              status: isFirstStep ? 'IN_PROGRESS' : 'PENDING',
+              status: isActiveStep ? 'IN_PROGRESS' : 'PENDING',
               execution: stepDef.execution,
               quorumRule: stepDef.quorumRule,
               quorumCount: stepDef.quorumCount,
@@ -143,23 +149,23 @@ export const workflowService = {
 
     const result = await this.getById(workflow.id);
 
-    // Send email notifications to first step validators (after transaction commit)
+    // Send email notifications to all active step validators in phase 0 (after transaction commit)
     const firstPhase = result.phases[0];
-    const firstStep = firstPhase?.steps[0];
-    if (firstStep && firstStep.status === 'IN_PROGRESS') {
-      await notifyValidators(firstStep.id, firstStep.validatorEmails, {
-        workflowTitle: result.title,
-        documentTitle: result.documents[0]?.document?.title ?? result.title,
-        stepName: firstStep.name,
-        initiatorName: result.initiator.name,
-      });
-
-      // Schedule deadline reminder if the first step has a deadline
-      if (firstStep.deadline) {
-        try {
-          await scheduleReminder(firstStep.id, firstStep.deadline);
-        } catch (err) {
-          console.error('Failed to schedule reminder for first step:', err);
+    if (firstPhase) {
+      const activeSteps = firstPhase.steps.filter((s: any) => s.status === 'IN_PROGRESS');
+      for (const step of activeSteps) {
+        await notifyValidators(step.id, step.validatorEmails, {
+          workflowTitle: result.title,
+          documentTitle: result.documents[0]?.document?.title ?? result.title,
+          stepName: step.name,
+          initiatorName: result.initiator.name,
+        });
+        if (step.deadline) {
+          try {
+            await scheduleReminder(step.id, step.deadline);
+          } catch (err) {
+            console.error('Failed to schedule reminder for step:', err);
+          }
         }
       }
     }
@@ -251,7 +257,8 @@ export const workflowService = {
       let stepCompleted = false;
       let phaseAdvanced = false;
       let workflowAdvanced = false;
-      let activatedStep: { id: string; name: string; validatorEmails: string[] } | null = null;
+      let activatedStep: { id: string; name: string; validatorEmails: string[]; deadline?: Date | null } | null = null;
+      let activatedSteps: { id: string; name: string; validatorEmails: string[]; deadline?: Date | null }[] = [];
 
       if (newStepStatus !== 'IN_PROGRESS') {
         // Step has reached a decision
@@ -272,6 +279,7 @@ export const workflowService = {
           phaseAdvanced = advanced.phaseAdvanced;
           workflowAdvanced = advanced.workflowAdvanced;
           activatedStep = advanced.activatedStep;
+          activatedSteps = advanced.activatedSteps;
         }
       }
 
@@ -287,7 +295,7 @@ export const workflowService = {
         },
       });
 
-      return { stepCompleted, phaseAdvanced, workflowAdvanced, newStepStatus, activatedStep };
+      return { stepCompleted, phaseAdvanced, workflowAdvanced, newStepStatus, activatedStep, activatedSteps };
     });
 
     // Cancel BullMQ reminder job for the completed step (after transaction)
@@ -300,7 +308,16 @@ export const workflowService = {
     }
 
     // Send email notifications to newly activated step validators (after transaction commit)
-    if (result.activatedStep) {
+    // Build unified list: activatedSteps (parallel next phase) takes priority;
+    // fall back to wrapping the singular activatedStep for sequential next phase.
+    const stepsToNotify =
+      result.activatedSteps && result.activatedSteps.length > 0
+        ? result.activatedSteps
+        : result.activatedStep
+        ? [result.activatedStep]
+        : [];
+
+    if (stepsToNotify.length > 0) {
       const wf = await prisma.workflowInstance.findUnique({
         where: { id: workflow.id },
         include: {
@@ -309,24 +326,20 @@ export const workflowService = {
         },
       });
       if (wf) {
-        await notifyValidators(result.activatedStep.id, result.activatedStep.validatorEmails, {
-          workflowTitle: wf.title,
-          documentTitle: wf.documents[0]?.document.title ?? wf.title,
-          stepName: result.activatedStep.name,
-          initiatorName: wf.initiator.name,
-        });
-      }
-
-      // Schedule deadline reminder for the newly activated step (if it has a deadline)
-      const activatedStepData = await prisma.stepInstance.findUnique({
-        where: { id: result.activatedStep.id },
-        select: { deadline: true },
-      });
-      if (activatedStepData?.deadline) {
-        try {
-          await scheduleReminder(result.activatedStep.id, activatedStepData.deadline);
-        } catch (err) {
-          console.error('Failed to schedule reminder for activated step:', err);
+        for (const step of stepsToNotify) {
+          await notifyValidators(step.id, step.validatorEmails, {
+            workflowTitle: wf.title,
+            documentTitle: wf.documents[0]?.document.title ?? wf.title,
+            stepName: step.name,
+            initiatorName: wf.initiator.name,
+          });
+          if (step.deadline) {
+            try {
+              await scheduleReminder(step.id, step.deadline);
+            } catch (err) {
+              console.error('Failed to schedule reminder for activated step:', err);
+            }
+          }
         }
       }
     }
@@ -447,7 +460,8 @@ export const workflowService = {
   async tryAdvance(tx: any, workflowId: string, currentPhase: any) {
     let phaseAdvanced = false;
     let workflowAdvanced = false;
-    let activatedStep: { id: string; name: string; validatorEmails: string[] } | null = null;
+    let activatedStep: { id: string; name: string; validatorEmails: string[]; deadline?: Date | null } | null = null;
+    let activatedSteps: { id: string; name: string; validatorEmails: string[]; deadline?: Date | null }[] = [];
 
     // Check all steps in current phase
     const steps = await tx.stepInstance.findMany({
@@ -474,21 +488,38 @@ export const workflowService = {
 
       const nextPhase = allPhases.find((p: any) => p.order === currentPhase.order + 1);
       if (nextPhase) {
-        // Activate next phase and its first step
+        // Activate next phase
         await tx.phaseInstance.update({
           where: { id: nextPhase.id },
           data: { status: 'IN_PROGRESS' },
         });
 
-        const firstStep = await tx.stepInstance.findFirst({
-          where: { phaseId: nextPhase.id, order: 0 },
+        // Load all steps in the next phase to determine activation mode
+        const nextPhaseSteps = await tx.stepInstance.findMany({
+          where: { phaseId: nextPhase.id },
+          orderBy: { order: 'asc' },
         });
-        if (firstStep) {
-          await tx.stepInstance.update({
-            where: { id: firstStep.id },
-            data: { status: 'IN_PROGRESS' },
-          });
-          activatedStep = { id: firstStep.id, name: firstStep.name, validatorEmails: firstStep.validatorEmails };
+        const nextPhaseHasParallel = nextPhaseSteps.some((s: any) => s.execution === 'PARALLEL');
+
+        if (nextPhaseHasParallel) {
+          // Activate ALL steps in the parallel next phase
+          for (const s of nextPhaseSteps) {
+            await tx.stepInstance.update({ where: { id: s.id }, data: { status: 'IN_PROGRESS' } });
+          }
+          // Populate activatedSteps with all steps for the post-transaction notification loop
+          activatedSteps = nextPhaseSteps.map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            validatorEmails: s.validatorEmails,
+            deadline: s.deadline,
+          }));
+        } else {
+          // Sequential: activate only first step
+          const firstStep = nextPhaseSteps[0];
+          if (firstStep) {
+            await tx.stepInstance.update({ where: { id: firstStep.id }, data: { status: 'IN_PROGRESS' } });
+            activatedStep = { id: firstStep.id, name: firstStep.name, validatorEmails: firstStep.validatorEmails, deadline: firstStep.deadline };
+          }
         }
 
         await tx.workflowInstance.update({
@@ -504,18 +535,22 @@ export const workflowService = {
         workflowAdvanced = true;
       }
     } else if (phaseResult === 'IN_PROGRESS') {
-      // Find next pending step and activate it (for sequential execution)
-      const nextStep = steps.find((s: any) => s.status === 'PENDING');
-      if (nextStep) {
-        await tx.stepInstance.update({
-          where: { id: nextStep.id },
-          data: { status: 'IN_PROGRESS' },
-        });
-        activatedStep = { id: nextStep.id, name: nextStep.name, validatorEmails: nextStep.validatorEmails };
+      // Only activate next PENDING step if in SEQUENTIAL mode.
+      // In PARALLEL mode, all steps were activated at phase start — no new activations.
+      const phaseHasParallel = steps.some((s: any) => s.execution === 'PARALLEL');
+      if (!phaseHasParallel) {
+        const nextStep = steps.find((s: any) => s.status === 'PENDING');
+        if (nextStep) {
+          await tx.stepInstance.update({
+            where: { id: nextStep.id },
+            data: { status: 'IN_PROGRESS' },
+          });
+          activatedStep = { id: nextStep.id, name: nextStep.name, validatorEmails: nextStep.validatorEmails };
+        }
       }
     }
 
-    return { phaseAdvanced, workflowAdvanced, activatedStep };
+    return { phaseAdvanced, workflowAdvanced, activatedStep, activatedSteps };
   },
 
   async getById(id: string) {

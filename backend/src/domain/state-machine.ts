@@ -11,9 +11,10 @@ import type {
 const WORKFLOW_TRANSITIONS: Record<WorkflowStatus, WorkflowStatus[]> = {
   DRAFT: ['IN_PROGRESS', 'CANCELLED'],
   IN_PROGRESS: ['APPROVED', 'REFUSED', 'CANCELLED'],
-  APPROVED: [],
-  REFUSED: [],
-  CANCELLED: [],
+  APPROVED: ['ARCHIVED'],
+  REFUSED: ['ARCHIVED'],
+  CANCELLED: ['ARCHIVED'],
+  ARCHIVED: [],
 };
 
 const PHASE_TRANSITIONS: Record<PhaseStatus, PhaseStatus[]> = {

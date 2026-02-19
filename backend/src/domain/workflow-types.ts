@@ -1,4 +1,4 @@
-export type WorkflowStatus = 'DRAFT' | 'IN_PROGRESS' | 'APPROVED' | 'REFUSED' | 'CANCELLED';
+export type WorkflowStatus = 'DRAFT' | 'IN_PROGRESS' | 'APPROVED' | 'REFUSED' | 'CANCELLED' | 'ARCHIVED';
 export type PhaseStatus = 'PENDING' | 'IN_PROGRESS' | 'APPROVED' | 'REFUSED';
 export type StepStatus = 'PENDING' | 'IN_PROGRESS' | 'APPROVED' | 'REFUSED';
 export type QuorumRule = 'UNANIMITY' | 'MAJORITY' | 'ANY_OF';
