@@ -9,6 +9,7 @@ import { initI18n } from './i18n/index.js';
 import { healthRoutes } from './api/routes/health.js';
 import { authRoutes } from './api/routes/auth.js';
 import { documentRoutes } from './api/routes/documents.js';
+import { workflowRoutes } from './api/routes/workflows.js';
 
 export async function buildApp() {
   await initI18n();
@@ -64,6 +65,7 @@ export async function buildApp() {
   await app.register(healthRoutes, { prefix: '/api' });
   await app.register(authRoutes, { prefix: '/api' });
   await app.register(documentRoutes, { prefix: '/api' });
+  await app.register(workflowRoutes, { prefix: '/api' });
 
   return app;
 }
