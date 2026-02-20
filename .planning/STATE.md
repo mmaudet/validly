@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Any validator can approve or refuse a document directly from their email, without ever logging into the platform — making validation as frictionless as possible while maintaining a complete audit trail.
-**Current focus:** v1.1 UX Polish — Phase 14: Social Features
+**Current focus:** v1.1 UX Polish — Phase 15: Polish Completion
 
 ## Current Position
 
-Phase: 14 of 15 (Social Features)
-Plan: 2 of 2
-Status: Complete
-Last activity: 2026-02-20 — Plan 14-02 complete: Frontend for comments and notifications (hooks, components, ProfilePage prefs, i18n)
+Phase: 15 of 15 (Polish Completion)
+Plan: 2 of 3
+Status: In Progress
+Last activity: 2026-02-20 — Plan 15-02 complete: WorkflowDetailPage, WorkflowStepper, StepDetail, TemplateFormPage responsive
 
-Progress: [████████░░] 60% (v1.1)
+Progress: [█████████░] 80% (v1.1)
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [████████░░] 60% (v1.1)
 | Phase 13 P06 | 5 | 2 tasks | 8 files |
 | Phase 14 P01 | 2 | 3 tasks | 7 files |
 | Phase 14 P02 | 4 | 3 tasks | 8 files |
+| Phase 15 P02 | 3 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,8 @@ Progress: [████████░░] 60% (v1.1)
 - [13-06] Zod error messages are i18n keys (not translated strings); components call t(errors.field.message!) at render time
 - [Phase 14]: readAt === null used throughout frontend for unread checks — matches 14-01 backend schema (readAt DateTime? not read Boolean)
 - [Phase 14]: useUnreadCount shares queryKey ['notifications'] with useNotifications — single TanStack cache entry for 30s polling, no duplicate requests
+- [Phase 15]: WorkflowStepper keeps horizontal layout (not vertical) — horizontal scrollable stepper is more intuitive for a progress indicator
+- [Phase 15]: TemplateFormPage CircuitBuilderStep is tablet-minimum (768px+) by design — complex nested form not suitable for phone-width screens
 
 ### v1.1 Key Constraints (from research)
 
@@ -111,5 +114,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 14-02-PLAN.md — Frontend for comments and notifications (hooks, components, ProfilePage prefs, i18n)
+Stopped at: Completed 15-02-PLAN.md — WorkflowDetailPage, WorkflowStepper, StepDetail, TemplateFormPage responsive
 Resume file: None
