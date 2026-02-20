@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Any validator can approve or refuse a document directly from their email, without ever logging into the platform — making validation as frictionless as possible while maintaining a complete audit trail.
-**Current focus:** v1.1 UX Polish — Phase 13: Foundation
+**Current focus:** v1.1 UX Polish — Phase 14: Social Features
 
 ## Current Position
 
-Phase: 13 of 15 (Foundation)
-Plan: 6 of 6
-Status: Complete
-Last activity: 2026-02-20 — Plan 13-06 complete: Zod form validation + react-hook-form refactor + mobile responsiveness
+Phase: 14 of 15 (Social Features)
+Plan: 1 of 2
+Status: In Progress
+Last activity: 2026-02-20 — Plan 14-01 complete: Backend for comments and notifications (Prisma models, services, routes, workflow engine hooks)
 
-Progress: [████░░░░░░] 22% (v1.1)
+Progress: [█████░░░░░] 30% (v1.1)
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [████░░░░░░] 22% (v1.1)
 | Phase 13 P05 | 4 | 2 tasks | 7 files |
 | Phase 13 P03 | 3 | 2 tasks | 8 files |
 | Phase 13 P06 | 5 | 2 tasks | 8 files |
+| Phase 14 P01 | 2 | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,9 @@ Progress: [████░░░░░░] 22% (v1.1)
 - Stack: Node.js 22 + TypeScript 5.7 + Fastify 5 + Prisma 6 + PostgreSQL 15 + BullMQ 5 + Redis 7 + React 19 + Vite 6 + Tailwind v4 + TanStack Query 5
 - See PROJECT.md Key Decisions table for full list
 - [13-01] Notification.type is String (not Prisma enum) to avoid enum migration pitfalls in future phases
+- [14-01] Adapted notification-service to Phase 13 Notification schema (readAt DateTime? / metadata Json?) rather than plan's read Boolean / context Json — avoids broken migrations
+- [14-01] notificationPrefs Json? on User: null means all types enabled, explicit false disables a type
+- [14-01] PATCH /notifications/read-all registered BEFORE /notifications/:id/read to prevent Fastify treating "read-all" as :id param
 - [13-01] apiFetch uses body != null (loose equality) to catch both null and undefined in a single check
 - [13-01] Resolved Prisma migration checksum drift via prisma db execute UPDATE on _prisma_migrations (avoids data loss from migrate reset)
 - [13-02] isDocx constant computed at component level (not inside useEffect) so renderPreview() can use it without prop drilling
@@ -104,5 +108,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 13-06-PLAN.md — Zod form validation + react-hook-form refactor + mobile responsiveness
+Stopped at: Completed 14-01-PLAN.md — Backend for comments and notifications (services, routes, workflow hooks)
 Resume file: None

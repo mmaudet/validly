@@ -31,21 +31,21 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 
 ### Notifications
 
-- [ ] **NOTIF-01**: Bell icon in navigation bar shows unread notification count badge
-- [ ] **NOTIF-02**: Clicking bell opens a notification panel listing recent notifications with workflow links
-- [ ] **NOTIF-03**: User can mark notifications as read (individually and bulk "mark all read")
-- [ ] **NOTIF-04**: Notifications created for workflow events: step approved, step refused, workflow completed, workflow refused
-- [ ] **NOTIF-05**: Notifications created when a comment is added to a workflow the user participates in
-- [ ] **NOTIF-06**: Notification list polls via REST every 30 seconds (no WebSocket)
-- [ ] **NOTIF-07**: User can configure per-type notification preferences (enable/disable) on the profile page
+- [x] **NOTIF-01**: Bell icon in navigation bar shows unread notification count badge
+- [x] **NOTIF-02**: Clicking bell opens a notification panel listing recent notifications with workflow links
+- [x] **NOTIF-03**: User can mark notifications as read (individually and bulk "mark all read")
+- [x] **NOTIF-04**: Notifications created for workflow events: step approved, step refused, workflow completed, workflow refused
+- [x] **NOTIF-05**: Notifications created when a comment is added to a workflow the user participates in
+- [x] **NOTIF-06**: Notification list polls via REST every 30 seconds (no WebSocket)
+- [x] **NOTIF-07**: User can configure per-type notification preferences (enable/disable) on the profile page
 
 ### Workflow Comments
 
-- [ ] **COMM-01**: Authenticated users can post plain-text comments on workflow detail pages
-- [ ] **COMM-02**: Comments displayed as a chronological thread below the workflow stepper
-- [ ] **COMM-03**: Comments are append-only (no edit, no delete) — consistent with audit trail philosophy
-- [ ] **COMM-04**: Comment input disabled on terminal-state workflows (approved, refused, cancelled, archived)
-- [ ] **COMM-05**: Access restricted to workflow initiator and registered validators
+- [x] **COMM-01**: Authenticated users can post plain-text comments on workflow detail pages
+- [x] **COMM-02**: Comments displayed as a chronological thread below the workflow stepper
+- [x] **COMM-03**: Comments are append-only (no edit, no delete) — consistent with audit trail philosophy
+- [x] **COMM-04**: Comment input disabled on terminal-state workflows (approved, refused, cancelled, archived)
+- [x] **COMM-05**: Access restricted to workflow initiator and registered validators
 
 ### Error Handling & Form Validation
 
@@ -130,18 +130,18 @@ Deferred to future releases. Tracked but not in current roadmap.
 | ERR-06 | Phase 13 | Complete |
 | RESP-01 | Phase 13 | Complete |
 | RESP-02 | Phase 13 | Complete |
-| COMM-01 | Phase 14 | Pending |
-| COMM-02 | Phase 14 | Pending |
-| COMM-03 | Phase 14 | Pending |
-| COMM-04 | Phase 14 | Pending |
-| COMM-05 | Phase 14 | Pending |
-| NOTIF-01 | Phase 14 | Pending |
-| NOTIF-02 | Phase 14 | Pending |
-| NOTIF-03 | Phase 14 | Pending |
-| NOTIF-04 | Phase 14 | Pending |
-| NOTIF-05 | Phase 14 | Pending |
-| NOTIF-06 | Phase 14 | Pending |
-| NOTIF-07 | Phase 14 | Pending |
+| COMM-01 | Phase 14 | Complete |
+| COMM-02 | Phase 14 | Complete |
+| COMM-03 | Phase 14 | Complete |
+| COMM-04 | Phase 14 | Complete |
+| COMM-05 | Phase 14 | Complete |
+| NOTIF-01 | Phase 14 | Complete |
+| NOTIF-02 | Phase 14 | Complete |
+| NOTIF-03 | Phase 14 | Complete |
+| NOTIF-04 | Phase 14 | Complete |
+| NOTIF-05 | Phase 14 | Complete |
+| NOTIF-06 | Phase 14 | Complete |
+| NOTIF-07 | Phase 14 | Complete |
 | RESP-03 | Phase 15 | Pending |
 | RESP-04 | Phase 15 | Pending |
 | RESP-05 | Phase 15 | Pending |
