@@ -79,8 +79,8 @@ export function StepDetail({ phase }: StepDetailProps) {
               <span className="text-xs text-gray-400">{getExecutionLabel(step.execution)}</span>
             </div>
 
-            {/* Quorum + deadline row */}
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+            {/* Quorum + deadline row — stacks vertically on mobile */}
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-sm text-gray-600">
               <div>
                 <span className="font-medium text-gray-700">{t('workflow.quorum_unanimity').startsWith('U') ? 'Quorum' : 'Quorum'}: </span>
                 {getQuorumLabel(step)}
@@ -134,7 +134,8 @@ export function StepDetail({ phase }: StepDetailProps) {
                       key={action.id}
                       className="flex flex-col gap-0.5 rounded-md bg-gray-50 px-3 py-2 text-sm"
                     >
-                      <div className="flex items-center gap-2">
+                      {/* Action row — stacks vertically on mobile, inline on sm+ */}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                         <span className={action.action === 'APPROVE' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
                           {action.actorEmail}
                         </span>
@@ -143,7 +144,7 @@ export function StepDetail({ phase }: StepDetailProps) {
                             ? t('workflow.approve')
                             : t('workflow.refuse')}
                         </span>
-                        <span className="text-gray-400 text-xs ml-auto">
+                        <span className="text-gray-400 text-xs sm:ml-auto">
                           {t('workflow.acted_on')} {new Date(action.createdAt).toLocaleDateString()}
                         </span>
                       </div>
