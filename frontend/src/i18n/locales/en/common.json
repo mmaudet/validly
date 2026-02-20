@@ -35,7 +35,14 @@
     "reset_success": "Your password has been reset. You can now log in.",
     "reset_expired": "This reset link is invalid or has expired.",
     "reset_go_login": "Go to login",
-    "reset_go_forgot": "Request a new link"
+    "reset_go_forgot": "Request a new link",
+    "email_required": "Email is required",
+    "email_invalid": "Please enter a valid email address",
+    "password_required": "Password is required",
+    "password_min_length": "Password must be at least 8 characters",
+    "name_required": "Name is required",
+    "name_too_long": "Name must be 100 characters or less",
+    "confirm_password_required": "Please confirm your password"
   },
   "documents": {
     "upload": "Upload document",
@@ -274,6 +281,7 @@
     "password_changed": "Password changed. You will be logged out shortly.",
     "password_wrong": "Current password is incorrect",
     "language_section": "Language",
-    "language_saved": "Language updated"
+    "language_saved": "Language updated",
+    "current_password_required": "Current password is required"
   }
 }

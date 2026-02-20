@@ -35,7 +35,14 @@
     "reset_success": "Votre mot de passe a \u00e9t\u00e9 r\u00e9initialis\u00e9. Vous pouvez maintenant vous connecter.",
     "reset_expired": "Ce lien est invalide ou a expir\u00e9.",
     "reset_go_login": "Aller \u00e0 la connexion",
-    "reset_go_forgot": "Demander un nouveau lien"
+    "reset_go_forgot": "Demander un nouveau lien",
+    "email_required": "L'email est requis",
+    "email_invalid": "Veuillez entrer une adresse email valide",
+    "password_required": "Le mot de passe est requis",
+    "password_min_length": "Le mot de passe doit faire au moins 8 caracteres",
+    "name_required": "Le nom est requis",
+    "name_too_long": "Le nom ne doit pas depasser 100 caracteres",
+    "confirm_password_required": "Veuillez confirmer votre mot de passe"
   },
   "documents": {
     "upload": "T\u00e9l\u00e9verser un document",
@@ -274,6 +281,7 @@
     "password_changed": "Mot de passe chang\u00e9. Vous serez d\u00e9connect\u00e9.",
     "password_wrong": "Mot de passe actuel incorrect",
     "language_section": "Langue",
-    "language_saved": "Langue mise \u00e0 jour"
+    "language_saved": "Langue mise \u00e0 jour",
+    "current_password_required": "Le mot de passe actuel est requis"
   }
 }

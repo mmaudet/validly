@@ -1,40 +1,54 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { apiFetch } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
+import { profileNameSchema, ProfileNameForm, changePasswordSchema, ChangePasswordForm } from '../lib/validation';
 
 export function ProfilePage() {
   const { t, i18n } = useTranslation();
   const { user, fetchProfile } = useAuth();
 
   // Section 1: Name editing
-  const [name, setName] = useState(user?.name ?? '');
   const [nameLoading, setNameLoading] = useState(false);
   const [nameSuccess, setNameSuccess] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
 
+  const {
+    register: registerName,
+    handleSubmit: handleSubmitName,
+    formState: { errors: nameErrors },
+  } = useForm<ProfileNameForm>({
+    resolver: zodResolver(profileNameSchema),
+    defaultValues: { name: user?.name ?? '' },
+  });
+
   // Section 2: Change Password
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const {
+    register: registerPassword,
+    handleSubmit: handleSubmitPassword,
+    reset: resetPassword,
+    formState: { errors: passwordErrors },
+  } = useForm<ChangePasswordForm>({ resolver: zodResolver(changePasswordSchema) });
 
   // Section 3: Language
   const [localeLoading, setLocaleLoading] = useState(false);
   const [localeSuccess, setLocaleSuccess] = useState(false);
 
-  const handleSaveName = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveName = async (data: ProfileNameForm) => {
     setNameLoading(true);
     setNameSuccess(false);
     setNameError(null);
     try {
       await apiFetch('/auth/profile', {
         method: 'PATCH',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name: data.name }),
       });
       await fetchProfile();
       setNameSuccess(true);
@@ -45,24 +59,17 @@ export function ProfilePage() {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleChangePassword = async (data: ChangePasswordForm) => {
     setPasswordError(null);
     setPasswordSuccess(false);
-    if (newPassword !== confirmPassword) {
-      setPasswordError(t('auth.confirm_password') + ' mismatch');
-      return;
-    }
     setPasswordLoading(true);
     try {
       await apiFetch('/auth/change-password', {
         method: 'POST',
-        body: JSON.stringify({ currentPassword, newPassword }),
+        body: JSON.stringify({ currentPassword: data.currentPassword, newPassword: data.newPassword }),
       });
       setPasswordSuccess(true);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      resetPassword();
     } catch (err: any) {
       if (err?.status === 401 || err?.message?.includes('incorrect')) {
         setPasswordError(t('profile.password_wrong'));
@@ -130,23 +137,19 @@ export function ProfilePage() {
           </div>
 
           {/* Name editing */}
-          <form onSubmit={handleSaveName} className="space-y-3">
+          <form onSubmit={handleSubmitName(handleSaveName)} className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('profile.name_label')}
               </label>
               <input
                 type="text"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setNameSuccess(false);
-                }}
-                minLength={1}
-                maxLength={100}
-                required
+                {...registerName('name')}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
+              {nameErrors.name && (
+                <p className="mt-1 text-sm text-red-600">{t(nameErrors.name.message!)}</p>
+              )}
             </div>
             {nameError && (
               <p className="text-sm text-red-600">{nameError}</p>
@@ -167,21 +170,20 @@ export function ProfilePage() {
         {/* Section 2: Change Password */}
         <div className="mb-6 rounded-lg bg-white p-6 shadow">
           <h3 className="mb-4 text-lg font-semibold text-gray-800">{t('profile.password_section')}</h3>
-          <form onSubmit={handleChangePassword} className="space-y-3">
+          <form onSubmit={handleSubmitPassword(handleChangePassword)} className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('profile.current_password')}
               </label>
               <input
                 type="password"
-                value={currentPassword}
-                onChange={(e) => {
-                  setCurrentPassword(e.target.value);
-                  setPasswordError(null);
-                }}
-                required
+                autoComplete="current-password"
+                {...registerPassword('currentPassword')}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
+              {passwordErrors.currentPassword && (
+                <p className="mt-1 text-sm text-red-600">{t(passwordErrors.currentPassword.message!)}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -189,12 +191,13 @@ export function ProfilePage() {
               </label>
               <input
                 type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                minLength={8}
-                required
+                autoComplete="new-password"
+                {...registerPassword('newPassword')}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
+              {passwordErrors.newPassword && (
+                <p className="mt-1 text-sm text-red-600">{t(passwordErrors.newPassword.message!)}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -202,12 +205,13 @@ export function ProfilePage() {
               </label>
               <input
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                minLength={8}
-                required
+                autoComplete="new-password"
+                {...registerPassword('confirmPassword')}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
+              {passwordErrors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">{t(passwordErrors.confirmPassword.message!)}</p>
+              )}
             </div>
             {passwordError && (
               <p className="text-sm text-red-600">{passwordError}</p>

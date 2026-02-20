@@ -1,23 +1,30 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { apiFetch } from '../lib/api';
+import { forgotPasswordSchema, ForgotPasswordForm } from '../lib/validation';
 
 export function ForgotPasswordPage() {
   const { t } = useTranslation();
-  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordForm>({ resolver: zodResolver(forgotPasswordSchema) });
+
+  const onSubmit = async (data: ForgotPasswordForm) => {
     setError('');
     setLoading(true);
     try {
       await apiFetch('/auth/forgot-password', {
         method: 'POST',
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: data.email }),
       });
       setSuccess(true);
     } catch {
@@ -31,8 +38,8 @@ export function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <img src="/logo.png" alt="Validly" className="mx-auto h-24 w-auto" />
-          <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('app.name')}</h1>
+          <img src="/logo.png" alt="Validly" className="mx-auto h-16 w-auto sm:h-24" />
+          <h1 className="mt-4 text-2xl font-bold text-gray-900 sm:text-3xl">{t('app.name')}</h1>
           <p className="mt-2 text-gray-600">{t('auth.forgot_title')}</p>
         </div>
 
@@ -43,13 +50,13 @@ export function ForgotPasswordPage() {
                 {t('auth.forgot_success')}
               </div>
               <p className="text-center text-sm text-gray-600">
-                <Link to="/login" className="text-blue-600 hover:underline">
+                <Link to="/login" className="inline-block py-1 text-blue-600 hover:underline">
                   {t('auth.forgot_back')}
                 </Link>
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <p className="text-sm text-gray-600">{t('auth.forgot_instruction')}</p>
 
               {error && (
@@ -63,23 +70,25 @@ export function ForgotPasswordPage() {
                 <input
                   id="email"
                   type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  autoComplete="email"
+                  {...register('email')}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600">{t(errors.email.message!)}</p>
+                )}
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                className="w-full rounded-md bg-blue-600 px-4 py-3 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
               >
                 {loading ? t('common.loading') : t('auth.forgot_submit')}
               </button>
 
               <p className="text-center text-sm text-gray-600">
-                <Link to="/login" className="text-blue-600 hover:underline">
+                <Link to="/login" className="inline-block py-1 text-blue-600 hover:underline">
                   {t('auth.forgot_back')}
                 </Link>
               </p>
