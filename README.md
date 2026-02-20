@@ -21,8 +21,9 @@
 </p>
 
 <p align="center">
-  <a href="#getting-started">Getting Started</a> &bull;
   <a href="#features">Features</a> &bull;
+  <a href="#screenshots">Screenshots</a> &bull;
+  <a href="#getting-started">Getting Started</a> &bull;
   <a href="#tech-stack">Tech Stack</a> &bull;
   <a href="#api">API</a> &bull;
   <a href="#contributing">Contributing</a> &bull;
@@ -49,49 +50,22 @@ Validly is an open-source, self-hosted document validation workflow engine. It a
 - **Internationalization** — Full FR/EN support (backend emails + frontend UI)
 - **Role-based access** — Admin, Initiateur (initiator), Validateur (validator)
 
-## Tech Stack
+## Screenshots
 
-| Layer | Technology |
-|-------|-----------|
-| **Runtime** | Node.js >= 22 |
-| **Backend** | Fastify 5, TypeScript, Zod validation |
-| **ORM** | Prisma 6 |
-| **Database** | PostgreSQL 15 |
-| **Queue** | BullMQ 5 + Redis 7 |
-| **Frontend** | React 19, Vite 6, TypeScript |
-| **Styling** | Tailwind CSS v4 |
-| **State** | TanStack Query 5 |
-| **Forms** | react-hook-form 7 |
-| **Routing** | react-router 7 |
-| **i18n** | i18next (backend + frontend) |
-| **Email** | Nodemailer (SMTP) |
-| **API docs** | Swagger UI (@fastify/swagger) |
+<p align="center">
+  <img src="docs/screenshots/login.png" alt="Login page" width="720" /><br/>
+  <em>Login page</em>
+</p>
 
-## Project Structure
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard — workflow list with filters" width="720" /><br/>
+  <em>Dashboard — workflow list with filters</em>
+</p>
 
-```
-validly/
-├── backend/
-│   ├── prisma/           # Schema & migrations
-│   ├── src/
-│   │   ├── api/routes/   # Fastify route handlers
-│   │   ├── domain/       # Business logic (state machine, types)
-│   │   ├── services/     # Core services (workflow, email, document, audit)
-│   │   ├── jobs/         # BullMQ workers (deadline, reminder)
-│   │   └── i18n/locales/ # Backend translations (en, fr)
-│   └── Dockerfile
-├── frontend/
-│   ├── public/           # Static assets (logos)
-│   ├── src/
-│   │   ├── components/   # Reusable UI components
-│   │   ├── pages/        # Route pages
-│   │   ├── hooks/        # Custom React hooks
-│   │   ├── lib/          # API client, utilities
-│   │   └── i18n/locales/ # Frontend translations (en, fr)
-│   └── Dockerfile
-├── docker-compose.yml    # Full-stack deployment
-└── package.json          # Monorepo root (npm workspaces)
-```
+<p align="center">
+  <img src="docs/screenshots/workflow-create.png" alt="Workflow creation wizard" width="720" /><br/>
+  <em>Workflow creation — step-by-step wizard</em>
+</p>
 
 ## Getting Started
 
@@ -196,6 +170,50 @@ docker compose up -d
 | postgres | 5432 | PostgreSQL database |
 | redis | 6379 | Redis (BullMQ queues) |
 | mailpit | 8025 / 1025 | Email testing (UI / SMTP) |
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Runtime** | Node.js >= 22 |
+| **Backend** | Fastify 5, TypeScript, Zod validation |
+| **ORM** | Prisma 6 |
+| **Database** | PostgreSQL 15 |
+| **Queue** | BullMQ 5 + Redis 7 |
+| **Frontend** | React 19, Vite 6, TypeScript |
+| **Styling** | Tailwind CSS v4 |
+| **State** | TanStack Query 5 |
+| **Forms** | react-hook-form 7 |
+| **Routing** | react-router 7 |
+| **i18n** | i18next (backend + frontend) |
+| **Email** | Nodemailer (SMTP) |
+| **API docs** | Swagger UI (@fastify/swagger) |
+
+## Project Structure
+
+```
+validly/
+├── backend/
+│   ├── prisma/           # Schema & migrations
+│   ├── src/
+│   │   ├── api/routes/   # Fastify route handlers
+│   │   ├── domain/       # Business logic (state machine, types)
+│   │   ├── services/     # Core services (workflow, email, document, audit)
+│   │   ├── jobs/         # BullMQ workers (deadline, reminder)
+│   │   └── i18n/locales/ # Backend translations (en, fr)
+│   └── Dockerfile
+├── frontend/
+│   ├── public/           # Static assets (logos)
+│   ├── src/
+│   │   ├── components/   # Reusable UI components
+│   │   ├── pages/        # Route pages
+│   │   ├── hooks/        # Custom React hooks
+│   │   ├── lib/          # API client, utilities
+│   │   └── i18n/locales/ # Frontend translations (en, fr)
+│   └── Dockerfile
+├── docker-compose.yml    # Full-stack deployment
+└── package.json          # Monorepo root (npm workspaces)
+```
 
 ## API
 
