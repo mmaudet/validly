@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Any validator can approve or refuse a document directly from their email, without ever logging into the platform — making validation as frictionless as possible while maintaining a complete audit trail.
-**Current focus:** v1.1 UX Polish — Phase 15: Polish Completion
+**Current focus:** v1.1 UX Polish — Phase 16: Gap Closure
 
 ## Current Position
 
-Phase: 15 of 15 (Polish Completion)
-Plan: 3 of 3
+Phase: 16 of 16 (Gap Closure)
+Plan: 1 of 1
 Status: Complete
-Last activity: 2026-02-20 — Plan 15-03 complete: i18n audit and password reset email (tWithLang)
+Last activity: 2026-02-20 — Plan 16-01 complete: all 4 audit gaps closed (COMM-01/02, ERR-06, RESP-06, NOTIF-05)
 
 Progress: [██████████] 100% (v1.1)
 
