@@ -8,6 +8,8 @@ import { TemplatePicker } from '../components/workflow/TemplatePicker';
 import type { Template } from '../components/workflow/TemplatePicker';
 import { ReviewStep } from '../components/workflow/ReviewStep';
 import { apiFetch } from '../lib/api';
+import { useAuth } from '../hooks/useAuth';
+import { MobileNav } from '../components/layout/MobileNav';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -124,9 +126,12 @@ function templateStructureToForm(template: Template): WorkflowForm['structure'] 
 // ─── Wizard ───────────────────────────────────────────────────────────────────
 
 export function WorkflowCreatePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user, logout } = useAuth();
+  const handleLogout = async () => { await logout(); navigate('/login'); };
+  const toggleLocale = () => { i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr'); };
 
   const [wizardStep, setWizardStep] = useState<number>(0);
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
@@ -225,13 +230,22 @@ export function WorkflowCreatePage() {
               <img src="/logo.svg" alt="" className="h-8 w-auto" />
               {t('app.name')}
             </h1>
-            <button
-              type="button"
-              onClick={() => navigate('/dashboard')}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              {t('common.cancel')}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard')}
+                className="hidden sm:inline-flex text-sm text-gray-500 hover:text-gray-700 min-h-[44px] items-center px-2"
+              >
+                {t('common.cancel')}
+              </button>
+              <MobileNav
+                user={user ? { email: user.email, name: user.name, role: user.role } : null}
+                pendingCount={0}
+                onLogout={handleLogout}
+                onToggleLocale={toggleLocale}
+                currentLocale={i18n.language}
+              />
+            </div>
           </div>
         </header>
 
