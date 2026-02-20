@@ -16,10 +16,6 @@ interface Comment {
   author: CommentAuthor;
 }
 
-interface CommentsResponse {
-  comments: Comment[];
-}
-
 const TERMINAL_STATUSES = ['APPROVED', 'REFUSED', 'CANCELLED', 'ARCHIVED'];
 
 function formatRelativeTime(dateStr: string): string {
@@ -49,9 +45,9 @@ export function CommentThread({ workflowId, workflowStatus }: CommentThreadProps
 
   const isTerminal = TERMINAL_STATUSES.includes(workflowStatus);
 
-  const { data, isLoading, error } = useQuery<CommentsResponse>({
+  const { data, isLoading, error } = useQuery<Comment[]>({
     queryKey: ['comments', workflowId],
-    queryFn: () => apiFetch<CommentsResponse>(`/workflows/${workflowId}/comments`),
+    queryFn: () => apiFetch<Comment[]>(`/workflows/${workflowId}/comments`),
     retry: (failureCount, err) => {
       // Don't retry 403 (no access)
       if (err instanceof ApiError && err.status === 403) return false;
@@ -85,7 +81,7 @@ export function CommentThread({ workflowId, workflowStatus }: CommentThreadProps
     );
   }
 
-  const comments = data?.comments ?? [];
+  const comments = data ?? [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

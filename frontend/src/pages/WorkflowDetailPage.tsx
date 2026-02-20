@@ -11,6 +11,7 @@ import { DocumentPreview } from '../components/workflow/DocumentPreview';
 import { CommentThread } from '../components/workflow/CommentThread';
 import { NotificationCenter } from '../components/ui/NotificationCenter';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { MobileNav } from '../components/layout/MobileNav';
 
 interface Action {
   id: string;
@@ -81,10 +82,10 @@ const statusColors: Record<string, string> = {
 };
 
 export function WorkflowDetailPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const queryClient = useQueryClient();
 
   const [showAudit, setShowAudit] = useState(false);
@@ -181,6 +182,9 @@ export function WorkflowDetailPage() {
     );
   }
 
+  const handleLogout = async () => { await logout(); navigate('/login'); };
+  const toggleLocale = () => { i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr'); };
+
   const isInitiator = user?.email === workflow.initiator.email;
   const isInProgress = workflow.status === 'IN_PROGRESS';
   const canActAsInitiator = isInitiator && isInProgress;
@@ -197,6 +201,14 @@ export function WorkflowDetailPage() {
           <span className={`ml-auto inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 ${statusColors[workflow.status] ?? statusColors.PENDING}`}>
             {t(`workflow.${workflow.status.toLowerCase()}`)}
           </span>
+          {/* Mobile nav — hamburger visible only below sm: breakpoint */}
+          <MobileNav
+            user={user ? { email: user.email, name: user.name, role: user.role } : null}
+            pendingCount={0}
+            onLogout={handleLogout}
+            onToggleLocale={toggleLocale}
+            currentLocale={i18n.language}
+          />
           {/* Bell icon — opens NotificationCenter slide-out */}
           <button
             type="button"

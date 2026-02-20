@@ -7,6 +7,8 @@ import { CircuitBuilderStep } from '../components/workflow/CircuitBuilderStep';
 import type { Template } from '../components/workflow/TemplatePicker';
 import type { PhaseForm, StepForm } from './WorkflowCreatePage';
 import { apiFetch, ApiError } from '../lib/api';
+import { useAuth } from '../hooks/useAuth';
+import { MobileNav } from '../components/layout/MobileNav';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -80,13 +82,16 @@ function buildTemplatePayload(data: TemplateForm) {
 // ─── TemplateFormPage ──────────────────────────────────────────────────────────
 
 export function TemplateFormPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
   const queryClient = useQueryClient();
 
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const handleLogout = async () => { await logout(); navigate('/login'); };
+  const toggleLocale = () => { i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr'); };
 
   const methods = useForm<TemplateForm>({
     defaultValues: {
@@ -189,13 +194,22 @@ export function TemplateFormPage() {
               <img src="/logo.svg" alt="" className="h-8 w-auto" />
               {t('app.name')}
             </h1>
-            <button
-              type="button"
-              onClick={() => navigate('/dashboard')}
-              className="text-sm text-gray-500 hover:text-gray-700 min-h-[44px] inline-flex items-center px-2"
-            >
-              {t('template.cancel')}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard')}
+                className="hidden sm:inline-flex text-sm text-gray-500 hover:text-gray-700 min-h-[44px] items-center px-2"
+              >
+                {t('template.cancel')}
+              </button>
+              <MobileNav
+                user={user ? { email: user.email, name: user.name, role: user.role } : null}
+                pendingCount={0}
+                onLogout={handleLogout}
+                onToggleLocale={toggleLocale}
+                currentLocale={i18n.language}
+              />
+            </div>
           </div>
         </header>
 

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { apiFetch } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
+import { MobileNav } from '../components/layout/MobileNav';
 import { useNotificationPrefs, NotificationPrefs } from '../hooks/useNotifications';
 import { profileNameSchema, ProfileNameForm, changePasswordSchema, ChangePasswordForm } from '../lib/validation';
 
@@ -82,7 +83,10 @@ function NotificationPrefsSection() {
 
 export function ProfilePage() {
   const { t, i18n } = useTranslation();
-  const { user, fetchProfile } = useAuth();
+  const navigate = useNavigate();
+  const { user, fetchProfile, logout } = useAuth();
+  const handleLogout = async () => { await logout(); navigate('/login'); };
+  const toggleLocale = () => { i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr'); };
 
   // Section 1: Name editing
   const [nameLoading, setNameLoading] = useState(false);
@@ -172,7 +176,7 @@ export function ProfilePage() {
     }
   };
 
-  const currentLocale = user?.locale ?? i18n.language;
+  const currentLocale = i18n.language;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -186,10 +190,17 @@ export function ProfilePage() {
           <div className="flex items-center gap-4">
             <Link
               to="/dashboard"
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="hidden sm:inline text-sm text-gray-500 hover:text-gray-700"
             >
               &larr; {t('nav.dashboard')}
             </Link>
+            <MobileNav
+              user={user ? { email: user.email, name: user.name, role: user.role } : null}
+              pendingCount={0}
+              onLogout={handleLogout}
+              onToggleLocale={toggleLocale}
+              currentLocale={i18n.language}
+            />
           </div>
         </div>
       </header>

@@ -41,7 +41,7 @@ export const commentService = {
     // Load author user to get their email for validator check
     const author = await prisma.user.findUnique({
       where: { id: authorId },
-      select: { id: true, email: true },
+      select: { id: true, name: true, email: true },
     });
 
     if (!author) {
@@ -103,7 +103,7 @@ export const commentService = {
         workflowId,
         workflowTitle: (workflow as any).title,
         authorId,
-        authorEmail: author.email,
+        commentAuthor: author.name ?? author.email,
         commentId: comment.id,
       };
 
