@@ -9,6 +9,7 @@ import { useUnreadCount } from '../hooks/useNotifications';
 import { Template } from '../components/workflow/TemplatePicker';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { NotificationCenter } from '../components/ui/NotificationCenter';
+import { MobileNav } from '../components/layout/MobileNav';
 
 interface WorkflowSummary {
   id: string;
@@ -209,7 +210,8 @@ export function DashboardPage() {
             <img src="/logo.svg" alt="" className="h-8 w-auto" />
             {t('app.name')}
           </h1>
-          <div className="flex items-center gap-4">
+          {/* Desktop nav items — hidden on mobile */}
+          <div className="hidden sm:flex items-center gap-4">
             {/* Bell notification icon — opens NotificationCenter slide-out panel */}
             <button
               onClick={() => setNotifOpen(true)}
@@ -241,6 +243,14 @@ export function DashboardPage() {
               {t('nav.logout')}
             </button>
           </div>
+          {/* Mobile nav — hamburger visible only below sm: breakpoint */}
+          <MobileNav
+            user={user ? { email: user.email, name: user.name, role: user.role } : null}
+            pendingCount={pendingCount}
+            onLogout={handleLogout}
+            onToggleLocale={toggleLocale}
+            currentLocale={i18n.language}
+          />
         </div>
       </header>
 

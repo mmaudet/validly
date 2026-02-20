@@ -10,7 +10,8 @@
     "templates": "Mod\u00e8les",
     "logout": "D\u00e9connexion",
     "users": "Utilisateurs",
-    "profile": "Profil"
+    "profile": "Profil",
+    "menu": "Menu"
   },
   "auth": {
     "login": "Se connecter",

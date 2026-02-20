@@ -10,7 +10,9 @@
     "templates": "Templates",
     "logout": "Log out",
     "users": "Users",
-    "profile": "Profile"
+    "profile": "Profile",
+    "menu": "Menu",
+    "notifications": "Notifications"
   },
   "auth": {
     "login": "Log in",
@@ -69,6 +71,7 @@
     "quorum_unanimity": "Unanimity",
     "quorum_majority": "Majority",
     "quorum_any_of": "{{count}} of {{total}}",
+    "quorum_label": "Quorum",
     "execution_sequential": "Sequential",
     "execution_parallel": "Parallel",
     "no_deadline": "No deadline",
@@ -228,7 +231,8 @@
     "role_validateur": "Validator",
     "no_users": "No users found",
     "last_admin_error": "Cannot delete the last administrator",
-    "email_exists": "This email is already in use"
+    "email_exists": "This email is already in use",
+    "column_actions": "Actions"
   },
   "dialog": {
     "cancel": "Cancel",
