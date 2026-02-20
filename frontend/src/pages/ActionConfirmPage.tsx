@@ -78,7 +78,7 @@ export function ActionConfirmPage() {
           </p>
           <Link
             to="/"
-            className="mt-4 inline-block text-sm text-blue-600 hover:text-blue-800 underline"
+            className="mt-4 inline-block py-2 text-sm text-blue-600 hover:text-blue-800 underline"
           >
             {t('action.go_to_dashboard')}
           </Link>
@@ -91,8 +91,8 @@ export function ActionConfirmPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="Validly" className="mx-auto h-24 w-auto" />
-          <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('app.name')}</h1>
+          <img src="/logo.png" alt="Validly" className="mx-auto h-16 w-auto sm:h-24" />
+          <h1 className="mt-4 text-2xl font-bold text-gray-900 sm:text-3xl">{t('app.name')}</h1>
         </div>
 
         <div className="rounded-lg bg-white p-8 shadow space-y-6">
@@ -114,7 +114,7 @@ export function ActionConfirmPage() {
               <p className="text-xl font-bold text-gray-900">
                 {(tokenInfo as { workflowTitle: string }).workflowTitle}
               </p>
-              <dl className="grid grid-cols-2 gap-2 text-sm">
+              <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                 <dt className="font-medium text-gray-500">{t('action.step_label')}</dt>
                 <dd className="text-gray-900">{(tokenInfo as { stepName: string }).stepName}</dd>
                 <dt className="font-medium text-gray-500">{t('action.phase_label')}</dt>
@@ -156,14 +156,14 @@ export function ActionConfirmPage() {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder={t('workflow.comment_placeholder')}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading || !comment.trim()}
-              className={`w-full rounded-md px-4 py-2 text-white font-bold focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${
+              className={`w-full rounded-md px-4 py-3 text-white font-bold focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 min-h-[44px] ${
                 isApprove
                   ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
                   : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
