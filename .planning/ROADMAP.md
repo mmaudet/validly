@@ -3,7 +3,7 @@
 ## Milestones
 
 - **v1.0 MVP** — Phases 1-12 (shipped 2026-02-20) — [Archive](milestones/v1.0-ROADMAP.md)
-- **v1.1 UX Polish** — Phases 13-15 (in progress)
+- **v1.1 UX Polish** — Phases 13-16 (in progress)
 
 ## Phases
 
@@ -32,6 +32,7 @@
 - [x] **Phase 13: Foundation** — Schema migrations, apiFetch fix, password reset, user profile, DOCX preview, error pages, responsive critical paths (completed 2026-02-20)
 - [x] **Phase 14: Social Features** — Workflow comments thread and in-app notification center (completed 2026-02-20)
 - [x] **Phase 15: Polish Completion** — Full responsive layout, i18n on all new surfaces (completed 2026-02-20)
+- [ ] **Phase 16: Gap Closure** — Fix comment thread display, wire mapApiError, add MobileNav to remaining pages, fix notification context
 
 ## Phase Details
 
@@ -87,6 +88,19 @@ Plans:
 - [ ] 15-02-PLAN.md — WorkflowDetailPage + remaining pages responsive layout
 - [ ] 15-03-PLAN.md — i18n completion for all v1.1 surfaces and email templates
 
+### Phase 16: Gap Closure
+**Goal**: Fix all defects found during v1.1 milestone audit — comment thread displays correctly, API errors are mapped to i18n keys, all authenticated pages have mobile navigation, and notification context keys match between backend and frontend
+**Depends on**: Phase 15
+**Requirements**: COMM-01, COMM-02, ERR-06, RESP-06, NOTIF-05
+**Gap Closure**: Closes gaps from v1.1 audit
+**Success Criteria** (what must be TRUE):
+  1. Posting a comment on a workflow detail page shows it immediately in the chronological thread (no "No comments yet" when comments exist)
+  2. API error messages (e.g. "Invalid credentials") display as translated i18n strings in the user's language
+  3. WorkflowDetailPage, TemplateFormPage, and ProfilePage all show a hamburger menu on mobile screens
+  4. COMMENT_ADDED notifications include the comment author's name in the notification context
+
+Plans: TBD (to be created by /gsd:plan-phase 16)
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -95,3 +109,4 @@ Plans:
 | 13. Foundation | 6/6 | Complete   | 2026-02-20 | - |
 | 14. Social Features | 2/2 | Complete   | 2026-02-20 | - |
 | 15. Polish Completion | 3/3 | Complete   | 2026-02-20 | - |
+| 16. Gap Closure | 0/? | Pending | — | — |

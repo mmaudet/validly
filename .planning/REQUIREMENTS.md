@@ -41,8 +41,8 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 
 ### Workflow Comments
 
-- [x] **COMM-01**: Authenticated users can post plain-text comments on workflow detail pages
-- [x] **COMM-02**: Comments displayed as a chronological thread below the workflow stepper
+- [ ] **COMM-01**: Authenticated users can post plain-text comments on workflow detail pages
+- [ ] **COMM-02**: Comments displayed as a chronological thread below the workflow stepper
 - [x] **COMM-03**: Comments are append-only (no edit, no delete) — consistent with audit trail philosophy
 - [x] **COMM-04**: Comment input disabled on terminal-state workflows (approved, refused, cancelled, archived)
 - [x] **COMM-05**: Access restricted to workflow initiator and registered validators
@@ -54,7 +54,7 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 - [x] **ERR-03**: React Router error boundary catches unhandled navigation errors
 - [x] **ERR-04**: All forms use Zod schema validation with inline per-field error messages
 - [x] **ERR-05**: Form validation applied to existing forms (login, signup) and all new v1.1 forms
-- [x] **ERR-06**: API error responses mapped to user-readable messages
+- [ ] **ERR-06**: API error responses mapped to user-readable messages
 
 ### Responsive Layout
 
@@ -63,7 +63,7 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 - [x] **RESP-03**: Dashboard list views readable and navigable on mobile
 - [x] **RESP-04**: Workflow detail page (stepper, comments, actions) usable on mobile
 - [x] **RESP-05**: Touch targets minimum 44x44px on all interactive elements
-- [x] **RESP-06**: Mobile-friendly navigation (hamburger menu or equivalent)
+- [ ] **RESP-06**: Mobile-friendly navigation (hamburger menu or equivalent)
 
 ### Internationalization
 
@@ -127,11 +127,11 @@ Deferred to future releases. Tracked but not in current roadmap.
 | ERR-03 | Phase 13 | Complete |
 | ERR-04 | Phase 13 | Complete |
 | ERR-05 | Phase 13 | Complete |
-| ERR-06 | Phase 13 | Complete |
+| ERR-06 | Phase 16 | Pending |
 | RESP-01 | Phase 13 | Complete |
 | RESP-02 | Phase 13 | Complete |
-| COMM-01 | Phase 14 | Complete |
-| COMM-02 | Phase 14 | Complete |
+| COMM-01 | Phase 16 | Pending |
+| COMM-02 | Phase 16 | Pending |
 | COMM-03 | Phase 14 | Complete |
 | COMM-04 | Phase 14 | Complete |
 | COMM-05 | Phase 14 | Complete |
@@ -139,13 +139,13 @@ Deferred to future releases. Tracked but not in current roadmap.
 | NOTIF-02 | Phase 14 | Complete |
 | NOTIF-03 | Phase 14 | Complete |
 | NOTIF-04 | Phase 14 | Complete |
-| NOTIF-05 | Phase 14 | Complete |
+| NOTIF-05 | Phase 16 | Pending |
 | NOTIF-06 | Phase 14 | Complete |
 | NOTIF-07 | Phase 14 | Complete |
 | RESP-03 | Phase 15 | Complete |
 | RESP-04 | Phase 15 | Complete |
 | RESP-05 | Phase 15 | Complete |
-| RESP-06 | Phase 15 | Complete |
+| RESP-06 | Phase 16 | Pending |
 | I18N-01 | Phase 15 | Complete |
 | I18N-02 | Phase 15 | Complete |
 
@@ -156,4 +156,4 @@ Deferred to future releases. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-20*
-*Last updated: 2026-02-20 — traceability filled after roadmap creation*
+*Last updated: 2026-02-20 — Phase 16 gap closure assigned after v1.1 audit*
