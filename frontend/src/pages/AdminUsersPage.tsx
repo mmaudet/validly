@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { apiFetch, ApiError } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
+import { MobileNav } from '../components/layout/MobileNav';
 
 type UserRole = 'ADMIN' | 'INITIATEUR' | 'VALIDATEUR';
 
@@ -96,9 +97,18 @@ function Modal({ open, onClose, title, children }: {
 }
 
 export function AdminUsersPage() {
-  const { t } = useTranslation();
-  const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  const toggleLocale = () => {
+    i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr');
+  };
   const queryClient = useQueryClient();
 
   const [showCreate, setShowCreate] = useState(false);
@@ -202,7 +212,16 @@ export function AdminUsersPage() {
               {t('app.name')}
             </h1>
           </div>
-          <span className="text-sm text-gray-600">{user?.email}</span>
+          {/* Desktop: show user email — hidden on mobile */}
+          <span className="hidden sm:block text-sm text-gray-600">{user?.email}</span>
+          {/* Mobile nav — hamburger visible only below sm: breakpoint */}
+          <MobileNav
+            user={user ? { email: user.email, name: user.name, role: user.role } : null}
+            pendingCount={0}
+            onLogout={handleLogout}
+            onToggleLocale={toggleLocale}
+            currentLocale={i18n.language}
+          />
         </div>
       </header>
 
@@ -226,7 +245,7 @@ export function AdminUsersPage() {
         )}
 
         {/* Users table */}
-        <div className="rounded-lg bg-white shadow overflow-hidden">
+        <div className="rounded-lg bg-white shadow overflow-x-auto">
           {isLoading ? (
             <div className="space-y-0">
               {[...Array(5)].map((_, i) => (
@@ -253,7 +272,7 @@ export function AdminUsersPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
                     {t('admin.field_role')}
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
                     {t('dashboard.created_at')}
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
@@ -263,7 +282,7 @@ export function AdminUsersPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {usersData.map((u) => (
-                  <tr key={u.id} className="hover:bg-gray-50">
+                  <tr key={u.id} className="hover:bg-gray-50 min-h-[44px]">
                     <td className="px-4 py-3 font-medium text-gray-900">{u.name}</td>
                     <td className="px-4 py-3 text-gray-600">{u.email}</td>
                     <td className="px-4 py-3">
@@ -271,20 +290,20 @@ export function AdminUsersPage() {
                         {t(`admin.role_${u.role.toLowerCase()}`)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="hidden sm:table-cell px-4 py-3 text-gray-500">
                       {new Date(u.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleOpenEdit(u)}
-                          className="rounded px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
+                          className="rounded px-2.5 py-1 min-h-[44px] min-w-[44px] text-xs font-medium text-blue-600 hover:bg-blue-50"
                         >
                           {t('common.edit')}
                         </button>
                         <button
                           onClick={() => { setDeleteUser(u); setDeleteError(null); }}
-                          className="rounded px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+                          className="rounded px-2.5 py-1 min-h-[44px] min-w-[44px] text-xs font-medium text-red-600 hover:bg-red-50"
                         >
                           {t('common.delete')}
                         </button>

@@ -34,7 +34,13 @@
     "initiator_complete_subject": "{{workflowTitle}} — Terminé",
     "token_expired": "Ce lien a expiré",
     "token_used": "Ce lien a déjà été utilisé",
-    "action_recorded": "Votre décision a été enregistrée"
+    "action_recorded": "Votre décision a été enregistrée",
+    "password_reset_subject": "Réinitialisation de mot de passe — {{appName}}",
+    "password_reset_heading": "Réinitialisation de mot de passe",
+    "password_reset_body": "Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe.",
+    "password_reset_button": "Réinitialiser mon mot de passe",
+    "password_reset_expiry": "Ce lien expire dans 1 heure.",
+    "password_reset_ignore": "Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email."
   },
   "errors": {
     "not_found": "Ressource introuvable",
