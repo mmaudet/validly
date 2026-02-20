@@ -5,7 +5,80 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { apiFetch } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
+import { useNotificationPrefs, NotificationPrefs } from '../hooks/useNotifications';
 import { profileNameSchema, ProfileNameForm, changePasswordSchema, ChangePasswordForm } from '../lib/validation';
+
+const PREF_TYPES: { key: keyof NotificationPrefs; labelKey: string }[] = [
+  { key: 'STEP_APPROVED', labelKey: 'notification_prefs.step_approved' },
+  { key: 'STEP_REFUSED', labelKey: 'notification_prefs.step_refused' },
+  { key: 'WORKFLOW_COMPLETED', labelKey: 'notification_prefs.workflow_completed' },
+  { key: 'WORKFLOW_REFUSED', labelKey: 'notification_prefs.workflow_refused' },
+  { key: 'COMMENT_ADDED', labelKey: 'notification_prefs.comment_added' },
+];
+
+function NotificationPrefsSection() {
+  const { t } = useTranslation();
+  const { prefs, isLoading, updatePrefs, isUpdating } = useNotificationPrefs();
+  const [savedSuccess, setSavedSuccess] = useState(false);
+
+  const defaultPrefs: NotificationPrefs = {
+    STEP_APPROVED: true,
+    STEP_REFUSED: true,
+    WORKFLOW_COMPLETED: true,
+    WORKFLOW_REFUSED: true,
+    COMMENT_ADDED: true,
+  };
+
+  const currentPrefs: NotificationPrefs = prefs ?? defaultPrefs;
+
+  const handleToggle = (key: keyof NotificationPrefs) => {
+    const updated: NotificationPrefs = { ...currentPrefs, [key]: !currentPrefs[key] };
+    setSavedSuccess(false);
+    updatePrefs(updated);
+    // Show brief success feedback
+    setTimeout(() => setSavedSuccess(true), 300);
+    setTimeout(() => setSavedSuccess(false), 2500);
+  };
+
+  return (
+    <div className="mt-6 rounded-lg bg-white p-6 shadow">
+      <h3 className="mb-1 text-lg font-semibold text-gray-800">{t('notification_prefs.title')}</h3>
+      <p className="mb-4 text-sm text-gray-500">{t('notification_prefs.description')}</p>
+
+      {isLoading ? (
+        <p className="text-sm text-gray-400">{t('common.loading')}</p>
+      ) : (
+        <div className="space-y-3">
+          {PREF_TYPES.map(({ key, labelKey }) => (
+            <label key={key} className="flex items-center justify-between gap-4 cursor-pointer select-none">
+              <span className="text-sm text-gray-700">{t(labelKey)}</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={currentPrefs[key]}
+                disabled={isUpdating}
+                onClick={() => handleToggle(key)}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 ${
+                  currentPrefs[key] ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    currentPrefs[key] ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {savedSuccess && (
+        <p className="mt-3 text-sm text-green-600">{t('notification_prefs.saved')}</p>
+      )}
+    </div>
+  );
+}
 
 export function ProfilePage() {
   const { t, i18n } = useTranslation();
@@ -264,6 +337,9 @@ export function ProfilePage() {
             <p className="mt-2 text-sm text-green-600">{t('profile.language_saved')}</p>
           )}
         </div>
+
+        {/* Section 4: Notification Preferences */}
+        <NotificationPrefsSection />
       </main>
     </div>
   );

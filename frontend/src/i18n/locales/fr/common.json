@@ -283,5 +283,37 @@
     "language_section": "Langue",
     "language_saved": "Langue mise \u00e0 jour",
     "current_password_required": "Le mot de passe actuel est requis"
+  },
+  "comments": {
+    "title": "Commentaires",
+    "placeholder": "Ecrire un commentaire...",
+    "submit": "Publier",
+    "closed": "Les commentaires sont ferm\u00e9s sur les workflows termin\u00e9s",
+    "no_access": "Vous n'avez pas acc\u00e8s aux commentaires de ce workflow",
+    "empty": "Aucun commentaire"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "mark_all_read": "Tout marquer comme lu",
+    "empty": "Aucune notification",
+    "step_approved": "Etape {{stepName}} approuv\u00e9e sur {{workflowTitle}}",
+    "step_refused": "Etape {{stepName}} refus\u00e9e sur {{workflowTitle}}",
+    "workflow_completed": "Le workflow {{workflowTitle}} a \u00e9t\u00e9 approuv\u00e9",
+    "workflow_refused": "Le workflow {{workflowTitle}} a \u00e9t\u00e9 refus\u00e9",
+    "comment_added": "Nouveau commentaire sur {{workflowTitle}}",
+    "just_now": "A l'instant",
+    "minutes_ago": "Il y a {{count}} min",
+    "hours_ago": "Il y a {{count}}h",
+    "days_ago": "Il y a {{count}}j"
+  },
+  "notification_prefs": {
+    "title": "Pr\u00e9f\u00e9rences de notification",
+    "description": "Choisissez les notifications que vous souhaitez recevoir",
+    "step_approved": "Etape approuv\u00e9e",
+    "step_refused": "Etape refus\u00e9e",
+    "workflow_completed": "Workflow termin\u00e9",
+    "workflow_refused": "Workflow refus\u00e9",
+    "comment_added": "Nouveau commentaire",
+    "saved": "Pr\u00e9f\u00e9rences enregistr\u00e9es"
   }
 }

@@ -283,5 +283,37 @@
     "language_section": "Language",
     "language_saved": "Language updated",
     "current_password_required": "Current password is required"
+  },
+  "comments": {
+    "title": "Comments",
+    "placeholder": "Write a comment...",
+    "submit": "Post",
+    "closed": "Comments are closed on completed workflows",
+    "no_access": "You do not have access to comments on this workflow",
+    "empty": "No comments yet"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "mark_all_read": "Mark all read",
+    "empty": "No notifications",
+    "step_approved": "Step {{stepName}} approved on {{workflowTitle}}",
+    "step_refused": "Step {{stepName}} refused on {{workflowTitle}}",
+    "workflow_completed": "Workflow {{workflowTitle}} has been approved",
+    "workflow_refused": "Workflow {{workflowTitle}} has been refused",
+    "comment_added": "New comment on {{workflowTitle}}",
+    "just_now": "Just now",
+    "minutes_ago": "{{count}} min ago",
+    "hours_ago": "{{count}}h ago",
+    "days_ago": "{{count}}d ago"
+  },
+  "notification_prefs": {
+    "title": "Notification Preferences",
+    "description": "Choose which notifications you want to receive",
+    "step_approved": "Step approved",
+    "step_refused": "Step refused",
+    "workflow_completed": "Workflow completed",
+    "workflow_refused": "Workflow refused",
+    "comment_added": "New comment",
+    "saved": "Preferences saved"
   }
 }
