@@ -288,7 +288,3 @@ Contributions are welcome! Please:
 ## License
 
 This project is licensed under the **GNU Affero General Public License v3.0** — see the [LICENSE](LICENSE) file for details.
-
-```
-SPDX-License-Identifier: AGPL-3.0-only
-```
