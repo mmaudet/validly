@@ -22,7 +22,7 @@
 
 <p align="center">
   <a href="#features">Features</a> &bull;
-  <a href="#screenshots">Screenshots</a> &bull;
+  <a href="#see-it-in-action">See it in Action</a> &bull;
   <a href="#getting-started">Getting Started</a> &bull;
   <a href="#tech-stack">Tech Stack</a> &bull;
   <a href="#api">API</a> &bull;
@@ -50,22 +50,41 @@ Validly is an open-source, self-hosted document validation workflow engine. It a
 - **Internationalization** — Full FR/EN support (backend emails + frontend UI)
 - **Role-based access** — Admin, Initiateur (initiator), Validateur (validator)
 
-## Screenshots
+## See it in Action
+
+### Dashboard
+
+The dashboard gives you a clear overview of all your validation workflows. Filter by status or date, switch between **My requests** (workflows you initiated), **To validate** (pending decisions assigned to you), and **Templates**. Admin users also get access to a **Users** management tab.
 
 <p align="center">
-  <img src="docs/screenshots/login.png" alt="Login page" width="720" /><br/>
-  <em>Login page</em>
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard — workflow list with filters" width="720" />
 </p>
 
-<p align="center">
-  <img src="docs/screenshots/dashboard.png" alt="Dashboard — workflow list with filters" width="720" /><br/>
-  <em>Dashboard — workflow list with filters</em>
-</p>
+### Design your Validation Circuit
+
+Creating a workflow is a guided 3-step process: attach documents, design your approval circuit, and review before launch.
+
+The circuit builder is where the power lives. Each workflow is organized into **phases** that execute sequentially, and each phase contains one or more **steps** that can run in **sequential** or **parallel** mode. For every step, you configure:
+
+- **Quorum rule** — Unanimity (all must approve), majority, or any-of-N with a custom threshold
+- **Validator emails** — Invite internal or external reviewers by email; they receive action links directly in their inbox
+- **Deadline** — Optional time limit (in hours) after which reminders are sent automatically
 
 <p align="center">
-  <img src="docs/screenshots/workflow-detail.png" alt="Workflow detail — phases, steps, and documents" width="720" /><br/>
-  <em>Workflow detail — progression, validation steps, and attached documents</em>
+  <img src="docs/screenshots/workflow-circuit.png" alt="Circuit builder — phase and step configuration" width="720" />
 </p>
+
+Recurring approval processes? Use **Load template** to pre-fill the circuit from a saved template, then adjust as needed. Templates store the full circuit structure (phases, steps, quorum rules, execution modes) so you never have to rebuild from scratch.
+
+### Track Progress in Real Time
+
+Once launched, each workflow displays its live progression: which phase is active, which steps are pending or completed, and who has yet to respond. Attached documents (PDF, DOCX, XLSX, images...) are available for preview and download directly from the detail page.
+
+<p align="center">
+  <img src="docs/screenshots/workflow-detail.png" alt="Workflow detail — progression, steps, and documents" width="720" />
+</p>
+
+Every action — approval, rejection, delegation, cancellation — is recorded in an **immutable audit trail**, backed by database triggers that guarantee traceability even in case of application-level bugs.
 
 ## Getting Started
 
