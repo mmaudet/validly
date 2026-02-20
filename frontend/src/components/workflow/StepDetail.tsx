@@ -82,7 +82,7 @@ export function StepDetail({ phase }: StepDetailProps) {
             {/* Quorum + deadline row — stacks vertically on mobile */}
             <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-sm text-gray-600">
               <div>
-                <span className="font-medium text-gray-700">{t('workflow.quorum_unanimity').startsWith('U') ? 'Quorum' : 'Quorum'}: </span>
+                <span className="font-medium text-gray-700">{t('workflow.quorum_label')}: </span>
                 {getQuorumLabel(step)}
               </div>
               <div>

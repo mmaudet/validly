@@ -189,19 +189,19 @@ export function WorkflowDetailPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-3">
-          <Link to="/dashboard" className="text-sm text-blue-600 hover:underline">
+        <div className="mx-auto flex max-w-5xl items-center gap-2 sm:gap-4 px-4 py-3 flex-wrap">
+          <Link to="/dashboard" className="text-sm text-blue-600 hover:underline shrink-0">
             &larr; {t('common.back')}
           </Link>
-          <h1 className="text-xl font-bold text-gray-900">{workflow.title}</h1>
-          <span className={`ml-auto inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[workflow.status] ?? statusColors.PENDING}`}>
+          <h1 className="text-xl font-bold text-gray-900 min-w-0 truncate">{workflow.title}</h1>
+          <span className={`ml-auto inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 ${statusColors[workflow.status] ?? statusColors.PENDING}`}>
             {t(`workflow.${workflow.status.toLowerCase()}`)}
           </span>
           {/* Bell icon — opens NotificationCenter slide-out */}
           <button
             type="button"
             onClick={() => setNotifOpen(true)}
-            className="relative ml-2 text-gray-500 hover:text-gray-700"
+            className="relative text-gray-500 hover:text-gray-700 min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0"
             title={t('notifications.title')}
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -218,7 +218,7 @@ export function WorkflowDetailPage() {
 
       <main className="mx-auto max-w-5xl px-4 py-6 space-y-6">
         {/* Info bar */}
-        <div className="flex flex-wrap gap-6 text-sm text-gray-600">
+        <div className="flex flex-wrap gap-3 sm:gap-6 text-sm text-gray-600">
           <div>
             <span className="font-medium text-gray-900">{t('dashboard.initiated_by')}:</span>{' '}
             {workflow.initiator.name} ({workflow.initiator.email})
@@ -257,39 +257,44 @@ export function WorkflowDetailPage() {
                 const isExpanded = expandedDocIds.has(doc.id);
                 return (
                   <div key={doc.id} className="rounded-lg bg-white shadow overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      <span className="text-gray-400 text-lg">&#128196;</span>
-                      <span className="text-sm font-medium text-gray-800 flex-1">{doc.title}</span>
-                      <button
-                        type="button"
-                        onClick={() => toggleDoc(doc.id)}
-                        className="text-xs text-blue-600 hover:underline"
-                      >
-                        {isExpanded ? t('workflow.preview') : t('workflow.preview')}
-                      </button>
-                      <a
-                        href={`/api/documents/${doc.id}/file`}
-                        download={doc.title}
-                        className="text-xs text-gray-500 hover:underline"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const token = localStorage.getItem('token');
-                          fetch(`/api/documents/${doc.id}/file`, {
-                            headers: token ? { Authorization: `Bearer ${token}` } : {},
-                          })
-                            .then((r) => r.blob())
-                            .then((blob) => {
-                              const url = URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = doc.title;
-                              a.click();
-                              URL.revokeObjectURL(url);
-                            });
-                        }}
-                      >
-                        {t('workflow.download')}
-                      </a>
+                    {/* Document row — stacks vertically on mobile */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-4 py-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <span className="text-gray-400 text-lg shrink-0">&#128196;</span>
+                        <span className="text-sm font-medium text-gray-800 truncate">{doc.title}</span>
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => toggleDoc(doc.id)}
+                          className="text-sm text-blue-600 hover:underline px-3 py-2 min-h-[44px] inline-flex items-center"
+                        >
+                          {isExpanded ? t('workflow.preview') : t('workflow.preview')}
+                        </button>
+                        <a
+                          href={`/api/documents/${doc.id}/file`}
+                          download={doc.title}
+                          className="text-sm text-gray-500 hover:underline px-3 py-2 min-h-[44px] inline-flex items-center"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const token = localStorage.getItem('token');
+                            fetch(`/api/documents/${doc.id}/file`, {
+                              headers: token ? { Authorization: `Bearer ${token}` } : {},
+                            })
+                              .then((r) => r.blob())
+                              .then((blob) => {
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = doc.title;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                              });
+                          }}
+                        >
+                          {t('workflow.download')}
+                        </a>
+                      </div>
                     </div>
                     {isExpanded && (
                       <div className="border-t border-gray-100 px-4 py-3">
@@ -314,7 +319,7 @@ export function WorkflowDetailPage() {
               type="button"
               onClick={() => notifyMutation.mutate()}
               disabled={notifyCooldown || notifyMutation.isPending}
-              className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50"
+              className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50 min-h-[44px] inline-flex items-center"
             >
               {t('workflow.notify_button')}
             </button>
@@ -327,7 +332,7 @@ export function WorkflowDetailPage() {
             <button
               type="button"
               onClick={() => setShowCancelDialog(true)}
-              className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+              className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 min-h-[44px] inline-flex items-center"
             >
               {t('workflow.cancel_button')}
             </button>
@@ -344,18 +349,19 @@ export function WorkflowDetailPage() {
 
         {/* Audit trail */}
         <section>
-          <div className="flex items-center justify-between mb-3">
+          {/* Audit header — stacks vertically on mobile */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
             <h2 className="text-sm font-semibold text-gray-700">{t('audit.trail')}</h2>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowAudit(!showAudit)}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-blue-600 hover:underline min-h-[44px] inline-flex items-center px-1"
               >
                 {showAudit ? t('audit.hide') : t('audit.show')}
               </button>
               <button
                 onClick={handleExportCsv}
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-blue-600 hover:underline min-h-[44px] inline-flex items-center px-1"
               >
                 {t('audit.export_csv')}
               </button>
@@ -363,7 +369,8 @@ export function WorkflowDetailPage() {
           </div>
 
           {showAudit && audit.data && (
-            <div className="rounded-lg bg-white shadow overflow-hidden">
+            /* overflow-x-auto enables horizontal scroll for wide audit table on mobile */
+            <div className="rounded-lg bg-white shadow overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
@@ -375,9 +382,9 @@ export function WorkflowDetailPage() {
                 <tbody className="divide-y divide-gray-100">
                   {audit.data.map((event) => (
                     <tr key={event.id}>
-                      <td className="px-4 py-2 text-gray-600">{new Date(event.createdAt).toLocaleString()}</td>
+                      <td className="px-4 py-2 text-gray-600 whitespace-nowrap">{new Date(event.createdAt).toLocaleString()}</td>
                       <td className="px-4 py-2 text-gray-800">{event.action}</td>
-                      <td className="px-4 py-2 text-gray-600">{event.actorEmail}</td>
+                      <td className="px-4 py-2 text-gray-600 whitespace-nowrap">{event.actorEmail}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -192,14 +192,15 @@ export function TemplateFormPage() {
             <button
               type="button"
               onClick={() => navigate('/dashboard')}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-gray-500 hover:text-gray-700 min-h-[44px] inline-flex items-center px-2"
             >
               {t('template.cancel')}
             </button>
           </div>
         </header>
 
-        <main className="mx-auto max-w-3xl px-4 py-8">
+        {/* py-4 on mobile, py-8 on sm+ — circuit builder is optimized for 768px+ tablet width */}
+        <main className="mx-auto max-w-3xl px-4 py-4 sm:py-8">
           {/* Page title */}
           <h2 className="mb-6 text-2xl font-semibold text-gray-900">
             {isEdit ? t('template.page_title_edit') : t('template.page_title_create')}
@@ -259,7 +260,7 @@ export function TemplateFormPage() {
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="rounded-md bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                  className="rounded-md bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 min-h-[44px] inline-flex items-center"
                 >
                   {isPending ? t('common.loading') : t('template.save')}
                 </button>
