@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 15 of 15 (Polish Completion)
-Plan: 2 of 3
-Status: In Progress
-Last activity: 2026-02-20 — Plan 15-02 complete: WorkflowDetailPage, WorkflowStepper, StepDetail, TemplateFormPage responsive
+Plan: 3 of 3
+Status: Complete
+Last activity: 2026-02-20 — Plan 15-03 complete: i18n audit and password reset email (tWithLang)
 
-Progress: [█████████░] 80% (v1.1)
+Progress: [██████████] 100% (v1.1)
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [█████████░] 80% (v1.1)
 | Phase 13 P06 | 5 | 2 tasks | 8 files |
 | Phase 14 P01 | 2 | 3 tasks | 7 files |
 | Phase 14 P02 | 4 | 3 tasks | 8 files |
+| Phase 15 P03 | 5 | 2 tasks | 8 files |
 | Phase 15 P02 | 3 | 2 tasks | 4 files |
 
 ## Accumulated Context
@@ -85,6 +86,8 @@ Progress: [█████████░] 80% (v1.1)
 - [Phase 14]: useUnreadCount shares queryKey ['notifications'] with useNotifications — single TanStack cache entry for 30s polling, no duplicate requests
 - [Phase 15]: WorkflowStepper keeps horizontal layout (not vertical) — horizontal scrollable stepper is more intuitive for a progress indicator
 - [Phase 15]: TemplateFormPage CircuitBuilderStep is tablet-minimum (768px+) by design — complex nested form not suitable for phone-width screens
+- [15-03] sendPasswordReset() uses tWithLang() for both subject and body — establishes v1.1 standard (existing templates use inline ternary for body; new templates should use tWithLang)
+- [15-03] validation namespace added for reusable form error strings, independent of auth.* page-specific keys
 
 ### v1.1 Key Constraints (from research)
 
@@ -114,5 +117,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 15-02-PLAN.md — WorkflowDetailPage, WorkflowStepper, StepDetail, TemplateFormPage responsive
+Stopped at: Completed 15-03-PLAN.md — i18n audit and password reset email (tWithLang)
 Resume file: None

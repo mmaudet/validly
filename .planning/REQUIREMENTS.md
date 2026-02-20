@@ -61,14 +61,14 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 - [x] **RESP-01**: ActionConfirmPage (email action link target) fully usable on mobile (375px+)
 - [x] **RESP-02**: Login and signup pages fully usable on mobile
 - [ ] **RESP-03**: Dashboard list views readable and navigable on mobile
-- [ ] **RESP-04**: Workflow detail page (stepper, comments, actions) usable on mobile
-- [ ] **RESP-05**: Touch targets minimum 44x44px on all interactive elements
+- [x] **RESP-04**: Workflow detail page (stepper, comments, actions) usable on mobile
+- [x] **RESP-05**: Touch targets minimum 44x44px on all interactive elements
 - [ ] **RESP-06**: Mobile-friendly navigation (hamburger menu or equivalent)
 
 ### Internationalization
 
-- [ ] **I18N-01**: All new v1.1 UI surfaces have complete FR and EN translations
-- [ ] **I18N-02**: All new v1.1 email templates (password reset) have FR and EN versions
+- [x] **I18N-01**: All new v1.1 UI surfaces have complete FR and EN translations
+- [x] **I18N-02**: All new v1.1 email templates (password reset) have FR and EN versions
 
 ## v2+ Requirements
 
@@ -143,11 +143,11 @@ Deferred to future releases. Tracked but not in current roadmap.
 | NOTIF-06 | Phase 14 | Complete |
 | NOTIF-07 | Phase 14 | Complete |
 | RESP-03 | Phase 15 | Pending |
-| RESP-04 | Phase 15 | Pending |
-| RESP-05 | Phase 15 | Pending |
+| RESP-04 | Phase 15 | Complete |
+| RESP-05 | Phase 15 | Complete |
 | RESP-06 | Phase 15 | Pending |
-| I18N-01 | Phase 15 | Pending |
-| I18N-02 | Phase 15 | Pending |
+| I18N-01 | Phase 15 | Complete |
+| I18N-02 | Phase 15 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 39 total
