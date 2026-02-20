@@ -319,5 +319,12 @@
     "workflow_refused": "Workflow refused",
     "comment_added": "New comment",
     "saved": "Preferences saved"
+  },
+  "validation": {
+    "required": "This field is required",
+    "email_invalid": "Please enter a valid email",
+    "password_min": "Password must be at least {{min}} characters",
+    "password_mismatch": "Passwords do not match",
+    "name_min": "Name must be at least {{min}} characters"
   }
 }

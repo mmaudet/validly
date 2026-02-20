@@ -260,18 +260,18 @@ export function DashboardPage() {
           <h2 className="text-lg font-semibold text-gray-800">{t('nav.dashboard')}</h2>
           <Link
             to="/workflows/new"
-            className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
+            className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition min-h-[44px]"
           >
             {t('workflow.create')}
           </Link>
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 border-b border-gray-200">
-          <div className="flex gap-0">
+        <div className="mb-6 border-b border-gray-200 overflow-x-auto">
+          <div className="flex flex-nowrap gap-0">
             <button
               onClick={() => handleTabChange('submissions')}
-              className={`relative px-6 py-3 text-sm font-medium transition border-b-2 -mb-px ${
+              className={`relative px-3 sm:px-6 py-3 text-sm font-medium transition border-b-2 -mb-px min-h-[44px] whitespace-nowrap ${
                 tab === 'submissions'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
@@ -281,7 +281,7 @@ export function DashboardPage() {
             </button>
             <button
               onClick={() => handleTabChange('pending')}
-              className={`relative flex items-center gap-2 px-6 py-3 text-sm font-medium transition border-b-2 -mb-px ${
+              className={`relative flex items-center gap-2 px-3 sm:px-6 py-3 text-sm font-medium transition border-b-2 -mb-px min-h-[44px] whitespace-nowrap ${
                 tab === 'pending'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
@@ -296,7 +296,7 @@ export function DashboardPage() {
             </button>
             <button
               onClick={() => handleTabChange('templates')}
-              className={`relative flex items-center gap-2 px-6 py-3 text-sm font-medium transition border-b-2 -mb-px ${
+              className={`relative flex items-center gap-2 px-3 sm:px-6 py-3 text-sm font-medium transition border-b-2 -mb-px min-h-[44px] whitespace-nowrap ${
                 tab === 'templates'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
@@ -307,7 +307,7 @@ export function DashboardPage() {
             {isAdmin && (
               <button
                 onClick={() => handleTabChange('users')}
-                className={`relative flex items-center gap-2 px-6 py-3 text-sm font-medium transition border-b-2 -mb-px ${
+                className={`relative flex items-center gap-2 px-3 sm:px-6 py-3 text-sm font-medium transition border-b-2 -mb-px min-h-[44px] whitespace-nowrap ${
                   tab === 'users'
                     ? 'border-purple-600 text-purple-700 bg-purple-50'
                     : 'border-transparent text-purple-600 bg-purple-50/50 hover:bg-purple-50 hover:border-purple-300'
@@ -379,19 +379,19 @@ function FilterBar({
   const hasFilters = Object.values(filters).some((v) => v !== '');
 
   return (
-    <div className="mb-4 flex flex-wrap gap-2 items-center">
+    <div className="mb-4 flex flex-col sm:flex-row sm:flex-wrap gap-2 items-start sm:items-center">
       <input
         type="text"
         value={filters.search}
         onChange={(e) => onFilterChange('search', e.target.value)}
         placeholder={t('dashboard.filter_search')}
-        className="rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-48"
+        className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-full sm:w-48 min-h-[44px]"
       />
       {showStatus && (
         <select
           value={filters.status}
           onChange={(e) => onFilterChange('status', e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-full sm:w-auto min-h-[44px]"
         >
           <option value="">{t('dashboard.filter_status')}</option>
           <option value="IN_PROGRESS">{t('status.in_progress')}</option>
@@ -408,7 +408,7 @@ function FilterBar({
           type="date"
           value={filters.dateFrom}
           onChange={(e) => onFilterChange('dateFrom', e.target.value)}
-          className="rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="rounded-md border border-gray-300 px-2 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[44px]"
         />
       </div>
       <div className="flex items-center gap-1 text-sm text-gray-500">
@@ -417,7 +417,7 @@ function FilterBar({
           type="date"
           value={filters.dateTo}
           onChange={(e) => onFilterChange('dateTo', e.target.value)}
-          className="rounded-md border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="rounded-md border border-gray-300 px-2 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[44px]"
         />
       </div>
       {showInitiator && (
@@ -426,14 +426,14 @@ function FilterBar({
           value={filters.initiator}
           onChange={(e) => onFilterChange('initiator', e.target.value)}
           placeholder={t('dashboard.filter_initiator')}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-40"
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-full sm:w-40 min-h-[44px]"
         />
       )}
       {hasFilters && (
         <button
           type="button"
           onClick={onClearFilters}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 min-h-[44px]"
         >
           {t('dashboard.clear_filters')}
         </button>
@@ -525,7 +525,7 @@ function SubmissionsTab({
 
       {/* Bulk archive action bar */}
       {selectedIds.size > 0 && (
-        <div className="mb-3 flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5">
+        <div className="mb-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5">
           <span className="text-sm font-medium text-blue-800">
             {t('dashboard.selected_count', { count: selectedIds.size })}
           </span>
@@ -571,7 +571,7 @@ function SubmissionsTab({
                   {t('dashboard.column_status')}
                 </th>
                 <SortHeader label={t('dashboard.column_date')} field="date" sort={sort} onSort={onSort} />
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
                   {t('dashboard.column_step')}
                 </th>
                 {!showArchived && (
@@ -590,7 +590,7 @@ function SubmissionsTab({
                   <tr
                     key={wf.id}
                     onClick={() => window.location.href = `/workflows/${wf.id}`}
-                    className="cursor-pointer hover:bg-gray-50 transition"
+                    className="cursor-pointer hover:bg-gray-50 transition min-h-[44px]"
                   >
                     {!showArchived && (
                       <td className="w-10 px-3 py-3" onClick={(e) => e.stopPropagation()}>
@@ -608,10 +608,10 @@ function SubmissionsTab({
                     <td className="px-4 py-3">
                       <StatusBadge status={wf.status} />
                     </td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                       {new Date(wf.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="hidden sm:table-cell px-4 py-3 text-gray-500">
                       {currentPhase?.name ?? '—'}
                     </td>
                     {!showArchived && (
@@ -687,7 +687,7 @@ function PendingTab({
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
                   {t('dashboard.column_initiator')}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <th className="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">
                   {t('dashboard.column_date')}
                 </th>
               </tr>
@@ -697,7 +697,7 @@ function PendingTab({
                 <tr
                   key={step.id}
                   onClick={() => window.location.href = `/workflows/${step.phase.workflow.id}`}
-                  className="cursor-pointer hover:bg-gray-50 transition"
+                  className="cursor-pointer hover:bg-gray-50 transition min-h-[44px]"
                 >
                   <td className="px-4 py-3 font-medium text-gray-900">{step.phase.workflow.title}</td>
                   <td className="px-4 py-3 text-gray-600">
@@ -705,8 +705,8 @@ function PendingTab({
                     <span className="mx-1 text-gray-400">&middot;</span>
                     <span className="text-gray-500">{step.phase.name}</span>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{step.phase.workflow.initiator.name}</td>
-                  <td className="px-4 py-3 text-gray-500">
+                  <td className="px-4 py-3 text-gray-600 max-w-[120px] truncate">{step.phase.workflow.initiator.name}</td>
+                  <td className="hidden sm:table-cell px-4 py-3 text-gray-500">
                     {new Date(step.phase.workflow.createdAt).toLocaleDateString()}
                   </td>
                 </tr>
@@ -1031,7 +1031,7 @@ function UsersTab() {
                   {t('dashboard.column_date')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Actions
+                  {t('admin.column_actions')}
                 </th>
               </tr>
             </thead>

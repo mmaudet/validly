@@ -11,7 +11,8 @@
     "logout": "D\u00e9connexion",
     "users": "Utilisateurs",
     "profile": "Profil",
-    "menu": "Menu"
+    "menu": "Menu",
+    "notifications": "Notifications"
   },
   "auth": {
     "login": "Se connecter",
@@ -70,6 +71,7 @@
     "quorum_unanimity": "Unanimit\u00e9",
     "quorum_majority": "Majorit\u00e9",
     "quorum_any_of": "{{count}} sur {{total}}",
+    "quorum_label": "Quorum",
     "execution_sequential": "S\u00e9quentiel",
     "execution_parallel": "Parall\u00e8le",
     "no_deadline": "Pas de deadline",
@@ -229,7 +231,8 @@
     "role_validateur": "Validateur",
     "no_users": "Aucun utilisateur trouv\u00e9",
     "last_admin_error": "Impossible de supprimer le dernier administrateur",
-    "email_exists": "Cet email est d\u00e9j\u00e0 utilis\u00e9"
+    "email_exists": "Cet email est d\u00e9j\u00e0 utilis\u00e9",
+    "column_actions": "Actions"
   },
   "dialog": {
     "cancel": "Annuler",
@@ -316,5 +319,12 @@
     "workflow_refused": "Workflow refus\u00e9",
     "comment_added": "Nouveau commentaire",
     "saved": "Pr\u00e9f\u00e9rences enregistr\u00e9es"
+  },
+  "validation": {
+    "required": "Ce champ est requis",
+    "email_invalid": "Veuillez entrer un email valide",
+    "password_min": "Le mot de passe doit contenir au moins {{min}} caract\u00e8res",
+    "password_mismatch": "Les mots de passe ne correspondent pas",
+    "name_min": "Le nom doit contenir au moins {{min}} caract\u00e8res"
   }
 }
