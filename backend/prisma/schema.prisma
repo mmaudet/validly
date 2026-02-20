@@ -23,6 +23,8 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  notificationPrefs    Json?              @map("notification_prefs")
+
   documents            Document[]
   workflowInstances    WorkflowInstance[]
   workflowActions      WorkflowAction[]
