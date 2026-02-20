@@ -4,9 +4,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link, useNavigate } from 'react-router';
 import { apiFetch } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
+import { useUnreadCount } from '../hooks/useNotifications';
 import { WorkflowStepper } from '../components/workflow/WorkflowStepper';
 import { StepDetail } from '../components/workflow/StepDetail';
 import { DocumentPreview } from '../components/workflow/DocumentPreview';
+import { CommentThread } from '../components/workflow/CommentThread';
+import { NotificationCenter } from '../components/ui/NotificationCenter';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 interface Action {
@@ -92,6 +95,8 @@ export function WorkflowDetailPage() {
   const [notifyCooldown, setNotifyCooldown] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [notifyError, setNotifyError] = useState<string | null>(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const unreadCount = useUnreadCount();
 
   const { data: workflow, isLoading } = useQuery({
     queryKey: ['workflow', id],
@@ -192,6 +197,22 @@ export function WorkflowDetailPage() {
           <span className={`ml-auto inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[workflow.status] ?? statusColors.PENDING}`}>
             {t(`workflow.${workflow.status.toLowerCase()}`)}
           </span>
+          {/* Bell icon — opens NotificationCenter slide-out */}
+          <button
+            type="button"
+            onClick={() => setNotifOpen(true)}
+            className="relative ml-2 text-gray-500 hover:text-gray-700"
+            title={t('notifications.title')}
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+            </svg>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white leading-none">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
         </div>
       </header>
 
@@ -316,6 +337,11 @@ export function WorkflowDetailPage() {
           </section>
         )}
 
+        {/* Comment Thread */}
+        <section>
+          <CommentThread workflowId={workflow.id} workflowStatus={workflow.status} />
+        </section>
+
         {/* Audit trail */}
         <section>
           <div className="flex items-center justify-between mb-3">
@@ -360,6 +386,9 @@ export function WorkflowDetailPage() {
           )}
         </section>
       </main>
+
+      {/* Notification center slide-out panel */}
+      <NotificationCenter open={notifOpen} onClose={() => setNotifOpen(false)} />
 
       {/* Cancel confirmation dialog */}
       <ConfirmDialog
