@@ -116,15 +116,6 @@ Create `backend/.env` from the example below:
 DATABASE_URL=postgresql://validly:validly_dev@localhost:5432/validly
 REDIS_URL=redis://localhost:6379
 
-# JWT authentication secrets
-# Generate secure random secrets with:
-#   node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
-# or:
-#   openssl rand -hex 64
-#
-# JWT_SECRET is used to sign short-lived access tokens (default: 15 min).
-# JWT_REFRESH_SECRET is used to sign long-lived refresh tokens (default: 7 days).
-# Both must be unique, random, and kept confidential in production.
 JWT_SECRET=<generated-access-token-secret>
 JWT_REFRESH_SECRET=<generated-refresh-token-secret>
 
@@ -140,6 +131,20 @@ APP_URL=http://localhost:5173
 # File storage
 STORAGE_PATH=./storage
 ```
+
+> **About JWT secrets** — Validly uses [JSON Web Tokens](https://jwt.io/introduction) for stateless authentication. When a user logs in, the server returns two signed tokens instead of creating a server-side session:
+>
+> - **`JWT_SECRET`** signs short-lived **access tokens** (~15 min). The frontend sends this token with every API request so the server can identify the caller without hitting the database.
+> - **`JWT_REFRESH_SECRET`** signs long-lived **refresh tokens** (~7 days). When the access token expires, the frontend silently uses the refresh token to obtain a new one — no password prompt needed.
+>
+> Two separate secrets ensure that compromising one does not allow forging the other token type. Both must be **random** and **kept confidential**: anyone who knows a secret can forge valid tokens for any user.
+>
+> Generate each secret with:
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+> # or
+> openssl rand -hex 64
+> ```
 
 4. **Start infrastructure services**
 
