@@ -32,19 +32,19 @@ Any validator can approve or refuse a document directly from their email, withou
 - 3-role RBAC: Admin, Initiateur, Validateur — v1.0
 - Workflow archiving (single + bulk) — v1.0
 - Multi-step creation wizard with document upload, circuit builder, template loading — v1.0
+- Password reset via secure single-use email link (TOCTOU-safe, anti-enumeration) — v1.1
+- User profile page: edit name, change password (session invalidation), switch language — v1.1
+- In-app notification center: bell badge, panel, mark-read, 30s polling — v1.1
+- Notification preferences: per-type toggle (step approved/refused, workflow completed/refused, comment added) — v1.1
+- Workflow comment thread: chronological, append-only, disabled on terminal states — v1.1
+- DOCX in-browser preview via client-side conversion (DOMPurify sanitized) — v1.1
+- Mobile-responsive layout: hamburger nav, 375px+ support, 44px touch targets — v1.1
+- Error pages (404, 500) + React error boundary + Zod form validation + mapApiError — v1.1
+- Complete FR/EN i18n on all v1.1 surfaces and email templates — v1.1
 
 ### Active
 
-- [ ] Password reset via email link
-- [ ] User profile page (edit name, change password, language preference)
-- [ ] Notification preferences (toggle categories)
-- [ ] In-app notification center (validation events: pending step, approved, refused, cancelled)
-- [ ] Workflow comments thread (discussion on workflow detail page)
-- [ ] DOCX in-browser preview (mammoth.js client-side rendering)
-- [ ] File type icons in document lists
-- [ ] Responsive layout for mobile browsers
-- [ ] User-friendly error pages (404, 500, network errors)
-- [ ] Form validation improvements (inline errors, better feedback)
+(None — next milestone not yet defined)
 
 ### Out of Scope
 
@@ -59,6 +59,12 @@ Any validator can approve or refuse a document directly from their email, withou
 - Third-party integrations (GED, office suites) — defer post-v1
 - Drag-and-drop visual workflow editor — form-based creation covers use cases
 - WCAG 2.1 AA full compliance — good practices but no formal audit in v1
+- Rich text comments — XSS complexity, plain text sufficient
+- @mentions in threads — typeahead + routing complexity not justified yet
+- WebSocket/SSE notifications — 30s polling adequate for async workflows
+- Browser push notifications — service worker overhead not warranted
+- Avatar uploads — image resize pipeline disproportionate for internal tool
+- 2FA/TOTP — separate security hardening milestone
 
 ## Context
 
@@ -66,11 +72,12 @@ Any validator can approve or refuse a document directly from their email, withou
 - **Sovereign approach**: self-hostable, no dependency on proprietary cloud services
 - **Target market**: French public administrations, enterprises, associations — and international organizations
 - **Competitors**: DocuSign Workflow, Adobe Sign, Kissflow, ProcessMaker, Bonita — all proprietary, complex, or expensive
-- **Shipped v1.0** with 8,971 LOC TypeScript across 127 files
+- **Shipped v1.1** with 11,432 LOC TypeScript across ~170 files
 - **Tech stack**: Node.js 22, Fastify 5, Prisma 6, PostgreSQL 15, BullMQ 5, Redis 7, React 19, Vite 6, Tailwind v4, TanStack Query 5
 - **File storage**: abstracted local filesystem via StorageAdapter (swappable to MinIO)
 - **Workflow engine**: internal state machine (finite automaton), no external BPMN engine dependency
 - **Repository**: github.com/mmaudet/validly
+- **Known tech debt**: `reply.status(400 as any)` cast in auth routes (Fastify type limitation), TemplateFormPage circuit builder tablet-minimum by design
 
 ## Constraints
 
@@ -95,18 +102,12 @@ Any validator can approve or refuse a document directly from their email, withou
 | executionMode (form) vs execution (API) | react-hook-form naming vs backend schema | Good — clear boundary |
 | PostgreSQL triggers for audit immutability | DB-level enforcement, not application-level | Good — tamper-proof |
 | BullMQ for deadline/reminder scheduling | Reliable job processing with Redis | Good — async, idempotent |
-
-## Current Milestone: v1.1 UX Polish
-
-**Goal:** Improve user experience with password reset, user profiles, in-app notifications, workflow comments, DOCX preview, responsive layout, and better error handling.
-
-**Target features:**
-- Password reset + user profile/settings
-- In-app notification center with configurable preferences
-- Workflow discussion thread
-- DOCX client-side preview (mammoth.js)
-- Responsive mobile layout
-- Error handling improvements
+| Notification.type as String (not Prisma enum) | Avoid enum migration pitfalls in future phases | Good — flexible |
+| Atomic token consumption via updateMany | Prevents TOCTOU race conditions on password reset | Good — secure |
+| REST polling 30s for notifications | Async workflow timescales make WebSocket unnecessary | Good — simple |
+| mapApiError wired into apiFetch | All API errors auto-translate, single integration point | Good — DRY |
+| MobileNav as stateless component with props | DashboardPage stays single source of truth for auth state | Good — clean separation |
+| Zod error messages as i18n keys | Components call t() at render time, supports language switching | Good — i18n-native |
 
 ---
-*Last updated: 2026-02-20 after v1.1 milestone start*
+*Last updated: 2026-02-20 after v1.1 UX Polish milestone*

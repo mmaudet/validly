@@ -19,3 +19,22 @@
 
 ---
 
+## v1.1 UX Polish (Shipped: 2026-02-20)
+
+**Phases completed:** 4 phases, 12 plans, 50 commits
+**Lines of code:** 11,432 TypeScript (+10,489 / -1,335 over v1.0)
+**Timeline:** 2026-02-20
+**Requirements:** 39/39 satisfied
+**Audit:** passed (39/39 requirements, 7/7 E2E flows)
+
+**Key accomplishments:**
+- Password reset with TOCTOU-safe atomic token consumption, anti-enumeration response, and session invalidation
+- User profile page: edit display name, change password (ghost session prevention), switch language (EN/FR persisted to DB)
+- In-app notification center with bell icon badge (30s polling), notification panel, mark read, and per-type preference toggles
+- Workflow comment thread: chronological plain-text comments below stepper, append-only audit-consistent, disabled on terminal states
+- DOCX in-browser preview via docx-preview + DOMPurify sanitization (XSS-safe, dynamic import)
+- Mobile-responsive layout: hamburger navigation on all 5 authenticated pages, 375px+ support, 44px touch targets
+- Error handling: 404/500 pages, React error boundary, Zod form validation with i18n, mapApiError wiring for translated API errors
+- Complete FR/EN i18n on all new v1.1 surfaces and password reset email template (tWithLang pattern)
+
+---
