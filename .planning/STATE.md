@@ -57,6 +57,7 @@ Progress: [██████████] 100% (v1.1)
 | Phase 14 P02 | 4 | 3 tasks | 8 files |
 | Phase 15 P03 | 5 | 2 tasks | 8 files |
 | Phase 15 P02 | 3 | 2 tasks | 4 files |
+| Phase 15 P01 | 6 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,8 @@ Progress: [██████████] 100% (v1.1)
 - [Phase 15]: TemplateFormPage CircuitBuilderStep is tablet-minimum (768px+) by design — complex nested form not suitable for phone-width screens
 - [15-03] sendPasswordReset() uses tWithLang() for both subject and body — establishes v1.1 standard (existing templates use inline ternary for body; new templates should use tWithLang)
 - [15-03] validation namespace added for reusable form error strings, independent of auth.* page-specific keys
+- [Phase 15]: MobileNav is stateless re: auth — receives user/callbacks as props, keeps DashboardPage as single source of truth for auth state
+- [Phase 15]: Mobile responsive pattern: sm:hidden for hamburger, hidden sm:flex for desktop items, hidden sm:table-cell for non-essential table columns
 
 ### v1.1 Key Constraints (from research)
 

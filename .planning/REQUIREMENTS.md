@@ -60,10 +60,10 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 
 - [x] **RESP-01**: ActionConfirmPage (email action link target) fully usable on mobile (375px+)
 - [x] **RESP-02**: Login and signup pages fully usable on mobile
-- [ ] **RESP-03**: Dashboard list views readable and navigable on mobile
+- [x] **RESP-03**: Dashboard list views readable and navigable on mobile
 - [x] **RESP-04**: Workflow detail page (stepper, comments, actions) usable on mobile
 - [x] **RESP-05**: Touch targets minimum 44x44px on all interactive elements
-- [ ] **RESP-06**: Mobile-friendly navigation (hamburger menu or equivalent)
+- [x] **RESP-06**: Mobile-friendly navigation (hamburger menu or equivalent)
 
 ### Internationalization
 
@@ -142,10 +142,10 @@ Deferred to future releases. Tracked but not in current roadmap.
 | NOTIF-05 | Phase 14 | Complete |
 | NOTIF-06 | Phase 14 | Complete |
 | NOTIF-07 | Phase 14 | Complete |
-| RESP-03 | Phase 15 | Pending |
+| RESP-03 | Phase 15 | Complete |
 | RESP-04 | Phase 15 | Complete |
 | RESP-05 | Phase 15 | Complete |
-| RESP-06 | Phase 15 | Pending |
+| RESP-06 | Phase 15 | Complete |
 | I18N-01 | Phase 15 | Complete |
 | I18N-02 | Phase 15 | Complete |
 
