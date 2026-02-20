@@ -1,24 +1,41 @@
-# Validly
+<p align="center">
+  <img src="frontend/public/logo.png" alt="Validly" width="140" />
+</p>
+
+<h1 align="center">Validly</h1>
 
 <p align="center">
-  <img src="frontend/public/logo.png" alt="Validly" width="120" />
+  <em>Make your document validation easy</em>
 </p>
 
 <p align="center">
-  <strong>Open-source document validation workflow platform</strong>
+  <a href="https://github.com/mmaudet/validly/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" alt="License: AGPL v3" /></a>
+  <img src="https://img.shields.io/badge/Node.js-%3E%3D22-339933?logo=node.js&logoColor=white" alt="Node.js >= 22" />
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19" />
+  <img src="https://img.shields.io/badge/Fastify-5-000000?logo=fastify&logoColor=white" alt="Fastify 5" />
+  <img src="https://img.shields.io/badge/PostgreSQL-15-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 15" />
+  <img src="https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white" alt="Redis 7" />
+  <img src="https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma&logoColor=white" alt="Prisma 6" />
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white" alt="Docker Ready" />
 </p>
 
 <p align="center">
-  Multi-phase, multi-step approval circuits with email notifications, quorum rules, and full audit trail.
+  <a href="#getting-started">Getting Started</a> &bull;
+  <a href="#features">Features</a> &bull;
+  <a href="#tech-stack">Tech Stack</a> &bull;
+  <a href="#api">API</a> &bull;
+  <a href="#contributing">Contributing</a> &bull;
+  <a href="#license">License</a>
 </p>
 
 ---
 
 ## Overview
 
-Validly is a self-hosted validation workflow engine. It allows organizations to define structured approval circuits (phases and steps) with configurable quorum rules (unanimity, majority, any-of), assign validators via email, attach documents, and track decisions through a complete audit log.
+Validly is an open-source, self-hosted document validation workflow engine. It allows organizations to define structured approval circuits (phases and steps) with configurable quorum rules, assign validators via email, attach documents, and track decisions through a complete audit log.
 
-### Key Features
+## Features
 
 - **Multi-phase approval circuits** — Sequential phases, each with multiple validation steps
 - **Flexible execution modes** — Sequential or parallel step execution within a phase
@@ -88,7 +105,7 @@ validly/
 1. **Clone the repository**
 
 ```bash
-git clone <repository-url>
+git clone git@github.com:mmaudet/validly.git
 cd validly
 ```
 
@@ -100,18 +117,34 @@ npm install
 
 3. **Configure environment**
 
-Create `backend/.env` from the example values:
+Create `backend/.env` from the example below:
 
 ```env
 DATABASE_URL=postgresql://validly:validly_dev@localhost:5432/validly
 REDIS_URL=redis://localhost:6379
-JWT_SECRET=your-secret-key
-JWT_REFRESH_SECRET=your-refresh-secret-key
+
+# JWT authentication secrets
+# Generate secure random secrets with:
+#   node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+# or:
+#   openssl rand -hex 64
+#
+# JWT_SECRET is used to sign short-lived access tokens (default: 15 min).
+# JWT_REFRESH_SECRET is used to sign long-lived refresh tokens (default: 7 days).
+# Both must be unique, random, and kept confidential in production.
+JWT_SECRET=<generated-access-token-secret>
+JWT_REFRESH_SECRET=<generated-refresh-token-secret>
+
+# SMTP configuration
 SMTP_HOST=localhost
 SMTP_PORT=1025
 SMTP_FROM=noreply@validly.local
+
+# Application URLs
 API_URL=http://localhost:3000
 APP_URL=http://localhost:5173
+
+# File storage
 STORAGE_PATH=./storage
 ```
 
@@ -142,9 +175,11 @@ This runs the backend (port 3000) and frontend (port 5173) concurrently.
 
 7. **Open the app**
 
-- Frontend: http://localhost:5173
-- API docs (Swagger): http://localhost:3000/docs
-- Mailpit (email preview): http://localhost:8025
+| Service | URL | Description |
+|---------|-----|-------------|
+| Frontend | http://localhost:5173 | Application UI |
+| API docs | http://localhost:3000/docs | Swagger UI |
+| Mailpit | http://localhost:8025 | Email testing inbox |
 
 ### Docker Compose (Production-like)
 
@@ -154,7 +189,6 @@ To run the full stack via Docker:
 docker compose up -d
 ```
 
-Services:
 | Service | Port | Description |
 |---------|------|-------------|
 | frontend | 8080 | Nginx-served SPA |
@@ -211,4 +245,8 @@ Contributions are welcome! Please:
 
 ## License
 
-This project is not yet licensed. A license will be added soon.
+This project is licensed under the **GNU Affero General Public License v3.0** — see the [LICENSE](LICENSE) file for details.
+
+```
+SPDX-License-Identifier: AGPL-3.0-only
+```
