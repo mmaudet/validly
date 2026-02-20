@@ -6,6 +6,7 @@ import { tokenService } from './token-service.js';
 import { emailService } from './email-service.js';
 import { env } from '../config/env.js';
 import { scheduleReminder, cancelReminder } from './reminder-service.js';
+import { notificationService } from './notification-service.js';
 
 export class WorkflowError extends Error {
   constructor(public statusCode: number, message: string) {
@@ -393,6 +394,73 @@ export const workflowService = {
       }
     } catch (err) {
       console.error('Failed to send initiator notifications:', err);
+    }
+
+    // Create in-app notifications (after transaction commit, never inside $transaction)
+    try {
+      const wfForNotif = await prisma.workflowInstance.findUnique({
+        where: { id: workflow.id },
+        include: {
+          initiator: { select: { id: true } },
+          phases: { include: { steps: { select: { validatorEmails: true } } } },
+        },
+      });
+      if (wfForNotif) {
+        // Collect all validator emails from all steps
+        const allValidatorEmails = new Set<string>();
+        for (const phase of wfForNotif.phases) {
+          for (const wfStep of phase.steps) {
+            for (const email of wfStep.validatorEmails) {
+              allValidatorEmails.add(email);
+            }
+          }
+        }
+
+        // Resolve validator emails to registered user IDs
+        const validatorUsers = await prisma.user.findMany({
+          where: { email: { in: [...allValidatorEmails] } },
+          select: { id: true, email: true },
+        });
+
+        const notifContext = {
+          workflowId: workflow.id,
+          workflowTitle: workflow.title,
+          stepName: step.name,
+          actorEmail: input.actorEmail,
+        };
+
+        // Determine notification type from action
+        const notifType = input.action === 'APPROVE' ? 'STEP_APPROVED' : 'STEP_REFUSED';
+
+        // Deduplicated list of all participant IDs
+        const recipientIds = [
+          wfForNotif.initiator.id,
+          ...validatorUsers.map(u => u.id),
+        ].filter((id, idx, arr) => arr.indexOf(id) === idx);
+
+        const actorUserId = input.actorId;
+        for (const recipientId of recipientIds) {
+          if (recipientId === actorUserId) continue; // don't notify yourself
+          await notificationService.createNotification(recipientId, notifType, notifContext);
+        }
+
+        // If workflow reached a terminal state, send WORKFLOW_COMPLETED or WORKFLOW_REFUSED
+        const isTerminal =
+          result.workflowAdvanced === true ||
+          (result.newStepStatus === 'REFUSED' && result.activatedStep === null && result.stepCompleted);
+
+        if (isTerminal) {
+          const terminalType = result.workflowAdvanced ? 'WORKFLOW_COMPLETED' : 'WORKFLOW_REFUSED';
+          const terminalContext = {
+            workflowId: workflow.id,
+            workflowTitle: workflow.title,
+          };
+          // Notify initiator (primary recipient for terminal notifications)
+          await notificationService.createNotification(wfForNotif.initiator.id, terminalType, terminalContext);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to create in-app notifications:', err);
     }
 
     return result;

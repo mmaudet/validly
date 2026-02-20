@@ -14,6 +14,8 @@ import { actionRoutes } from './api/routes/actions.js';
 import { templateRoutes } from './api/routes/templates.js';
 import { auditRoutes } from './api/routes/audit.js';
 import { userRoutes } from './api/routes/users.js';
+import { commentRoutes } from './api/routes/comments.js';
+import { notificationRoutes } from './api/routes/notifications.js';
 
 export async function buildApp() {
   await initI18n();
@@ -74,6 +76,8 @@ export async function buildApp() {
   await app.register(templateRoutes, { prefix: '/api' });
   await app.register(auditRoutes, { prefix: '/api' });
   await app.register(userRoutes, { prefix: '/api' });
+  await app.register(commentRoutes, { prefix: '/api' });
+  await app.register(notificationRoutes, { prefix: '/api' });
 
   return app;
 }
