@@ -30,7 +30,7 @@
 **Milestone Goal:** Ship password reset, user profiles, in-app notifications, workflow comments, DOCX preview, mobile-responsive layout, and hardened error handling — making Validly comfortable for daily use.
 
 - [x] **Phase 13: Foundation** — Schema migrations, apiFetch fix, password reset, user profile, DOCX preview, error pages, responsive critical paths (completed 2026-02-20)
-- [ ] **Phase 14: Social Features** — Workflow comments thread and in-app notification center
+- [x] **Phase 14: Social Features** — Workflow comments thread and in-app notification center (completed 2026-02-20)
 - [ ] **Phase 15: Polish Completion** — Full responsive layout, i18n on all new surfaces
 
 ## Phase Details
@@ -93,5 +93,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1-12 | v1.0 | — | Complete | 2026-02-20 |
 | 13. Foundation | 6/6 | Complete   | 2026-02-20 | - |
-| 14. Social Features | 1/2 | In Progress|  | - |
+| 14. Social Features | 2/2 | Complete   | 2026-02-20 | - |
 | 15. Polish Completion | v1.1 | 0/3 | Planned | - |

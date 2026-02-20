@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 14 of 15 (Social Features)
-Plan: 1 of 2
-Status: In Progress
-Last activity: 2026-02-20 — Plan 14-01 complete: Backend for comments and notifications (Prisma models, services, routes, workflow engine hooks)
+Plan: 2 of 2
+Status: Complete
+Last activity: 2026-02-20 — Plan 14-02 complete: Frontend for comments and notifications (hooks, components, ProfilePage prefs, i18n)
 
-Progress: [█████░░░░░] 30% (v1.1)
+Progress: [████████░░] 60% (v1.1)
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [█████░░░░░] 30% (v1.1)
 | Phase 13 P03 | 3 | 2 tasks | 8 files |
 | Phase 13 P06 | 5 | 2 tasks | 8 files |
 | Phase 14 P01 | 2 | 3 tasks | 7 files |
+| Phase 14 P02 | 4 | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,8 @@ Progress: [█████░░░░░] 30% (v1.1)
 - [Phase 13]: [13-03] Same 200 response for /auth/forgot-password regardless of email existence (AUTH-04 anti-enumeration)
 - [13-06] Zod v4 + @hookform/resolvers v5: import from 'zod/v3' compat path to satisfy Zod3Type interface (_def.typeName required)
 - [13-06] Zod error messages are i18n keys (not translated strings); components call t(errors.field.message!) at render time
+- [Phase 14]: readAt === null used throughout frontend for unread checks — matches 14-01 backend schema (readAt DateTime? not read Boolean)
+- [Phase 14]: useUnreadCount shares queryKey ['notifications'] with useNotifications — single TanStack cache entry for 30s polling, no duplicate requests
 
 ### v1.1 Key Constraints (from research)
 
@@ -108,5 +111,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 14-01-PLAN.md — Backend for comments and notifications (services, routes, workflow hooks)
+Stopped at: Completed 14-02-PLAN.md — Frontend for comments and notifications (hooks, components, ProfilePage prefs, i18n)
 Resume file: None
