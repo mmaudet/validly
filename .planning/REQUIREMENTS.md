@@ -52,14 +52,14 @@ Requirements for v1.1 UX Polish milestone. Each maps to roadmap phases.
 - [x] **ERR-01**: Dedicated 404 Not Found page with navigation back to dashboard
 - [x] **ERR-02**: Dedicated 500 Server Error page with recovery guidance
 - [x] **ERR-03**: React Router error boundary catches unhandled navigation errors
-- [ ] **ERR-04**: All forms use Zod schema validation with inline per-field error messages
-- [ ] **ERR-05**: Form validation applied to existing forms (login, signup) and all new v1.1 forms
+- [x] **ERR-04**: All forms use Zod schema validation with inline per-field error messages
+- [x] **ERR-05**: Form validation applied to existing forms (login, signup) and all new v1.1 forms
 - [x] **ERR-06**: API error responses mapped to user-readable messages
 
 ### Responsive Layout
 
-- [ ] **RESP-01**: ActionConfirmPage (email action link target) fully usable on mobile (375px+)
-- [ ] **RESP-02**: Login and signup pages fully usable on mobile
+- [x] **RESP-01**: ActionConfirmPage (email action link target) fully usable on mobile (375px+)
+- [x] **RESP-02**: Login and signup pages fully usable on mobile
 - [ ] **RESP-03**: Dashboard list views readable and navigable on mobile
 - [ ] **RESP-04**: Workflow detail page (stepper, comments, actions) usable on mobile
 - [ ] **RESP-05**: Touch targets minimum 44x44px on all interactive elements
@@ -125,11 +125,11 @@ Deferred to future releases. Tracked but not in current roadmap.
 | ERR-01 | Phase 13 | Complete |
 | ERR-02 | Phase 13 | Complete |
 | ERR-03 | Phase 13 | Complete |
-| ERR-04 | Phase 13 | Pending |
-| ERR-05 | Phase 13 | Pending |
+| ERR-04 | Phase 13 | Complete |
+| ERR-05 | Phase 13 | Complete |
 | ERR-06 | Phase 13 | Complete |
-| RESP-01 | Phase 13 | Pending |
-| RESP-02 | Phase 13 | Pending |
+| RESP-01 | Phase 13 | Complete |
+| RESP-02 | Phase 13 | Complete |
 | COMM-01 | Phase 14 | Pending |
 | COMM-02 | Phase 14 | Pending |
 | COMM-03 | Phase 14 | Pending |

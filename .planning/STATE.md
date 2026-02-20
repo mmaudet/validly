@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 Phase: 13 of 15 (Foundation)
-Plan: 5 of 6
-Status: In progress
-Last activity: 2026-02-20 — Plan 13-05 complete: NotFoundPage, ErrorPage, AppErrorBoundary, catch-all route, mapApiError
+Plan: 6 of 6
+Status: Complete
+Last activity: 2026-02-20 — Plan 13-06 complete: Zod form validation + react-hook-form refactor + mobile responsiveness
 
 Progress: [████░░░░░░] 22% (v1.1)
 
@@ -52,6 +52,7 @@ Progress: [████░░░░░░] 22% (v1.1)
 | Phase 13 P04 | 3 | 2 tasks | 9 files |
 | Phase 13 P05 | 4 | 2 tasks | 7 files |
 | Phase 13 P03 | 3 | 2 tasks | 8 files |
+| Phase 13 P06 | 5 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Progress: [████░░░░░░] 22% (v1.1)
 - [Phase 13]: [13-03] Atomic token consumption via updateMany (not findUnique + update) prevents TOCTOU race conditions on password reset
 - [Phase 13]: [13-03] hashPassword/verifyPassword exported from auth-service.ts for reuse in password-reset-service.ts (not duplicated)
 - [Phase 13]: [13-03] Same 200 response for /auth/forgot-password regardless of email existence (AUTH-04 anti-enumeration)
+- [13-06] Zod v4 + @hookform/resolvers v5: import from 'zod/v3' compat path to satisfy Zod3Type interface (_def.typeName required)
+- [13-06] Zod error messages are i18n keys (not translated strings); components call t(errors.field.message!) at render time
 
 ### v1.1 Key Constraints (from research)
 
@@ -101,5 +104,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 13-05-PLAN.md — Error pages (NotFoundPage, ErrorPage), AppErrorBoundary, catch-all route, mapApiError
+Stopped at: Completed 13-06-PLAN.md — Zod form validation + react-hook-form refactor + mobile responsiveness
 Resume file: None
