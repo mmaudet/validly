@@ -63,8 +63,8 @@ Validly is an open-source, self-hosted document validation workflow engine. It a
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/workflow-create.png" alt="Workflow creation wizard" width="720" /><br/>
-  <em>Workflow creation — step-by-step wizard</em>
+  <img src="docs/screenshots/workflow-detail.png" alt="Workflow detail — phases, steps, and documents" width="720" /><br/>
+  <em>Workflow detail — progression, validation steps, and attached documents</em>
 </p>
 
 ## Getting Started
